@@ -138,7 +138,6 @@ static inline void destroy_parent(Parent* parent) {
         SDL_Quit();
     }
 
-    free(parent);
 }
 
 //=============== children helper func ====================
