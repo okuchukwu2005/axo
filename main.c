@@ -17,56 +17,34 @@ int main(void) {
     set_container_properties(&container2, true, "My Second Container", true, true);
     register_container(&container2);
 
-    	const char* content = "This is a Demo of c forms";
-    Text text = new_text(&container, 0,0, content, 16, ALIGN_LEFT);
-    // Register widget
-    register_text(&text);
 
-        // ---------- RADIO BUTTON DEMO ----------
-    // Group 1 (only one of these three can be selected at a time)
-    Radio radio[3];
-    radio[0] = new_radio_button(&container, 15, 100, 20, 20, "Option 1", 1);
-    radio[1] = new_radio_button(&container, 15, 130, 20, 20, "Option 2", 1);
-    radio[2] = new_radio_button(&container, 15, 160, 20, 20, "Option 3", 1);
-	for(int i = 0; i<3; i++){
-		register_radio(&radio[i]);
-	}
-    // Group 2 (independent from group 1)
-	Radio radio2[2];
-	radio2[0] = new_radio_button(&container, 200, 100, 20, 20, "Choice A", 2);
-	radio2[1] = new_radio_button(&container, 200, 130, 20, 20, "Choice B", 2);
-
-	for(int i = 0; i<2; i++){
-		register_radio(&radio2[i]);
-	}
-       // Create dropdown options
-         char* options[] = {"Option 1", "Option 2", "Option 3", "Option 4"};
-         int option_count = 4;
-         Drop drop_down = new_drop_down(&container, 15, 200, 170, 30, options, option_count);
-         register_drop(&drop_down);
-// ---------- SLIDER DEMO ----------
-    // Create a slider in container (horizontal, 100px wide, 20px high, range 0-100, starting at 50)
-    Slider slider = new_slider(&container, 10, 370, 250, 15, 0, 100, 50, "Volume");
-    register_slider(&slider);
-
- 	 Entry entry =  new_entry(&container2, 20, 70, 300, 2048);
+ 	 Entry entry =  new_entry(&container, 300, 70, 300, 2048);
  	 set_entry_placeholder(&entry, "enter text");
 	register_entry(&entry);
+	
+Entry entry1 =  new_entry(&container2, 20, 70, 300, 2048);
+ 	 set_entry_placeholder(&entry, "enter text");
+	register_entry(&entry1);
+	
+Entry entry2 =  new_entry(&app.window, 20, 70, 300, 2048);
+ 	 set_entry_placeholder(&entry, "enter text");
+	register_entry(&entry2);
+	
+
 
 // 
-     TextBox texty = new_textbox(&container2, 20, 150, 300, 1024);
-
+     TextBox texty = new_textbox(&app.window, 20, 150, 300, 1024);
     register_textbox(&texty);
 
-   	Button button = new_button(&container2, 100, 400, 120, 40, "Click Me", OVERRIDE);
-	register_button(&button);
+   TextBox texty1 = new_textbox(&container, 20, 300, 300, 1024);
+    register_textbox(&texty1);
 
-	ProgressBar prox = new_progress_bar(&container2, 20, 500, 250, 15, 0, 100, 50, true);
+   TextBox texty2 = new_textbox(&container2, 20, 150, 300, 1024);
+    register_textbox(&texty2);
 
-    register_progress_bar(&prox);
 
-    Image  image = new_image(&app.window, 400, 0, "img.jpg", 0, 0 );
-	register_image(&image);
+
+
     app_run_(&app.window);
 
 

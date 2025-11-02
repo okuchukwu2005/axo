@@ -151,162 +151,195 @@ TextBox new_textbox(Parent* parent, int x, int y, int w, int max_length) {
 // Renders the textbox widget to the screen
 // Parameters:
 // - textbox: The TextBox widget to render
+/* --------------------------------------------------------------
+   RENDER TEXTBOX – CLIPPING FIXED
+   -------------------------------------------------------------- */
 void render_textbox(TextBox* textbox) {
-    // Validate inputs to ensure the textbox, its parent, and renderer are valid
-    if (!textbox || !textbox->parent || !textbox->parent->base.sdl_renderer || !textbox->parent->is_open) {
+    if (!textbox || !textbox->parent || !textbox->parent->base.sdl_renderer ||
+        !textbox->parent->is_open) {
         printf("Invalid textbox, renderer, or parent is not open\n");
         return;
     }
-	//set container clipping
-	if(textbox->parent->is_window == false){
-	SDL_Rect parent_bounds = get_parent_rect(textbox->parent);
-	SDL_RenderSetClipRect(textbox->parent->base.sdl_renderer, &parent_bounds);
-	}
-    // Default to light theme if none is set
-    if (!current_theme) {
-        current_theme = (Theme*)&THEME_LIGHT;
-    }
 
-    // Get DPI scale for converting logical coordinates to physical pixels
+    SDL_Renderer* renderer = textbox->parent->base.sdl_renderer;
     float dpi = textbox->parent->base.dpi_scale;
 
-    // Calculate absolute position in logical coordinates, accounting for parent position and title bar
+    /* ---------- 1. SAVE CURRENT CLIP STATE ---------- */
+    SDL_Rect saved_clip;
+    SDL_RenderGetClipRect(renderer, &saved_clip);
+    SDL_bool clip_was_enabled = SDL_RenderIsClipEnabled(renderer);
+
+    /* ---------- 2. APPLY PARENT CLIP (if we are inside a container) ---------- */
+    SDL_Rect parent_clip = {0,0,0,0};
+    SDL_bool has_parent_clip = SDL_FALSE;
+
+    if (!textbox->parent->is_window) {
+        parent_clip = get_parent_rect(textbox->parent);
+        parent_clip.x = (int)roundf(parent_clip.x * dpi);
+        parent_clip.y = (int)roundf(parent_clip.y * dpi);
+        parent_clip.w = (int)roundf(parent_clip.w * dpi);
+        parent_clip.h = (int)roundf(parent_clip.h * dpi);
+
+        SDL_RenderSetClipRect(renderer, &parent_clip);
+        has_parent_clip = SDL_TRUE;
+    }
+
+    /* ---------- 3. CALCULATE TEXTBOX BOUNDS (physical pixels) ---------- */
     int abs_x = textbox->x + textbox->parent->x;
     int abs_y = textbox->y + textbox->parent->y + textbox->parent->title_height;
+
     int sx = (int)roundf(abs_x * dpi);
     int sy = (int)roundf(abs_y * dpi);
     int sw = (int)roundf(textbox->w * dpi);
     int sh = (int)roundf(textbox->h * dpi);
-    int border_width = (int)roundf(2 * dpi);
-    int padding = (int)roundf(current_theme->padding * dpi);
-    int cursor_width = (int)roundf(2 * dpi);
-    int font_size = (int)roundf(current_theme->default_font_size * dpi);
-    char* font_file = current_theme->font_file ? current_theme->font_file : "FreeMono.ttf";
 
-    // Load the font for rendering text
+    int border_width = (int)roundf(2 * dpi);
+    int padding      = (int)roundf(current_theme->padding * dpi);
+    int font_size    = (int)roundf(current_theme->default_font_size * dpi);
+
+    /* ---------- 4. LOAD FONT ---------- */
+    char* font_file = current_theme->font_file ? current_theme->font_file : "FreeMono.ttf";
     TTF_Font* font = TTF_OpenFont(font_file, font_size);
     if (!font) {
         printf("Failed to load font: %s\n", TTF_GetError());
-        return;
+        goto restore_clip;
     }
-
-    // Get the font height for vertical alignment
     int font_height = TTF_FontHeight(font);
 
-    // Define colors from the theme for consistent styling
-    Color outline_color = current_theme->accent;  // Border color
-    Color bg_color = current_theme->bg_secondary; // Background color
-    Color cursor_color = current_theme->accent;   // Cursor color
-    Color highlight_color = current_theme->accent_hovered; // Selection highlight color
+    /* ---------- 5. DRAW BORDER / BACKGROUND (respects parent clip) ---------- */
+    draw_rect_(&textbox->parent->base, sx, sy, sw, sh,
+               current_theme->accent);
+    draw_rect_(&textbox->parent->base,
+               sx + border_width, sy + border_width,
+               sw - 2*border_width, sh - 2*border_width,
+               current_theme->bg_secondary);
 
-    // Draw outline rect
-    draw_rect_(&textbox->parent->base, sx, sy, sw, sh, outline_color);
-    // Draw textbox rect (background)
-    draw_rect_(&textbox->parent->base, sx + border_width, sy + border_width, 
-               sw - 2 * border_width, sh - 2 * border_width, bg_color);
+    /* ---------- 6. PREPARE TEXT-CLIPPING (intersect with parent) ---------- */
+    SDL_Rect text_clip = {
+        sx + border_width,
+        sy + border_width,
+        sw - 2*border_width,
+        sh - 2*border_width
+    };
 
-    // Determine text to display
-    char* display_text = (textbox->is_active || textbox->text[0] != '\0') ? textbox->text : textbox->place_holder;
-    Color text_color = (display_text == textbox->place_holder) ? current_theme->text_secondary : current_theme->text_primary;
+    if (has_parent_clip) {
+        if (!SDL_IntersectRect(&parent_clip, &text_clip, &text_clip)) {
+            /* Nothing visible – skip text drawing */
+            TTF_CloseFont(font);
+            goto restore_clip;
+        }
+    }
+    SDL_RenderSetClipRect(renderer, &text_clip);
+
+    /* ---------- 7. TEXT RENDERING (unchanged logic, now safely clipped) ---------- */
+    char* display_text = (textbox->is_active || textbox->text[0] != '\0')
+                         ? textbox->text : textbox->place_holder;
+
+    Color text_color = (display_text == textbox->place_holder)
+                       ? current_theme->text_secondary
+                       : current_theme->text_primary;
+
     int text_x = sx + padding;
     int text_y = sy + padding;
     int max_text_width = sw - 2 * padding;
 
-    // Compute visual lines (using scaled font and width, but since scale-invariant, lines same as logical)
     int num_lines = 0;
     Line* lines = compute_visual_lines(display_text, max_text_width, font, &num_lines);
 
-    // Calculate number of visible lines
     int visible_lines_count = (sh - 2 * padding) / font_height;
 
-    // Clip rendering to textbox rectangle
-    SDL_Rect clip_rect = {sx + border_width, sy + border_width, sw - 2 * border_width, sh - 2 * border_width};
-    SDL_RenderSetClipRect(textbox->parent->base.sdl_renderer, &clip_rect);
-
-    // Determine selection range
-    int sel_min = -1;
-    int sel_max = -1;
+    /* ---- selection range ---- */
+    int sel_min = -1, sel_max = -1;
     if (textbox->selection_start != -1 && textbox->is_active) {
-        sel_min = textbox->selection_start < textbox->cursor_pos ? textbox->selection_start : textbox->cursor_pos;
-        sel_max = textbox->selection_start < textbox->cursor_pos ? textbox->cursor_pos : textbox->selection_start;
+        sel_min = textbox->selection_start < textbox->cursor_pos
+                  ? textbox->selection_start : textbox->cursor_pos;
+        sel_max = textbox->selection_start < textbox->cursor_pos
+                  ? textbox->cursor_pos : textbox->selection_start;
     }
 
-    // Render visible lines
-    for (int i = textbox->visible_line_start; i < num_lines && i < textbox->visible_line_start + visible_lines_count; i++) {
+    /* ---- render visible lines ---- */
+    for (int i = textbox->visible_line_start;
+         i < num_lines && i < textbox->visible_line_start + visible_lines_count;
+         ++i) {
+
         Line l = lines[i];
         char* line_text = (char*)malloc(l.len + 1);
-        if (line_text) {
-            strncpy(line_text, display_text + l.start, l.len);
-            line_text[l.len] = '\0';
-        } else {
-            continue;
-        }
+        if (!line_text) continue;
+        strncpy(line_text, display_text + l.start, l.len);
+        line_text[l.len] = '\0';
 
         int draw_y = text_y + (i - textbox->visible_line_start) * font_height;
 
-        // If there's a selection, draw highlight for overlapping part
+        /* ---- highlight overlapping selection ---- */
         if (sel_min != -1) {
-            int line_start_char = l.start;
-            int line_end_char = l.start + l.len;
-            if (sel_max > line_start_char && sel_min < line_end_char) {
-                int overlap_start = sel_min > line_start_char ? sel_min : line_start_char;
-                int overlap_end = sel_max < line_end_char ? sel_max : line_end_char;
+            int line_start = l.start;
+            int line_end   = l.start + l.len;
+            if (sel_max > line_start && sel_min < line_end) {
+                int ov_start = sel_min > line_start ? sel_min : line_start;
+                int ov_end   = sel_max < line_end   ? sel_max : line_end;
 
-                // Prefix width to overlap_start
-                char* temp = (char*)malloc((overlap_start - line_start_char) + 1);
-                if (temp) {
-                    strncpy(temp, display_text + line_start_char, overlap_start - line_start_char);
-                    temp[overlap_start - line_start_char] = '\0';
-                    int highlight_x_offset = 0;
-                    TTF_SizeText(font, temp, &highlight_x_offset, NULL);
-                    free(temp);
+                /* prefix width */
+                char* tmp = (char*)malloc((ov_start - line_start) + 1);
+                if (tmp) {
+                    strncpy(tmp, display_text + line_start,
+                            ov_start - line_start);
+                    tmp[ov_start - line_start] = '\0';
+                    int offset = 0;
+                    TTF_SizeText(font, tmp, &offset, NULL);
+                    free(tmp);
+                    int hx = text_x + offset;
 
-                    int highlight_x = text_x + highlight_x_offset;
-
-                    // Overlap width
-                    temp = (char*)malloc((overlap_end - overlap_start) + 1);
-                    if (temp) {
-                        strncpy(temp, display_text + overlap_start, overlap_end - overlap_start);
-                        temp[overlap_end - overlap_start] = '\0';
-                        int highlight_w = 0;
-                        TTF_SizeText(font, temp, &highlight_w, NULL);
-                        free(temp);
-
-                        // Draw highlight
-                        draw_rect_(&textbox->parent->base, highlight_x, draw_y, highlight_w, font_height, highlight_color);
+                    /* overlap width */
+                    tmp = (char*)malloc((ov_end - ov_start) + 1);
+                    if (tmp) {
+                        strncpy(tmp, display_text + ov_start,
+                                ov_end - ov_start);
+                        tmp[ov_end - ov_start] = '\0';
+                        int w = 0;
+                        TTF_SizeText(font, tmp, &w, NULL);
+                        free(tmp);
+                        draw_rect_(&textbox->parent->base,
+                                   hx, draw_y, w, font_height,
+                                   current_theme->accent_hovered);
                     }
                 }
             }
         }
 
-        // Render line text
-        draw_text_from_font_(&textbox->parent->base, font, line_text, text_x, draw_y, text_color, ALIGN_LEFT);
-
+        /* ---- draw line text ---- */
+        draw_text_from_font_(&textbox->parent->base, font, line_text,
+                             text_x, draw_y, text_color, ALIGN_LEFT);
         free(line_text);
     }
 
-    // Render cursor if active
+    /* ---- draw cursor (if active) ---- */
     if (textbox->is_active) {
-        for (int i = 0; i < num_lines; i++) {
+        for (int i = 0; i < num_lines; ++i) {
             Line l = lines[i];
-            if (textbox->cursor_pos >= l.start && textbox->cursor_pos <= l.start + l.len) {
-                if (i < textbox->visible_line_start || i >= textbox->visible_line_start + visible_lines_count) {
-                    break; // Not visible
-                }
+            if (textbox->cursor_pos >= l.start &&
+                textbox->cursor_pos <= l.start + l.len) {
+
+                if (i < textbox->visible_line_start ||
+                    i >= textbox->visible_line_start + visible_lines_count)
+                    break;          /* not visible */
+
                 int rel_line = i - textbox->visible_line_start;
-                int draw_y = text_y + rel_line * font_height;
+                int draw_y   = text_y + rel_line * font_height;
+
                 int offset_chars = textbox->cursor_pos - l.start;
-
-                char* temp = (char*)malloc(offset_chars + 1);
-                if (temp) {
-                    strncpy(temp, display_text + l.start, offset_chars);
-                    temp[offset_chars] = '\0';
+                char* tmp = (char*)malloc(offset_chars + 1);
+                if (tmp) {
+                    strncpy(tmp, display_text + l.start, offset_chars);
+                    tmp[offset_chars] = '\0';
                     int cursor_offset = 0;
-                    TTF_SizeText(font, temp, &cursor_offset, NULL);
-                    free(temp);
-
+                    TTF_SizeText(font, tmp, &cursor_offset, NULL);
+                    free(tmp);
                     int cursor_x = text_x + cursor_offset;
-                    draw_rect_(&textbox->parent->base, cursor_x, draw_y, cursor_width, font_height, cursor_color);
+                    int cursor_w = (int)roundf(2 * dpi);
+                    draw_rect_(&textbox->parent->base,
+                               cursor_x, draw_y,
+                               cursor_w, font_height,
+                               current_theme->accent);
                 }
                 break;
             }
@@ -314,12 +347,16 @@ void render_textbox(TextBox* textbox) {
     }
 
     free(lines);
-    SDL_RenderSetClipRect(textbox->parent->base.sdl_renderer, NULL);
     TTF_CloseFont(font);
-    // Reset clipping
-    SDL_RenderSetClipRect(textbox->parent->base.sdl_renderer, NULL);
-}
 
+restore_clip:
+    /* ---------- 8. RESTORE ORIGINAL CLIP STATE ---------- */
+    if (clip_was_enabled) {
+        SDL_RenderSetClipRect(renderer, &saved_clip);
+    } else {
+        SDL_RenderSetClipRect(renderer, NULL);
+    }
+}
 
 void update_visible_lines(TextBox* textbox) {
     if (!textbox || !textbox->parent) {

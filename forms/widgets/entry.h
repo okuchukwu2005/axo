@@ -95,141 +95,147 @@ void set_entry_placeholder(Entry* entry, const char* placeholder) {
 // Parameters:
 // - entry: The Entry widget to render
 void render_entry(Entry* entry) {
-    // Validate inputs to ensure the entry, its parent, and renderer are valid
     if (!entry || !entry->parent || !entry->parent->base.sdl_renderer || !entry->parent->is_open) {
-        printf("Invalid entry, renderer, or parent is not open\n");
         return;
     }
-	//set container clipping
-	if(entry->parent->is_window == false){
-	SDL_Rect parent_bounds = get_parent_rect(entry->parent);
-	SDL_RenderSetClipRect(entry->parent->base.sdl_renderer, &parent_bounds);
-	}
 
-    // Default to light theme if none is set
-    if (!current_theme) {
-        current_theme = (Theme*)&THEME_LIGHT;
-    }
-
-    // Get DPI scale for converting logical coordinates to physical pixels
+    SDL_Renderer* renderer = entry->parent->base.sdl_renderer;
     float dpi = entry->parent->base.dpi_scale;
 
-    // Calculate absolute position in logical coordinates, accounting for parent position and title bar
+    /* ---------- SAVE CURRENT CLIP STATE ---------- */
+    SDL_Rect saved_clip;
+    SDL_RenderGetClipRect(renderer, &saved_clip);
+    SDL_bool clip_was_enabled = SDL_RenderIsClipEnabled(renderer);
+
+    /* ---------- OPTIONAL: APPLY PARENT CLIP ---------- */
+    SDL_Rect parent_clip = {0,0,0,0};
+    SDL_bool has_parent_clip = SDL_FALSE;
+
+    if (!entry->parent->is_window) {
+        parent_clip = get_parent_rect(entry->parent);
+        parent_clip.x = (int)roundf(parent_clip.x * dpi);
+        parent_clip.y = (int)roundf(parent_clip.y * dpi);
+        parent_clip.w = (int)roundf(parent_clip.w * dpi);
+        parent_clip.h = (int)roundf(parent_clip.h * dpi);
+
+        SDL_RenderSetClipRect(renderer, &parent_clip);
+        has_parent_clip = SDL_TRUE;
+    }
+
+    /* ---------- CALCULATE ENTRY BOUNDS (physical pixels) ---------- */
     int abs_x = entry->x + entry->parent->x;
     int abs_y = entry->y + entry->parent->y + entry->parent->title_height;
-
-    // Convert to physical coordinates using DPI scaling
     int sx = (int)roundf(abs_x * dpi);
     int sy = (int)roundf(abs_y * dpi);
     int sw = (int)roundf(entry->w * dpi);
     int sh = (int)roundf(entry->h * dpi);
     int border_width = (int)roundf(2 * dpi);
-    int padding = (int)roundf(current_theme->padding * dpi);
-    int cursor_width = (int)roundf(2 * dpi);
-    int font_size = (int)roundf(current_theme->default_font_size * dpi);
+    int padding      = (int)roundf(current_theme->padding * dpi);
+    int font_size    = (int)roundf(current_theme->default_font_size * dpi);
 
-    // Use theme font or default to "FreeMono.ttf" if none specified
+    /* ---------- LOAD FONT ---------- */
     char* font_file = current_theme->font_file ? current_theme->font_file : "FreeMono.ttf";
-
-    // Load the font for rendering text
     TTF_Font* font = TTF_OpenFont(font_file, font_size);
     if (!font) {
         printf("Failed to load font: %s\n", TTF_GetError());
-        return;
+        goto restore_clip;
     }
-
-    // Get the font height for vertical alignment
     int font_height = TTF_FontHeight(font);
 
-    // Define colors from the theme for consistent styling
-    Color outline_color = current_theme->accent; // Border color
-    Color bg_color = current_theme->bg_secondary; // Background color
-    Color cursor_color = current_theme->accent; // Cursor color
-    Color highlight_color = current_theme->accent_hovered; // Selection highlight color
+    /* ---------- DRAW BORDER / BACKGROUND (respects parent clip) ---------- */
+    draw_rect_(&entry->parent->base, sx, sy, sw, sh, current_theme->accent);
+    draw_rect_(&entry->parent->base,
+               sx + border_width, sy + border_width,
+               sw - 2*border_width, sh - 2*border_width,
+               current_theme->bg_secondary);
 
-    // Draw the entry's border rectangle
-    draw_rect_(&entry->parent->base, sx, sy, sw, sh, outline_color);
+    /* ---------- TEXT CLIPPING (intersect with parent if needed) ---------- */
+    SDL_Rect text_clip = {
+        sx + border_width,
+        sy + border_width,
+        sw - 2*border_width,
+        sh - 2*border_width
+    };
 
-    // Draw the entry's background (slightly inset to account for border)
-    draw_rect_(&entry->parent->base, sx + border_width, sy + border_width, 
-               sw - 2 * border_width, sh - 2 * border_width, bg_color);
+    if (has_parent_clip) {
+        if (!SDL_IntersectRect(&parent_clip, &text_clip, &text_clip)) {
+            /* Nothing visible – skip drawing text */
+            TTF_CloseFont(font);
+            goto restore_clip;
+        }
+    }
+    SDL_RenderSetClipRect(renderer, &text_clip);
 
-    // Choose text to display: user text if active or non-empty, otherwise placeholder
-    char* display_text = (entry->is_active || entry->text[0] != '\0') 
-                        ? entry->text + entry->visible_text_start : entry->place_holder;
-
-    // Set text color based on whether placeholder or user text is shown
-    Color text_color = (display_text == entry->place_holder) 
-                      ? current_theme->text_secondary : current_theme->text_primary;
-
-    // Calculate text position (centered vertically)
+    /* ---------- DRAW TEXT, SELECTION, CURSOR (all clipped) ---------- */
     int text_x = sx + padding;
     int text_y = sy + (sh - font_height) / 2;
 
-    // Set a clipping rectangle to prevent text from drawing outside the entry
-    SDL_Rect clip_rect = {sx + border_width, sy + border_width, 
-                         sw - 2 * border_width, sh - 2 * border_width};
-    SDL_RenderSetClipRect(entry->parent->base.sdl_renderer, &clip_rect);
+    char* display_text = (entry->is_active || entry->text[0] != '\0')
+                         ? entry->text + entry->visible_text_start
+                         : entry->place_holder;
 
-    // If there's a text selection and the entry is active, draw the highlight
+    Color text_color = (display_text == entry->place_holder)
+                       ? current_theme->text_secondary
+                       : current_theme->text_primary;
+
+    /* ---- selection highlight (unchanged) ---- */
     if (entry->selection_start != -1 && entry->is_active) {
-        // Determine selection start and end indices
-        int sel_start = (entry->selection_start < entry->cursor_pos 
-                        ? entry->selection_start : entry->cursor_pos) - entry->visible_text_start;
-        int sel_end = (entry->selection_start < entry->cursor_pos 
-                      ? entry->cursor_pos : entry->selection_start) - entry->visible_text_start;
+        int sel_start = (entry->selection_start < entry->cursor_pos
+                         ? entry->selection_start : entry->cursor_pos)
+                        - entry->visible_text_start;
+        int sel_end   = (entry->selection_start < entry->cursor_pos
+                         ? entry->cursor_pos : entry->selection_start)
+                        - entry->visible_text_start;
 
-        // Clamp selection indices to valid range
         if (sel_start < 0) sel_start = 0;
-        if (sel_end > strlen(display_text)) sel_end = strlen(display_text);
-
+        if (sel_end   > (int)strlen(display_text)) sel_end = strlen(display_text);
         if (sel_start < sel_end) {
-            // Calculate pixel offset for the start of the selection
-            char temp_start[entry->max_length + 1];
-            strncpy(temp_start, display_text, sel_start);
-            temp_start[sel_start] = '\0';
-            int highlight_offset = 0;
-            TTF_SizeText(font, temp_start, &highlight_offset, NULL);
-            int highlight_x = text_x + highlight_offset;
+            char temp[entry->max_length + 1];
+            strncpy(temp, display_text, sel_start);
+            temp[sel_start] = '\0';
+            int offset = 0;
+            TTF_SizeText(font, temp, &offset, NULL);
+            int hx = text_x + offset;
 
-            // Calculate width of the selected text
-            strncpy(temp_start, display_text + sel_start, sel_end - sel_start);
-            temp_start[sel_end - sel_start] = '\0';
-            int highlight_w = 0;
-            TTF_SizeText(font, temp_start, &highlight_w, NULL);
+            strncpy(temp, display_text + sel_start, sel_end - sel_start);
+            temp[sel_end - sel_start] = '\0';
+            int w = 0;
+            TTF_SizeText(font, temp, &w, NULL);
 
-            // Draw the selection highlight rectangle
-            draw_rect_(&entry->parent->base, highlight_x, text_y, highlight_w, 
-                      font_height, highlight_color);
+            draw_rect_(&entry->parent->base, hx, text_y, w, font_height,
+                       current_theme->accent_hovered);
         }
     }
 
-    // Render the visible text (user input or placeholder)
-    draw_text_from_font_(&entry->parent->base, font, display_text, text_x, text_y, 
-                        text_color, ALIGN_LEFT);
+    /* ---- text ---- */
+    draw_text_from_font_(&entry->parent->base, font, display_text,
+                         text_x, text_y, text_color, ALIGN_LEFT);
 
-    // Render cursor if the entry is active
+    /* ---- cursor ---- */
     if (entry->is_active) {
         int cursor_offset = 0;
-        if (entry->text[0] != '\0') {
-            // Calculate pixel offset to the cursor position
+        if (entry->cursor_pos - entry->visible_text_start > 0) {
             char temp[entry->max_length + 1];
-            strncpy(temp, display_text, entry->cursor_pos - entry->visible_text_start);
+            strncpy(temp, display_text,
+                    entry->cursor_pos - entry->visible_text_start);
             temp[entry->cursor_pos - entry->visible_text_start] = '\0';
             TTF_SizeText(font, temp, &cursor_offset, NULL);
         }
         int cursor_x = text_x + cursor_offset;
-        // Draw the cursor as a thin vertical rectangle
-        draw_rect_(&entry->parent->base, cursor_x, text_y, cursor_width, 
-                  font_height, cursor_color);
+        int cursor_w = (int)roundf(2 * dpi);
+        draw_rect_(&entry->parent->base, cursor_x, text_y,
+                   cursor_w, font_height, current_theme->accent);
     }
 
-    // Disable clipping after rendering
-    SDL_RenderSetClipRect(entry->parent->base.sdl_renderer, NULL);
-    TTF_CloseFont(font); // Free the font resource
+    TTF_CloseFont(font);
 
-    // Reset clipping
-    SDL_RenderSetClipRect(entry->parent->base.sdl_renderer, NULL);
+restore_clip:
+    /* ---------- RESTORE ORIGINAL CLIP STATE ---------- */
+    if (clip_was_enabled) {
+        SDL_RenderSetClipRect(renderer, &saved_clip);
+    } else {
+        SDL_RenderSetClipRect(renderer, NULL);
+    }
 }
 // Updates the visible portion of the text when the cursor moves or text changes
 // Parameters:
