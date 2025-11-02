@@ -25,51 +25,33 @@ typedef struct {
     Color* custom_label_color;   // Label text color
 } Radio;
 
-#define MAX_RADIOS 100
-static Radio* radio_widgets[MAX_RADIOS];
-static int radios_count = 0;
-
-// -------- Register --------
-static inline void register_widget_radio(Radio* radio) {
-    if (radios_count < MAX_RADIOS) {
-        radio_widgets[radios_count++] = radio;
-    }
-}
 
 // -------- Create --------
-static inline Radio* new_radio_button_(Parent* parent, int x, int y, int w, int h,
+static inline Radio new_radio_button(Parent* parent, int x, int y, int w, int h,
                                        const char* label, int group_id) {
     if (!parent || !parent->base.sdl_renderer) {
         printf("Invalid parent or renderer\n");
-        return NULL;
     }
 
-    Radio* radio = (Radio*)malloc(sizeof(Radio));
-    if (!radio) {
-        printf("Failed to allocate Radio\n");
-        return NULL;
-    }
+    Radio radio;
 
-    radio->parent = parent;
-    radio->x = x;
-    radio->y = y;
-    radio->w = w;
-    radio->h = h;
-    radio->label = strdup(label);
-    if (!radio->label) {
-        free(radio);
+    radio.parent = parent;
+    radio.x = x;
+    radio.y = y;
+    radio.w = w;
+    radio.h = h;
+    radio.label = strdup(label);
+    if (!radio.label) {
         printf("Failed to allocate memory for label\n");
-        return NULL;
     }
-    radio->selected = false;
-    radio->group_id = group_id;
-    radio->is_hovered = false;
+    radio.selected = false;
+    radio.group_id = group_id;
+    radio.is_hovered = false;
     // Init overrides to NULL (use theme)
-    radio->custom_outer_color = NULL;
-    radio->custom_inner_color = NULL;
-    radio->custom_label_color = NULL;
+    radio.custom_outer_color = NULL;
+    radio.custom_inner_color = NULL;
+    radio.custom_label_color = NULL;
 
-    register_widget_radio(radio);
     return radio;
 }
 
@@ -159,6 +141,10 @@ static inline void render_radio_(Radio* radio) {
     SDL_RenderSetClipRect(radio->parent->base.sdl_renderer, NULL);
 }
 
+#define MAX_RADIOS 100
+static Radio* radio_widgets[MAX_RADIOS];
+static int radios_count = 0;
+
 // -------- Update --------
 static inline void update_radio_(Radio* radio, SDL_Event event) {
     if (!radio || !radio->parent || !radio->parent->is_open) {
@@ -204,7 +190,13 @@ static inline void free_radio_(Radio* radio) {
         if (radio->custom_outer_color) free(radio->custom_outer_color);
         if (radio->custom_inner_color) free(radio->custom_inner_color);
         if (radio->custom_label_color) free(radio->custom_label_color);
-        free(radio);
+    }
+}
+
+// -------- Register --------
+static inline void register_radio(Radio* radio) {
+    if (radios_count < MAX_RADIOS) {
+        radio_widgets[radios_count++] = radio;
     }
 }
 
@@ -234,3 +226,27 @@ static inline void free_all_registered_radios(void) {
 }
 
 #endif // RADIO_H
+
+/**
+ * RADIO CREATION STYLES (user side)
+ * ---------------------------------
+ *
+ * METHOD 1: simple stack locals (most common)
+ *
+ *     Radio r1 = new_radio_button(parent, 40, 40, 24, 24, "Option A", 1);
+ *     Radio r2 = new_radio_button(parent, 40, 80, 24, 24, "Option B", 1);
+ *     register_radio(&r1);
+ *     register_radio(&r2);
+ *
+ *
+ * METHOD 3: bulk creation array pattern (settings / wizard panes)
+ *
+ *     Radio radios[3];
+ *     radios[0] = new_radio_button(parent, 50, 40, 24, 24, "Low",    1);
+ *     radios[1] = new_radio_button(parent, 50, 80, 24, 24, "Medium", 1);
+ *     radios[2] = new_radio_button(parent, 50,120, 24, 24, "High",   1);
+ *
+ *     for (int i = 0; i < 3; i++) {
+ *         register_radio(&radios[i]);
+ *     }
+ */

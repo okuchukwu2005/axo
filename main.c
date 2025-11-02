@@ -24,14 +24,21 @@ int main(void) {
 
         // ---------- RADIO BUTTON DEMO ----------
     // Group 1 (only one of these three can be selected at a time)
-    new_radio_button_(&container, 15, 100, 20, 20, "Option 1", 1);
-    new_radio_button_(&container, 15, 130, 20, 20, "Option 2", 1);
-    new_radio_button_(&container, 15, 160, 20, 20, "Option 3", 1);
-
+    Radio radio[3];
+    radio[0] = new_radio_button(&container, 15, 100, 20, 20, "Option 1", 1);
+    radio[1] = new_radio_button(&container, 15, 130, 20, 20, "Option 2", 1);
+    radio[2] = new_radio_button(&container, 15, 160, 20, 20, "Option 3", 1);
+	for(int i = 0; i<3; i++){
+		register_radio(&radio[i]);
+	}
     // Group 2 (independent from group 1)
-    new_radio_button_(&container, 200, 100, 20, 20, "Choice A", 2);
-    new_radio_button_(&container, 200, 130, 20, 20, "Choice B", 2);
+	Radio radio2[2];
+	radio2[0] = new_radio_button(&container, 200, 100, 20, 20, "Choice A", 2);
+	radio2[1] = new_radio_button(&container, 200, 130, 20, 20, "Choice B", 2);
 
+	for(int i = 0; i<2; i++){
+		register_radio(&radio2[i]);
+	}
        // Create dropdown options
          char* options[] = {"Option 1", "Option 2", "Option 3", "Option 4"};
          int option_count = 4;
