@@ -1,3 +1,4 @@
+#define PRINT_THEME(name) printf("Switched to %s\n", name)
 //------------------------- APP ___________
 typedef struct {
     Parent window; // Window struct from window.h
@@ -40,23 +41,25 @@ void app_run_(Parent *parent) {
                 running = 0;
             } else {
                 // New: Handle theme switching on key press
-                if (event.type == SDL_KEYDOWN) {
-                    switch (event.key.keysym.sym) {
-                        case SDLK_l:  // 'L' for Light
-                            set_theme(&THEME_LIGHT);
-                            printf("Switched to Light theme\n");
-                            break;
-                        case SDLK_d:  // 'D' for Dark
-                            set_theme(&THEME_DARK);
-                            printf("Switched to Dark theme\n");
-                            break;
-                        case SDLK_h:  // 'H' for Hacker
-                            set_theme(&THEME_HACKER);
-                            printf("Switched to Hacker theme\n");
-                            break;
-                        default:
-                            break;
-                    }
+ // === THEME SWITCHING (F1–F10) ===
+            if (event.type == SDL_KEYDOWN) {
+                switch (event.key.keysym.sym) {
+                    case SDLK_F1:  set_theme(&THEME_LIGHT);           break;
+                    case SDLK_F2:  set_theme(&THEME_DARK);            break;
+                    case SDLK_F3:  set_theme(&THEME_HACKER);          break;
+                    case SDLK_F4:  set_theme(&THEME_IMGUI_DARK);      break;
+                    case SDLK_F5:  set_theme(&THEME_NUKLEAR);         break;
+                    case SDLK_F6:  set_theme(&THEME_MATERIAL_DARK);   break;
+                    case SDLK_F7:  set_theme(&THEME_DRACULA);         break;
+                    case SDLK_F8:  set_theme(&THEME_NORD);            break;
+                    case SDLK_F9:  set_theme(&THEME_SOLARIZED_DARK);  break;
+                    case SDLK_F10: set_theme(&THEME_WIN95);      break;
+
+                    default:
+                        break;
+                }
+            
+
                 }
 
                 update_all_registered_containers(event);
