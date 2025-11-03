@@ -1,19 +1,34 @@
+# compiler
 CC = gcc
-FILE = main.c
-CFLAGS = -Wall
-EXE = main
-SDL = -lSDL2 -lSDL2_ttf -lSDL2_image -lm
 
-# Declare phony targets
-.PHONY: all clean run
+# include paths
+INCLUDES = -I include -I .
 
-all: $(EXE)
+# sdl (you will expand this later)
+LIBS = -lSDL2 -lSDL2_ttf -lSDL2_image
 
-$(EXE): $(FILE)
-	$(CC) $(FILE) -o $(EXE) $(SDL)
+# collect all c files in src
+SRC = $(wildcard src/core/*.c) $(wildcard src/widgets/*.c)
+OBJ = $(SRC:.c=.o)
+
+# the output static library
+LIB = libforms.a
+
+# default
+all: $(LIB)
+
+$(LIB): $(OBJ)
+	@echo "  AR    $@"
+	ar rcs $@ $^
+
+# pattern rule
+%.o: %.c
+	@echo "  CC    $<"
+	$(CC) -c $< $(INCLUDES) -Wall -Wextra -std=c11
 
 clean:
-	rm -f $(EXE)
+	rm -f $(OBJ) $(LIB)
 
-run: clean all
-	./$(EXE)
+# example executable (your test main)
+example:
+	$(CC) examples/main.c $(INCLUDES) -L. -lforms $(LIBS) -o example

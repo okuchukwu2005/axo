@@ -5,9 +5,7 @@
 #ifndef COLOR_H
 #define COLOR_H
 
-#include <SDL2/SDL.h>
-#include <stdint.h>  // For uint8_t (ensures compatibility)
-
+#include <SDL2/SDL_stdinc.h> // this defines Uint8
 /**
  * @struct Color
  * @brief Represents an RGBA color with 8-bit components
@@ -26,15 +24,7 @@ typedef struct {
  * @param factor The darkening amount
  * @return The darkened color
  */
-static inline Color darken_color(Color c, float factor) {
-    Color darkened = {
-        .r = (uint8_t)(c.r * (1.0f - factor)),
-        .g = (uint8_t)(c.g * (1.0f - factor)),
-        .b = (uint8_t)(c.b * (1.0f - factor)),
-        .a = c.a
-    };
-    return darkened;
-}
+Color darken_color(Color c, float factor);
 
 /**
  * @brief Lightens a color by a factor (0.0 = no change, 1.0 = white)
@@ -42,15 +32,7 @@ static inline Color darken_color(Color c, float factor) {
  * @param factor The lightening amount
  * @return The lightened color
  */
-static inline Color lighten_color(Color c, float factor) {
-    Color lightened = {
-        .r = (uint8_t)(c.r + (255 - c.r) * factor),
-        .g = (uint8_t)(c.g + (255 - c.g) * factor),
-        .b = (uint8_t)(c.b + (255 - c.b) * factor),
-        .a = c.a
-    };
-    return lightened;
-}
+Color lighten_color(Color c, float factor);
 
 // Basic colors
 #define COLOR_BLACK       (Color){0, 0, 0, 255}

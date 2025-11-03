@@ -42,10 +42,6 @@ typedef struct {
     float roundness;        // Rounding factor for rounded rectangles (0.0 to 1.0)
 } Theme;
 
-const Theme* current_theme = NULL;  // Global definition (initialized to NULL; set in init)
-// Function to set the current theme
-void set_theme(const Theme* theme);
-
 // Predefined themes
 
 /**
@@ -270,11 +266,7 @@ static const Theme THEME_WIN95 = {
     .roundness           = 0.0f
 };
 
-
-// Implementation of set_theme (can be in a .c file or inline here)
-void set_theme(const Theme* theme) {
-    current_theme = theme;
-    // Optional: Trigger a redraw if needed (e.g., set a flag for your main loop)
-}
+extern const Theme* current_theme;
+void set_theme(const Theme* theme);
 
 #endif // THEME_H

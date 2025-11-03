@@ -1,62 +1,25 @@
-/**
- * @file graphics.h
- * @brief Contains all rendering logic for SDL2-based drawing operations
- */
-
-#ifndef GRAPHICS_H
-#define GRAPHICS_H
-
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_ttf.h>
-#include <SDL2/SDL_image.h>
+#include "graphics.h"
 #include <stdio.h>
 #include <math.h>
-#include "color.h"   // Access Color struct
 
-/**
- * @brief Clears the screen to the specified color
- * @param base Pointer to the Base struct containing the renderer
- * @param color The background color to set
- */
-static inline void clear_screen_(Base* base, Color color) {
+void clear_screen_(Base* base, Color color) {
     SDL_SetRenderDrawColor(base->sdl_renderer, color.r, color.g, color.b, color.a);
     SDL_RenderClear(base->sdl_renderer);
 }
 
-/**
- * @brief Presents the rendered content to the screen
- * @param base Pointer to the Base struct containing the renderer
- */
-static inline void present_(Base* base) {
+void present_(Base* base) {
     SDL_RenderPresent(base->sdl_renderer);
 }
 
 // ______________DRAW FUNCTIONS_____________
 
-/**
- * @brief Draws a filled rectangle at the specified position and size
- * @param base Pointer to the Base struct containing the renderer
- * @param x X-coordinate of the top-left corner
- * @param y Y-coordinate of the top-left corner
- * @param w Width of the rectangle
- * @param h Height of the rectangle
- * @param color The fill color of the rectangle
- */
-static inline void draw_rect_(Base* base, int x, int y, int w, int h, Color color) {
+void draw_rect_(Base* base, int x, int y, int w, int h, Color color) {
     SDL_SetRenderDrawColor(base->sdl_renderer, color.r, color.g, color.b, color.a);
     SDL_Rect rect = {x, y, w, h};
     SDL_RenderFillRect(base->sdl_renderer, &rect);
 }
 
-/**
- * @brief Draws a filled circle at the specified center with the given radius
- * @param base Pointer to the Base struct containing the renderer
- * @param x X-coordinate of the circle's center
- * @param y Y-coordinate of the circle's center
- * @param radius Radius of the circle
- * @param color The fill color of the circle
- */
-static inline void draw_circle_(Base* base, int x, int y, int radius, Color color) {
+void draw_circle_(Base* base, int x, int y, int radius, Color color) {
     SDL_SetRenderDrawColor(base->sdl_renderer, color.r, color.g, color.b, color.a);
     // Midpoint circle algorithm (approximation for filled circle)
     for (int w = -radius; w <= radius; w++) {
@@ -68,18 +31,7 @@ static inline void draw_circle_(Base* base, int x, int y, int radius, Color colo
     }
 }
 
-/**
- * @brief Draws a filled triangle with the specified vertices
- * @param base Pointer to the Base struct containing the renderer
- * @param x1 X-coordinate of the first vertex
- * @param y1 Y-coordinate of the first vertex
- * @param x2 X-coordinate of the second vertex
- * @param y2 Y-coordinate of the second vertex
- * @param x3 X-coordinate of the third vertex
- * @param y3 Y-coordinate of the third vertex
- * @param color The fill color of the triangle
- */
-static inline void draw_triangle_(Base* base, int x1, int y1, int x2, int y2, int x3, int y3, Color color) {
+void draw_triangle_(Base* base, int x1, int y1, int x2, int y2, int x3, int y3, Color color) {
     SDL_SetRenderDrawColor(base->sdl_renderer, color.r, color.g, color.b, color.a);
 
     // Sort vertices by y-coordinate (v1 at top, v3 at bottom)
@@ -135,17 +87,7 @@ static inline void draw_triangle_(Base* base, int x1, int y1, int x2, int y2, in
     }
 }
 
-/**
- * @brief Draws a filled rounded rectangle (similar to raylib's DrawRectangleRounded)
- * @param base Pointer to the Base struct containing the renderer
- * @param x X-coordinate of the top-left corner
- * @param y Y-coordinate of the top-left corner
- * @param w Width of the rectangle
- * @param h Height of the rectangle
- * @param roundness Rounding factor (0.0f = rectangle, 1.0f = full rounded)
- * @param color The fill color of the rounded rectangle
- */
-static inline void draw_rounded_rect_(Base* base, int x, int y, int w, int h, float roundness, Color color) {
+void draw_rounded_rect_(Base* base, int x, int y, int w, int h, float roundness, Color color) {
     SDL_SetRenderDrawColor(base->sdl_renderer, color.r, color.g, color.b, color.a);
 
     if (w <= 0 || h <= 0) {
@@ -236,26 +178,7 @@ static inline void draw_rounded_rect_(Base* base, int x, int y, int w, int h, fl
     }
 }
 
-/**
- * @brief Text alignment options for draw_text_from_font_
- */
-typedef enum {
-    ALIGN_LEFT,
-    ALIGN_CENTER,
-    ALIGN_RIGHT
-} TextAlign;
-
-/**
- * @brief Draws text at the specified position using a provided TTF font
- * @param base Pointer to the Base struct containing the renderer
- * @param font Pointer to the loaded TTF_Font
- * @param text The text string to render
- * @param x X-coordinate for the text (depends on align)
- * @param y Y-coordinate for the top of the text
- * @param color The color of the text
- * @param align Text alignment (ALIGN_LEFT, ALIGN_CENTER, ALIGN_RIGHT)
- */
-static inline void draw_text_from_font_(Base* base, TTF_Font* font, const char* text, int x, int y, Color color, TextAlign align) {
+void draw_text_from_font_(Base* base, TTF_Font* font, const char* text, int x, int y, Color color, TextAlign align) {
     if (!font) {
         printf("No font provided for text rendering\n");
         return;
@@ -301,18 +224,9 @@ static inline void draw_text_from_font_(Base* base, TTF_Font* font, const char* 
     SDL_FreeSurface(surface);
 }
 
-/**
- * @brief Draws text at the specified position with the given font size and color
- * @param base Pointer to the Base struct containing the renderer
- * @param text The text string to render
- * @param font_size The size of the font in points
- * @param x X-coordinate for the top-left corner of the text
- * @param y Y-coordinate for the top-left corner of the text
- * @param color The color of the text
- */
 static char *FONT_FILE = "forms/core/FreeMono.ttf";
 
-static inline void draw_text_(Base* base, const char* text, int font_size, int x, int y, Color color) {
+void draw_text_(Base* base, const char* text, int font_size, int x, int y, Color color) {
     TTF_Font* font = TTF_OpenFont(FONT_FILE, font_size);
     if (!font) {
         printf("Failed to load font '%s': %s\n", FONT_FILE, TTF_GetError());
@@ -323,15 +237,7 @@ static inline void draw_text_(Base* base, const char* text, int font_size, int x
     TTF_CloseFont(font);
 }
 
-/**
- * @brief Draw an image from file (loads and destroys texture each call).
- * @param base Base struct with valid SDL_Renderer.
- * @param file Path to image file.
- * @param x    X coordinate.
- * @param y    Y coordinate.
- * @param w    Width (0 to use texture width).
- * @param h    Height (0 to use texture height).
- */
+
 void draw_image_(Base * base, const char * file, int x, int y, int w, int h){
 	SDL_Texture * texture = IMG_LoadTexture(base->sdl_renderer, file);
 	if(!texture){
@@ -349,15 +255,6 @@ void draw_image_(Base * base, const char * file, int x, int y, int w, int h){
 	SDL_DestroyTexture(texture);
 }
 
-/**
-* @brief Draws an image using sdl texture
-* @param base for renderer
-* @param texture it contains file and renderer
-* @param x
-* @param y
-* @param w
-* @param h 
-*/
 void draw_image_from_texture_(Base *base, SDL_Texture * texture, int x, int y, int w, int h){
 	if(!texture){
 		printf("Failed to load img: %s\n", IMG_GetError());
@@ -371,5 +268,3 @@ void draw_image_from_texture_(Base *base, SDL_Texture * texture, int x, int y, i
     SDL_Rect img_rect = {x, y, w, h}; // x, y, w, h
     SDL_RenderCopy(base->sdl_renderer, texture, NULL, &img_rect);
 }
-
-#endif // GRAPHICS_H

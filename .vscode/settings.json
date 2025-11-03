@@ -1,0 +1,16 @@
+{
+    "files.associations": {
+        "typeinfo": "c",
+        "progress.h": "c",
+        "container.h": "c",
+        "stdint.h": "c",
+        "parent.h": "c",
+        "sdl_image.h": "c",
+        "sdl_ttf.h": "c",
+        "stdlib.h": "c",
+        "stdio.h": "c",
+        "color.h": "c",
+        "stdbool.h": "c",
+        "drop.h": "c"
+    }
+}

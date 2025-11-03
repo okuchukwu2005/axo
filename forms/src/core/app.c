@@ -1,8 +1,20 @@
-#define PRINT_THEME(name) printf("Switched to %s\n", name)
-//------------------------- APP ___________
-typedef struct {
-    Parent window; // Window struct from window.h
-} App;
+#include "app.h"
+// SDL
+#include<SDL2/SDL.h>
+// core
+#include "theme.h"
+#include "graphics.h"
+// widgets
+#include"container.h"
+#include"entry.h"
+#include"drop.h"
+#include"radio.h"
+#include"textbox.h"
+#include"slider.h"
+#include"button.h"
+#include"text.h"
+#include"progress.h"
+#include"image.h"
 
 App init_app(void) {
     App app = {0}; // Initialize struct members to zero

@@ -1,5 +1,7 @@
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_ttf.h>
+/// umbrella header
+#ifndef FORM_H
+#define FORM_H
+
 #include"core/parent.h"
 #include"core/graphics.h"
 #include"core/theme.h"
@@ -14,3 +16,5 @@
 #include"widgets/progress.h"
 #include"widgets/image.h"
 #include"core/app.h"
+
+#endif // FORM_H
