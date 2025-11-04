@@ -6,20 +6,12 @@
 #ifndef TEXT_H
 #define TEXT_H
 
+#include "text.h"
+#include "theme.h"
 #include <stdlib.h> // for malloc
 #include <string.h> // for strdup
-#include <SDL2/SDL.h> // for SDL_Event, etc.
 #include <SDL2/SDL_ttf.h> // for TTF_Font
 
-
-typedef struct {
-    Parent* parent;            // Pointer to the parent window or container
-    int x, y;                  // Position of the text
-    char* content;             // Text content
-    int font_size;             // Font size in points
-    Color* color;               // Text color
-    TextAlign align;           // Alignment (LEFT, CENTER, RIGHT)
-} Text;
 
 Text new_text(Parent* parent, int x, int y, const char* content, int font_size, TextAlign align) {
     if (!parent || !parent->base.sdl_renderer) {
@@ -79,7 +71,7 @@ void render_text(Text* text) {
     SDL_RenderSetClipRect(text->parent->base.sdl_renderer, NULL);
 }
 // Setters for overrides
-static inline void set_text_color(Text* text, Color color) {
+void set_text_color(Text* text, Color color) {
     if (!text) return;
 
     if (!text->color) {
@@ -107,7 +99,6 @@ void free_text(Text *text) {
 
 
 // Registration
-#define MAX_TEXTS 100
 
 Text* text_widgets[MAX_TEXTS];
 int texts_count = 0;

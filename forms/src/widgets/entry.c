@@ -1,23 +1,9 @@
+#include"entry.h"
+#include"theme.h"
 #include <stdlib.h> // Provides memory allocation functions like malloc and free
 #include <string.h> // Includes string manipulation functions like strlen, strcat, strdup
-#include <SDL2/SDL.h> // SDL library for handling graphics, events (e.g., SDL_Event, SDLK_* for key codes)
 #include <SDL2/SDL_ttf.h> // SDL_ttf for rendering text (e.g., TTF_SizeText for text measurements)
 #include <math.h>   // For mathematical functions like roundf used in DPI scaling
-
-// Defines a struct for a text entry widget, representing an input field in a GUI
-typedef struct {
-    Parent* parent;            // Pointer to the parent window/container holding this entry
-    int x, y;                  // Logical (unscaled) position of the entry relative to parent
-    int w, h;                  // Logical width and height of the entry
-    char* place_holder;        // Placeholder text shown when the entry is empty
-    int max_length;            // Maximum number of characters allowed in the input
-    char* text;                // Buffer storing the user-entered text
-    int is_active;             // Flag indicating if the entry is currently focused (1 = active, 0 = inactive)
-    int cursor_pos;            // Index of the cursor's position in the text (character index)
-    int selection_start;       // Starting index of text selection (-1 if no selection)
-    int visible_text_start;    // Index of the first visible character (for scrolling text)
-    int is_mouse_selecting;    // Flag to track if mouse is being used to select text
-} Entry;
 
 
 // Creates a new text entry widget with specified properties
@@ -589,7 +575,6 @@ void free_entry(Entry* entry) {
 
 // ___________________
 // Global array to store all registered entry widgets (up to MAX_ENTRYS)
-#define MAX_ENTRYS 100
 Entry* entry_widgets[MAX_ENTRYS];
 int entrys_count = 0; // Tracks the number of registered entries
 

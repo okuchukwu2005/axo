@@ -1,28 +1,11 @@
-#ifndef SLIDER_H
-#define SLIDER_H
-
-#include <SDL2/SDL.h>
+#include "slider.h"
+#include "theme.h"
 #include <stdlib.h> // for malloc
 #include <string.h> // for strdup
 #include <math.h>   // For roundf in scaling
 
-typedef struct {
-    Parent* parent;      // Parent container or window
-    int x, y;            // Position (relative to parent) (logical)
-    int w, h;            // Width and height (assume horizontal slider, w > h) (logical)
-    int min, max;        // Range of values
-    int value;           // Current value
-    char* label;         // Optional label text
-    bool dragging;       // Flag to track if thumb is being dragged
-    bool is_hovered;     // Flag for hover state (for color variants)
-    Color* custom_track_color;   // Optional override for track color (NULL = use theme)
-    Color* custom_thumb_color;   // Optional override for thumb color (NULL = use theme)
-    Color* custom_label_color;   // Optional override for label color (NULL = use theme)
-} Slider;
-
-
 // -------- Create --------
-static inline Slider new_slider(Parent* parent, int x, int y, int w, int h, int min, int max, int start_value, const char* label) {
+Slider new_slider(Parent* parent, int x, int y, int w, int h, int min, int max, int start_value, const char* label) {
     if (!parent || !parent->base.sdl_renderer) {
         printf("Invalid parent or renderer\n");
     }
@@ -48,7 +31,7 @@ static inline Slider new_slider(Parent* parent, int x, int y, int w, int h, int 
 }
 
 // Setters for overrides
-static inline void set_slider_track_color(Slider* slider, Color color) {
+void set_slider_track_color(Slider* slider, Color color) {
     if (slider) {
         if (!slider->custom_track_color) {
             slider->custom_track_color = (Color*)malloc(sizeof(Color));
@@ -57,7 +40,7 @@ static inline void set_slider_track_color(Slider* slider, Color color) {
     }
 }
 
-static inline void set_slider_thumb_color(Slider* slider, Color color) {
+void set_slider_thumb_color(Slider* slider, Color color) {
     if (slider) {
         if (!slider->custom_thumb_color) {
             slider->custom_thumb_color = (Color*)malloc(sizeof(Color));
@@ -66,7 +49,7 @@ static inline void set_slider_thumb_color(Slider* slider, Color color) {
     }
 }
 
-static inline void set_slider_label_color(Slider* slider, Color color) {
+void set_slider_label_color(Slider* slider, Color color) {
     if (slider) {
         if (!slider->custom_label_color) {
             slider->custom_label_color = (Color*)malloc(sizeof(Color));
@@ -76,7 +59,7 @@ static inline void set_slider_label_color(Slider* slider, Color color) {
 }
 
 // -------- Render --------
-static inline void render_slider(Slider* slider) {
+void render_slider(Slider* slider) {
     if (!slider || !slider->parent || !slider->parent->base.sdl_renderer || !slider->parent->is_open) {
         printf("Invalid slider, renderer, or parent is not open\n");
         return;
@@ -139,7 +122,7 @@ static inline void render_slider(Slider* slider) {
 }
 
 // -------- Update --------
-static inline void update_slider(Slider* slider, SDL_Event event) {
+void update_slider(Slider* slider, SDL_Event event) {
     if (!slider || !slider->parent || !slider->parent->is_open) {
         printf("Invalid slider, parent, or parent is not open\n");
         return;
@@ -183,7 +166,7 @@ static inline void update_slider(Slider* slider, SDL_Event event) {
 }
 
 // -------- Free --------
-static inline void free_slider(Slider* slider) {
+void free_slider(Slider* slider) {
     if (slider) {
         free(slider->label);
         if (slider->custom_track_color) free(slider->custom_track_color);
@@ -193,19 +176,18 @@ static inline void free_slider(Slider* slider) {
 }
 
 
-#define MAX_SLIDERS 100
-static Slider* sliders[MAX_SLIDERS];
-static int sliders_count = 0;
+Slider* sliders[MAX_SLIDERS];
+int sliders_count = 0;
 
 // -------- Register --------
-static inline void register_slider(Slider* slider) {
+void register_slider(Slider* slider) {
     if (sliders_count < MAX_SLIDERS) {
         sliders[sliders_count++] = slider;
     }
 }
 
 // -------- Helpers for all Sliders --------
-static inline void render_all_registered_sliders(void) {
+void render_all_registered_sliders(void) {
     for (int i = 0; i < sliders_count; i++) {
         if (sliders[i]) {
             render_slider(sliders[i]);
@@ -213,14 +195,15 @@ static inline void render_all_registered_sliders(void) {
     }
 }
 
-static inline void update_all_registered_sliders(SDL_Event event) {
+void update_all_registered_sliders(SDL_Event event) {
     for (int i = 0; i < sliders_count; i++) {
         if (sliders[i]) {
             update_slider(sliders[i], event);
         }
     }
 }
-static inline void free_all_registered_sliders(void) {
+
+void free_all_registered_sliders(void) {
     for (int i = 0; i < sliders_count; i++) {
         if (sliders[i]) {
             free_slider(sliders[i]);
@@ -229,4 +212,3 @@ static inline void free_all_registered_sliders(void) {
     }
     sliders_count = 0;
 }
-#endif // SLIDER_H

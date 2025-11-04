@@ -1,31 +1,13 @@
-/**
- * @file progress_bar.h
- * @brief Contains logic for progress bar widgets using SDL2
- */
 
-#ifndef PROGRESS_BAR_H
-#define PROGRESS_BAR_H
-
+#include "progress.h"
 #include <stdlib.h> // for malloc
 #include <SDL2/SDL.h> // for SDL_Event, etc.
 #include <math.h>   // For roundf in scaling
 
-typedef struct {
-    Parent* parent;            // Pointer to the parent window or container
-    int x, y;                  // Position of the progress bar (logical)
-    int w, h;                  // Width and height of the progress bar (logical)
-    int min, max;              // Range (default 0-100)
-    int value;                 // Current value (clamped between min and max)
-    bool show_percentage;      // Whether to display percentage text
-    Color* custom_bg_color;    // Optional override for background color (NULL = use theme)
-    Color* custom_fill_color;  // Optional override for fill color (NULL = use theme)
-    Color* custom_text_color;  // Optional override for text color (NULL = use theme)
-} ProgressBar;
-
 
 
 // -------- Create --------
-static inline ProgressBar new_progress_bar(Parent* parent, int x, int y, int w, int h, int min, int max, int start_value, bool show_percentage) {
+ProgressBar new_progress_bar(Parent* parent, int x, int y, int w, int h, int min, int max, int start_value, bool show_percentage) {
     if (!parent || !parent->base.sdl_renderer) {
         printf("Invalid parent or renderer\n");
     }
@@ -48,7 +30,7 @@ static inline ProgressBar new_progress_bar(Parent* parent, int x, int y, int w, 
 }
 
 // Setters for overrides
-static inline void set_progress_bar_bg_color(ProgressBar* progress_bar, Color color) {
+void set_progress_bar_bg_color(ProgressBar* progress_bar, Color color) {
     if (progress_bar) {
         if (!progress_bar->custom_bg_color) {
             progress_bar->custom_bg_color = (Color*)malloc(sizeof(Color));
@@ -57,7 +39,7 @@ static inline void set_progress_bar_bg_color(ProgressBar* progress_bar, Color co
     }
 }
 
-static inline void set_progress_bar_fill_color(ProgressBar* progress_bar, Color color) {
+void set_progress_bar_fill_color(ProgressBar* progress_bar, Color color) {
     if (progress_bar) {
         if (!progress_bar->custom_fill_color) {
             progress_bar->custom_fill_color = (Color*)malloc(sizeof(Color));
@@ -66,7 +48,7 @@ static inline void set_progress_bar_fill_color(ProgressBar* progress_bar, Color 
     }
 }
 
-static inline void set_progress_bar_text_color(ProgressBar* progress_bar, Color color) {
+void set_progress_bar_text_color(ProgressBar* progress_bar, Color color) {
     if (progress_bar) {
         if (!progress_bar->custom_text_color) {
             progress_bar->custom_text_color = (Color*)malloc(sizeof(Color));
@@ -76,7 +58,7 @@ static inline void set_progress_bar_text_color(ProgressBar* progress_bar, Color 
 }
 
 // Setter for value
-static inline void set_progress_bar_value(ProgressBar* progress_bar, int value) {
+void set_progress_bar_value(ProgressBar* progress_bar, int value) {
     if (progress_bar) {
         if (value < progress_bar->min) value = progress_bar->min;
         if (value > progress_bar->max) value = progress_bar->max;
@@ -85,7 +67,7 @@ static inline void set_progress_bar_value(ProgressBar* progress_bar, int value) 
 }
 
 // -------- Render --------
-static inline void render_progress_bar(ProgressBar* progress_bar) {
+void render_progress_bar(ProgressBar* progress_bar) {
     if (!progress_bar || !progress_bar->parent || !progress_bar->parent->base.sdl_renderer || !progress_bar->parent->is_open) {
         printf("Invalid progress bar, renderer, or parent is not open\n");
         return;
@@ -147,13 +129,13 @@ static inline void render_progress_bar(ProgressBar* progress_bar) {
 }
 
 // -------- Update --------
-static inline void update_progress_bar(ProgressBar* progress_bar, SDL_Event event) {
+void update_progress_bar(ProgressBar* progress_bar, SDL_Event event) {
     // Progress bar is non-interactive, so no event handling needed.
     // If you add interactive features (e.g., clickable to pause), implement here.
 }
 
 // -------- Free --------
-static inline void free_progress_bar(ProgressBar* progress_bar) {
+void free_progress_bar(ProgressBar* progress_bar) {
     if (progress_bar) {
         if (progress_bar->custom_bg_color) free(progress_bar->custom_bg_color);
         if (progress_bar->custom_fill_color) free(progress_bar->custom_fill_color);
@@ -162,18 +144,17 @@ static inline void free_progress_bar(ProgressBar* progress_bar) {
 }
 
 
-#define MAX_PROGRESS_BARS 100
-static ProgressBar* progress_bar_widgets[MAX_PROGRESS_BARS];
-static int progress_bars_count = 0;
+ProgressBar* progress_bar_widgets[MAX_PROGRESS_BARS];
+int progress_bars_count = 0;
 
 // -------- Helpers for all Progress Bars --------
-static inline void register_progress_bar(ProgressBar* progress_bar) {
+void register_progress_bar(ProgressBar* progress_bar) {
     if (progress_bars_count < MAX_PROGRESS_BARS) {
         progress_bar_widgets[progress_bars_count++] = progress_bar;
     }
 }
 
-static inline void render_all_registered_progress_bars(void) {
+void render_all_registered_progress_bars(void) {
     for (int i = 0; i < progress_bars_count; i++) {
         if (progress_bar_widgets[i]) {
             render_progress_bar(progress_bar_widgets[i]);
@@ -181,7 +162,7 @@ static inline void render_all_registered_progress_bars(void) {
     }
 }
 
-static inline void update_all_registered_progress_bars(SDL_Event event) {
+void update_all_registered_progress_bars(SDL_Event event) {
     for (int i = 0; i < progress_bars_count; i++) {
         if (progress_bar_widgets[i]) {
             update_progress_bar(progress_bar_widgets[i], event);
@@ -189,7 +170,7 @@ static inline void update_all_registered_progress_bars(SDL_Event event) {
     }
 }
 
-static inline void free_all_registered_progress_bars(void) {
+void free_all_registered_progress_bars(void) {
     for (int i = 0; i < progress_bars_count; i++) {
         if (progress_bar_widgets[i]) {
             free_progress_bar(progress_bar_widgets[i]);
@@ -199,4 +180,3 @@ static inline void free_all_registered_progress_bars(void) {
     progress_bars_count = 0;
 }
 
-#endif // PROGRESS_BAR_H

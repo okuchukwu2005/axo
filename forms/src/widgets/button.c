@@ -1,33 +1,12 @@
-/**
- * @file button.h
- * @brief Contains logic for button widgets using SDL2
- */
-
-#ifndef BUTTON_H
-#define BUTTON_H
-
-#include <stdlib.h> // for malloc
+#include "button.h"
 #include <string.h> // for strdup
-#include <SDL2/SDL.h> // for SDL_Event, etc.
 #include <SDL2/SDL_ttf.h> // for TTF_SizeText usage
 #include <math.h>   // For roundf in scaling
 
-void OVERRIDE(void) {
+void function_callback_override (){
     printf("Button was clicked!\n");
     // Add custom logic, e.g., open a dialog, submit a form, etc.
 }
-
-typedef struct {
-    Parent* parent;            // Pointer to the parent window or container
-    int x, y;                  // Position of the button (logical)
-    int w, h;                  // Width and height of the button (logical)
-    char* label;               // Button label text
-    void (*callback)(void);    // Callback function on click
-    int is_hovered;            // Is the mouse hovering over the button?
-    int is_pressed;            // Is the button pressed?
-    Color* custom_bg_color;    // Optional override for bg color (NULL = use theme)
-    Color* custom_text_color;  // Optional override for text color (NULL = use theme)
-} Button;
 
 
 Button new_button(Parent* parent, int x, int y, int w, int h, const char* label, void (*callback)(void)) {
@@ -173,8 +152,6 @@ void free_button(Button* button) {
     }
 }
 
-// Registration
-#define MAX_BUTTONS 100
 
 Button* button_widgets[MAX_BUTTONS];
 int buttons_count = 0;
@@ -208,4 +185,3 @@ void free_all_registered_buttons(void) {
     }
     buttons_count = 0;
 }
-#endif // BUTTON_H

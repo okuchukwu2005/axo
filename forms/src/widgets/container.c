@@ -1,9 +1,8 @@
-#ifndef CONTAINER_H
-#define CONTAINER_H
-
+#include"container.h"
+#include"theme.h"
 #include <math.h>  // For roundf in scaling
 
-static inline Parent new_container(Parent* root, int x, int y, int w, int h) {
+Parent new_container(Parent* root, int x, int y, int w, int h) {
     if (!root || !root->is_window) {
         printf("invalid parent passed on container!\n");
     }
@@ -38,12 +37,7 @@ static inline Parent new_container(Parent* root, int x, int y, int w, int h) {
     return parent;
 }
 
-static inline void set_container_properties(Parent* container,
-                               bool moveable,
-                               const char* title,
-                               bool has_title_bar,
-                               bool closeable/*,
-                               bool resizeable*/) {
+void set_container_properties(Parent* container, bool moveable, const char* title, bool has_title_bar, bool closeable/*,bool resizeable*/){
     if (!container) return;
     container->moveable = moveable;
     container->title_bar = title;
@@ -53,7 +47,7 @@ static inline void set_container_properties(Parent* container,
     container->title_height = has_title_bar ? 30 : 0;
 }
 
-static inline void draw_title_bar_(Parent* container) {
+void draw_title_bar_(Parent* container) {
     if (!container || !container->has_title_bar) return;
 
     // Fallback if no theme set
@@ -95,7 +89,7 @@ static inline void draw_title_bar_(Parent* container) {
     }
 }
 
-static inline void render_container(Parent* container) {
+void render_container(Parent* container) {
     if (!container || !container->is_open) return;
 
     // Fallback if no theme set
@@ -120,7 +114,7 @@ static inline void render_container(Parent* container) {
                current_theme->container_bg);
 }
 
-static inline void update_container(Parent* container, SDL_Event event) {
+void update_container(Parent* container, SDL_Event event) {
     if (!container || !container->is_open) return;
 
     float dpi = container->base.dpi_scale;
@@ -201,38 +195,36 @@ static inline void update_container(Parent* container, SDL_Event event) {
 
 // registering stuffs
 
-#define MAX_CONTAINERS 100
+Parent* container_widgets[MAX_CONTAINERS];
+int containers_count = 0;
 
-static Parent* container_widgets[MAX_CONTAINERS];
-static int containers_count = 0;
-
-static inline void register_container(Parent* container) {
+void register_container(Parent* container) {
     if (containers_count < MAX_CONTAINERS) {
         container_widgets[containers_count] = container;
         containers_count++;
     }
 }
 
-static inline void render_all_registered_containers(void) {
+void render_all_registered_containers(void) {
     for (int i = 0; i < containers_count; i++) {
         render_container(container_widgets[i]);
     }
 }
 
-static inline void update_all_registered_containers(SDL_Event event) {
+void update_all_registered_containers(SDL_Event event) {
     for (int i = 0; i < containers_count; i++) {
         update_container(container_widgets[i], event);
     }
 }
 
-static inline void free_con_(Parent* parent) {
+void free_con_(Parent* parent) {
     if (!parent) return;
     if (parent->is_window) {
         destroy_parent(parent);
     }
 }
 
-static inline void free_all_registered_containers(void) {
+void free_all_registered_containers(void) {
     for (int i = 0; i < containers_count; i++) {
         if (container_widgets[i]) {
             free_con_(container_widgets[i]);
@@ -241,5 +233,3 @@ static inline void free_all_registered_containers(void) {
     }
     containers_count = 0;
 }
-
-#endif /* CONTAINER_H */

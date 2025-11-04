@@ -1,12 +1,6 @@
-#include<SDL2/SDL.h>
+#include "image.h"
 #include<SDL2/SDL_image.h>
 #include<stdlib.h>
-typedef struct{
-	Parent *parent;
-	int x, y, w, h;
-	const char * file_path;
-	SDL_Texture *texture;
-}Image;
 
 
 Image new_image(Parent * parent, int x, int y, const char * file_path, int w, int h  ){
@@ -64,7 +58,6 @@ void free_image(Image *image) {
 
 
 // Registration of widgets for rendering
-#define MAX_IMAGES 100
 Image * image_widgets[MAX_IMAGES];
 
 int images_count =0;
