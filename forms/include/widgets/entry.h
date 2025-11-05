@@ -1,7 +1,7 @@
 #ifndef ENTRY_H
 #define ENTRY_H
 
-#include"parent.h"
+#include"../core/parent.h"
 #include <SDL2/SDL.h> // SDL library for handling graphics, events (e.g., SDL_Event, SDLK_* for key codes)
 
 // Defines a struct for a text entry widget, representing an input field in a GUI

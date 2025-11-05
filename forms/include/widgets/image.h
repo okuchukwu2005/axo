@@ -1,7 +1,7 @@
 #ifndef IMAGE_H
 #define IMAGE_H
 
-#include "parent.h"
+#include "../core/parent.h"
 #include<SDL2/SDL.h>
 typedef struct{
 	Parent *parent;

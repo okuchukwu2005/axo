@@ -1,5 +1,6 @@
-#include"container.h"
-#include"theme.h"
+#include"../../include/widgets/container.h"
+#include"../../include/core/theme.h"
+#include"../../include/core/graphics.h"
 #include <math.h>  // For roundf in scaling
 
 Parent new_container(Parent* root, int x, int y, int w, int h) {

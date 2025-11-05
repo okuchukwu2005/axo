@@ -1,5 +1,6 @@
-#include"entry.h"
-#include"theme.h"
+#include"../../include/widgets/entry.h"
+#include"../../include/core/theme.h"
+#include"../../include/core/graphics.h"
 #include <stdlib.h> // Provides memory allocation functions like malloc and free
 #include <string.h> // Includes string manipulation functions like strlen, strcat, strdup
 #include <SDL2/SDL_ttf.h> // SDL_ttf for rendering text (e.g., TTF_SizeText for text measurements)

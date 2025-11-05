@@ -1,6 +1,7 @@
 
-#include "drop.h"
-#include "theme.h"
+#include "../../include/widgets/drop.h"
+#include "../../include/core/theme.h"
+#include "../../include/core/graphics.h"
 #include <string.h> // for strdup
 #include <SDL2/SDL_ttf.h> // for TTF_SizeText if needed
 #include <math.h>   // For roundf in scaling
@@ -248,14 +249,14 @@ void free_drop_(Drop* drop) {
     if (drop->custom_highlight_color) free(drop->custom_highlight_color);
 }
 
-static inline void register_drop(Drop* drop) {
+void register_drop(Drop* drop) {
     if (drops_count < MAX_DROPS) {
         drop_widgets[drops_count] = drop;
         drops_count++;
     }
 }
 
-static inline void render_all_registered_drops(void) {
+void render_all_registered_drops(void) {
     for (int i = 0; i < drops_count; i++) {
         if (drop_widgets[i]) {
             render_drop_down_(drop_widgets[i]);
@@ -263,7 +264,7 @@ static inline void render_all_registered_drops(void) {
     }
 }
 
-static inline void update_all_registered_drops(SDL_Event event) {
+void update_all_registered_drops(SDL_Event event) {
     for (int i = 0; i < drops_count; i++) {
         if (drop_widgets[i]) {
             update_drop_down_(drop_widgets[i], event);

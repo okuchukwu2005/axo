@@ -1,13 +1,6 @@
-/**
- * @file text.h
- * @brief Contains logic for text widgets (labels) using SDL2
- */
-
-#ifndef TEXT_H
-#define TEXT_H
-
-#include "text.h"
-#include "theme.h"
+#include "../../include/widgets/text.h"
+#include "../../include/core/theme.h"
+#include "../../include/core/graphics.h"
 #include <stdlib.h> // for malloc
 #include <string.h> // for strdup
 #include <SDL2/SDL_ttf.h> // for TTF_Font
@@ -59,7 +52,7 @@ void render_text(Text* text) {
 
     // Draw the text
     if (text->content) {
-        TTF_Font* font = TTF_OpenFont(FONT_FILE, text->font_size);
+        TTF_Font* font = TTF_OpenFont(current_theme->font_file, text->font_size);
         if (font) {
             draw_text_from_font_(&(text->parent->base), font, text->content, abs_x, abs_y, *color_to_use, text->align);
             TTF_CloseFont(font);
@@ -135,4 +128,3 @@ void free_all_registered_texts(void){
 	}
 	texts_count=0;
 }
-#endif // TEXT_H

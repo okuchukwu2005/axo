@@ -9,8 +9,8 @@
 #include <SDL2/SDL.h> // for SDL_Event, etc.
 #include <math.h>   // For roundf in scaling
 
-#include "color.h"
-#include "parent.h"
+#include "../core/color.h"
+#include "../core/parent.h"
 
 #define MAX_BUTTONS 100
 

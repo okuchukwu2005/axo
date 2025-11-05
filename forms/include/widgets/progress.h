@@ -6,8 +6,8 @@
 #ifndef PROGRESS_H
 #define PROGRESS_H
 
-#include "parent.h"
-#include "color.h"
+#include "../core/parent.h"
+#include "../core/color.h"
 #include <stdbool.h>
 #include <SDL2/SDL.h> // for SDL_Event, etc.
 

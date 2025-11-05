@@ -1,6 +1,7 @@
-#include "textbox.h"
-#include "theme.h"
-#include "color.h"
+#include "../../include/widgets/textbox.h"
+#include "../../include/core/theme.h"
+#include "../../include/core/color.h"
+#include "../../include/core/graphics.h"
 #include <stdio.h>
 #include <stdlib.h> // for malloc
 #include <string.h> // for strlen, strcat

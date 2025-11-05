@@ -1,20 +1,20 @@
-#include "app.h"
+#include "../../include/core/app.h"
 // SDL
 #include<SDL2/SDL.h>
 // core
-#include "theme.h"
-#include "graphics.h"
+#include "../../include/core/theme.h"
+#include "../../include/core/graphics.h"
 // widgets
-#include"container.h"
-#include"entry.h"
-#include"drop.h"
-#include"radio.h"
-#include"textbox.h"
-#include"slider.h"
-#include"button.h"
-#include"text.h"
-#include"progress.h"
-#include"image.h"
+#include"../../include/widgets/container.h"
+#include"../../include/widgets/entry.h"
+#include"../../include/widgets/drop.h"
+#include"../../include/widgets/radio.h"
+#include"../../include/widgets/textbox.h"
+#include"../../include/widgets/slider.h"
+#include"../../include/widgets/button.h"
+#include"../../include/widgets/text.h"
+#include"../../include/widgets/progress.h"
+#include"../../include/widgets/image.h"
 
 App init_app(void) {
     App app = {0}; // Initialize struct members to zero

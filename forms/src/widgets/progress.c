@@ -1,5 +1,7 @@
 
-#include "progress.h"
+#include "../../include/widgets/progress.h"
+#include "../../include/core/theme.h"
+#include "../../include/core/graphics.h"
 #include <stdlib.h> // for malloc
 #include <SDL2/SDL.h> // for SDL_Event, etc.
 #include <math.h>   // For roundf in scaling

@@ -6,7 +6,9 @@
 #ifndef TEXT_H
 #define TEXT_H
 
-#include "parent.h"
+#include "../core/parent.h"
+#include "../core/graphics.h"
+
 #include <SDL2/SDL.h> // for SDL_Event, etc.
 
 

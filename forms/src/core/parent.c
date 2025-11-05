@@ -1,4 +1,4 @@
-#include "parent.h"
+#include "../../include/core/parent.h"
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_image.h>
 #include <stdio.h>

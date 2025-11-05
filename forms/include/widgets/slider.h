@@ -1,8 +1,8 @@
 #ifndef SLIDER_H
 #define SLIDER_H
 
-#include "parent.h"
-#include "color.h"
+#include "../core/parent.h"
+#include "../core/color.h"
 #include <SDL2/SDL.h>
 #include <stdbool.h>
 

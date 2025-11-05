@@ -3,7 +3,7 @@
  * @brief Implementation for theme module
  */
 
-#include "theme.h"
+#include "../../include/core/theme.h"
 
 const Theme* current_theme = NULL;
 

@@ -1,4 +1,4 @@
-#include "graphics.h"
+#include "../../include/core/graphics.h"
 #include <stdio.h>
 #include <math.h>
 

@@ -1,4 +1,5 @@
-#include "image.h"
+#include "../../include/widgets/image.h"
+#include "../../include/core/graphics.h"
 #include<SDL2/SDL_image.h>
 #include<stdlib.h>
 

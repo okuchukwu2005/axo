@@ -1,4 +1,4 @@
-#include "color.h"
+#include "../../include/core/color.h"
 #include <SDL2/SDL.h>
 #include <stdint.h>  // For uint8_t (ensures compatibility)
 

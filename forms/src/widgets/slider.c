@@ -1,5 +1,6 @@
-#include "slider.h"
-#include "theme.h"
+#include "../../include/widgets/slider.h"
+#include "../../include/core/theme.h"
+#include "../../include/core/graphics.h"
 #include <stdlib.h> // for malloc
 #include <string.h> // for strdup
 #include <math.h>   // For roundf in scaling
