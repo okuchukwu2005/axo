@@ -90,7 +90,7 @@ void set_drop_font_size(Drop* drop, int size) {
 void draw_upside_down_triangle_(Base* base, int x1, int y1, int x2, int y2, int x3, int y3, Color color) {
     // Draw a downward-pointing triangle by defining vertices directly
     // (x1, y1) and (x2, y2) form the top horizontal line, (x3, y3) is the bottom point
-    draw_triangle_(base, x1, y1, x2, y2, x3, y3, color);
+    draw_triangle(base, x1, y1, x2, y2, x3, y3, color);
 }
 
 void render_drop_down_(Drop* drop) {
@@ -134,7 +134,7 @@ void render_drop_down_(Drop* drop) {
     Color highlight_color = drop->custom_highlight_color ? *drop->custom_highlight_color : current_theme->accent;
 
     // Draw the main dropdown button
-    draw_rect_(base, sx, sy, sw, sh, button_color);
+    draw_rect(base, sx, sy, sw, sh, button_color);
 
     // Draw placeholder text if no option is selected, otherwise draw selected option
     const char* display_text = (drop->selected_index >= 0 && drop->selected_index < drop->option_count)
@@ -142,7 +142,7 @@ void render_drop_down_(Drop* drop) {
                               : drop->place_holder;
     // Vertical centering: approximate as (sh - font_size) / 2, but since font_size is scaled, it's fine
     int text_y = sy + (sh - effective_font_size) / 2;
-    draw_text_(base, display_text, effective_font_size, sx + pad, text_y, text_color);
+    draw_text(base, display_text, effective_font_size, sx + pad, text_y, text_color);
 
     // Draw the dropdown arrow (down when collapsed, up when expanded)
     int arrow_size = (int)roundf((drop->h / 3) * dpi);  // Slightly larger than /4 for visibility
@@ -150,7 +150,7 @@ void render_drop_down_(Drop* drop) {
     int arrow_y = sy + (sh - arrow_size) / 2;
     if (drop->is_expanded) {
         // Upward-pointing triangle
-        draw_triangle_(base,
+        draw_triangle(base,
                        arrow_x, arrow_y + arrow_size,
                        arrow_x + arrow_size, arrow_y + arrow_size,
                        arrow_x + arrow_size / 2, arrow_y,
@@ -172,11 +172,11 @@ void render_drop_down_(Drop* drop) {
 
             // Draw option background
             Color option_bg = (i == drop->selected_index) ? highlight_color : bg_color;
-            draw_rect_(base, sx, soy, sw, sh, option_bg);
+            draw_rect(base, sx, soy, sw, sh, option_bg);
 
             // Draw option text
             int option_text_y = soy + (sh - effective_font_size) / 2;
-            draw_text_(base, drop->options[i],
+            draw_text(base, drop->options[i],
                        effective_font_size, sx + pad, option_text_y, text_color);
         }
     }

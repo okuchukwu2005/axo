@@ -54,7 +54,7 @@ void render_text(Text* text) {
     if (text->content) {
         TTF_Font* font = TTF_OpenFont(current_theme->font_file, text->font_size);
         if (font) {
-            draw_text_from_font_(&(text->parent->base), font, text->content, abs_x, abs_y, *color_to_use, text->align);
+            draw_text_from_font(&(text->parent->base), font, text->content, abs_x, abs_y, *color_to_use, text->align);
             TTF_CloseFont(font);
         } else {
             printf("Failed to load font for text rendering\n");

@@ -104,16 +104,16 @@ void render_radio_(Radio* radio) {
     Color label_color = radio->custom_label_color ? *radio->custom_label_color : current_theme->text_primary;
 
     // Outer circle (centered at sx, sy)
-    draw_circle_(base, sx, sy, radius, outer_color);
+    draw_circle(base, sx, sy, radius, outer_color);
 
     // Inner circle if selected
     if (radio->selected) {
-        draw_circle_(base, sx, sy, inner_radius, inner_color);
+        draw_circle(base, sx, sy, inner_radius, inner_color);
     }
 
     // Label text (to the right, vertically centered)
     int label_y = sy - (int)roundf((radio->h / 6) * dpi);  // Adjusted for better centering (was /3)
-    draw_text_(base, radio->label, font_size,
+    draw_text(base, radio->label, font_size,
                sx + sh + pad / 2, label_y,
                label_color);
 

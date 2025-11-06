@@ -104,12 +104,12 @@ void render_progress_bar(ProgressBar* progress_bar) {
     Color text_color = progress_bar->custom_text_color ? *progress_bar->custom_text_color : current_theme->text_primary;
 
     // Draw background (full bar)
-    draw_rounded_rect_(base, sx, sy, sw, sh, roundness, bg_color);
+    draw_rounded_rect(base, sx, sy, sw, sh, roundness, bg_color);
 
     // Draw fill (progress portion)
     float progress_ratio = (float)(progress_bar->value - progress_bar->min) / (progress_bar->max - progress_bar->min);
     int fill_width = (int)roundf(sw * progress_ratio);
-    draw_rounded_rect_(base, sx, sy, fill_width, sh, roundness, fill_color);
+    draw_rounded_rect(base, sx, sy, fill_width, sh, roundness, fill_color);
 
     // Draw percentage text if enabled (centered)
     if (progress_bar->show_percentage) {
@@ -122,7 +122,7 @@ void render_progress_bar(ProgressBar* progress_bar) {
             TTF_SizeText(font, percentage_text, &text_w, &text_h);
             int text_x = sx + (sw - text_w) / 2;
             int text_y = sy + (sh - text_h) / 2;
-            draw_text_from_font_(base, font, percentage_text, text_x, text_y, text_color, ALIGN_LEFT);
+            draw_text_from_font(base, font, percentage_text, text_x, text_y, text_color, ALIGN_LEFT);
             TTF_CloseFont(font);
         }
     }

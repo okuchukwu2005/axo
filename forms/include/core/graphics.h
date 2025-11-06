@@ -67,6 +67,14 @@ void draw_triangle(Base* base, int x1, int y1, int x2, int y2, int x3, int y3, C
  * @param color The fill color of the rounded rectangle
  */
 void draw_rounded_rect(Base* base, int x, int y, int w, int h, float roundness, Color color);
+/**
+ * @brief Text alignment options for draw_text_from_font_
+ */
+typedef enum {
+    ALIGN_LEFT,
+    ALIGN_CENTER,
+    ALIGN_RIGHT
+} TextAlign;
 
 /**
  * @brief Draws text at the specified position using a provided TTF font

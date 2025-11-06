@@ -10,10 +10,10 @@ EXECUTABLE="AAA"
 # Create build directory if it doesn't exist
 mkdir -p "$BUILD_DIR"
 
-echo "Compiling .c files from core and widgets..."
+echo "Compiling .c files from core, widgets and backends..."
 
-# Compile all .c files from core and widgets into .o in build
-for dir in "$SRC_DIR/core" "$SRC_DIR/widgets"; do
+# Compile all .c files from core, widgets and backends into .o in build
+for dir in "$SRC_DIR/core" "$SRC_DIR/widgets" "$SRC_DIR/core/backends"; do
     for file in "$dir"/*.c; do
         [ -e "$file" ] || continue
         base=$(basename "$file" .c)

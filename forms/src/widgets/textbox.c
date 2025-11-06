@@ -189,9 +189,9 @@ void render_textbox(TextBox* textbox) {
     int font_height = TTF_FontHeight(font);
 
     /* ---------- 5. DRAW BORDER / BACKGROUND (respects parent clip) ---------- */
-    draw_rect_(&textbox->parent->base, sx, sy, sw, sh,
+    draw_rect(&textbox->parent->base, sx, sy, sw, sh,
                current_theme->accent);
-    draw_rect_(&textbox->parent->base,
+    draw_rect(&textbox->parent->base,
                sx + border_width, sy + border_width,
                sw - 2*border_width, sh - 2*border_width,
                current_theme->bg_secondary);
@@ -280,7 +280,7 @@ void render_textbox(TextBox* textbox) {
                         int w = 0;
                         TTF_SizeText(font, tmp, &w, NULL);
                         free(tmp);
-                        draw_rect_(&textbox->parent->base,
+                        draw_rect(&textbox->parent->base,
                                    hx, draw_y, w, font_height,
                                    current_theme->accent_hovered);
                     }
@@ -289,7 +289,7 @@ void render_textbox(TextBox* textbox) {
         }
 
         /* ---- draw line text ---- */
-        draw_text_from_font_(&textbox->parent->base, font, line_text,
+        draw_text_from_font(&textbox->parent->base, font, line_text,
                              text_x, draw_y, text_color, ALIGN_LEFT);
         free(line_text);
     }
@@ -318,7 +318,7 @@ void render_textbox(TextBox* textbox) {
                     free(tmp);
                     int cursor_x = text_x + cursor_offset;
                     int cursor_w = (int)roundf(2 * dpi);
-                    draw_rect_(&textbox->parent->base,
+                    draw_rect(&textbox->parent->base,
                                cursor_x, draw_y,
                                cursor_w, font_height,
                                current_theme->accent);

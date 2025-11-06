@@ -64,13 +64,13 @@ void draw_title_bar_(Parent* container) {
     int pad = (int)roundf(current_theme->padding * dpi);
     int font_size = (int)roundf(current_theme->default_font_size * dpi);
 
-    draw_rect_(&container->base,
+    draw_rect(&container->base,
                sx, sy,
                sw, sth,
                current_theme->container_title_bg);  // Use theme-specific title bg
 
     if (container->title_bar) {
-        draw_text_(&container->base,
+        draw_text(&container->base,
                    container->title_bar,
                    font_size,
                    sx + pad,
@@ -85,7 +85,7 @@ void draw_title_bar_(Parent* container) {
         int btn_y = sy + pad / 2;
         // Use slightly smaller font for "X" (90% of default for better fit)
         int close_font_size = (int)roundf(current_theme->default_font_size * 0.9f * dpi);
-        draw_text_(&container->base, "X", close_font_size, btn_x + btn_size / 4, btn_y + btn_size / 4,
+        draw_text(&container->base, "X", close_font_size, btn_x + btn_size / 4, btn_y + btn_size / 4,
                    current_theme->text_primary);  // Use theme text color
     }
 }
@@ -107,7 +107,7 @@ void render_container(Parent* container) {
     draw_title_bar_(container);
 
     // Draw main container rect using theme container_bg
-    draw_rect_(&container->base,
+    draw_rect(&container->base,
                sx,
                body_y,
                sw,

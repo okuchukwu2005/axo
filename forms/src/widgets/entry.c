@@ -130,8 +130,8 @@ void render_entry(Entry* entry) {
     int font_height = TTF_FontHeight(font);
 
     /* ---------- DRAW BORDER / BACKGROUND (respects parent clip) ---------- */
-    draw_rect_(&entry->parent->base, sx, sy, sw, sh, current_theme->accent);
-    draw_rect_(&entry->parent->base,
+    draw_rect(&entry->parent->base, sx, sy, sw, sh, current_theme->accent);
+    draw_rect(&entry->parent->base,
                sx + border_width, sy + border_width,
                sw - 2*border_width, sh - 2*border_width,
                current_theme->bg_secondary);
@@ -189,13 +189,13 @@ void render_entry(Entry* entry) {
             int w = 0;
             TTF_SizeText(font, temp, &w, NULL);
 
-            draw_rect_(&entry->parent->base, hx, text_y, w, font_height,
+            draw_rect(&entry->parent->base, hx, text_y, w, font_height,
                        current_theme->accent_hovered);
         }
     }
 
     /* ---- text ---- */
-    draw_text_from_font_(&entry->parent->base, font, display_text,
+    draw_text_from_font(&entry->parent->base, font, display_text,
                          text_x, text_y, text_color, ALIGN_LEFT);
 
     /* ---- cursor ---- */
@@ -210,7 +210,7 @@ void render_entry(Entry* entry) {
         }
         int cursor_x = text_x + cursor_offset;
         int cursor_w = (int)roundf(2 * dpi);
-        draw_rect_(&entry->parent->base, cursor_x, text_y,
+        draw_rect(&entry->parent->base, cursor_x, text_y,
                    cursor_w, font_height, current_theme->accent);
     }
 

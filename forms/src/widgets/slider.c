@@ -94,7 +94,7 @@ void render_slider(Slider* slider) {
 
     // Draw track (horizontal bar)
     Color track_color = slider->custom_track_color ? *slider->custom_track_color : current_theme->bg_secondary;
-    draw_rect_(base, sx, sy + (sh / 2) - (track_height / 2), sw, track_height, track_color);
+    draw_rect(base, sx, sy + (sh / 2) - (track_height / 2), sw, track_height, track_color);
 
     // Calculate thumb position
     float range = slider->max - slider->min;
@@ -111,12 +111,12 @@ void render_slider(Slider* slider) {
     }
 
     // Draw thumb as rectangle
-    draw_rect_(base, sthumb_x - (thumb_width / 2), sy, thumb_width, sh, thumb_color);
+    draw_rect(base, sthumb_x - (thumb_width / 2), sy, thumb_width, sh, thumb_color);
 
     // Draw label if exists (positioned to the right of the slider, centered vertically)
     if (slider->label) {
         Color label_color = slider->custom_label_color ? *slider->custom_label_color : current_theme->text_secondary;
-        draw_text_(base, slider->label, font_size, sx + sw + label_pad, sy + (sh / 2) - label_v_offset, label_color);
+        draw_text(base, slider->label, font_size, sx + sw + label_pad, sy + (sh / 2) - label_v_offset, label_color);
     }
     // Reset clipping
     SDL_RenderSetClipRect(slider->parent->base.sdl_renderer, NULL);
