@@ -94,7 +94,7 @@ void app_run_(Parent *parent) {
             }
         }
 
-        clear_screen_(&parent->base, parent->color);  /// to change bg color use app.window->color = COLOR; 	
+        clear_screen(&parent->base, parent->color);  /// to change bg color use app.window->color = COLOR; 	
         render_all_registered_containers();
         render_all_registered_drops();
         render_all_registered_radios();
@@ -105,7 +105,7 @@ void app_run_(Parent *parent) {
 		render_all_registered_texts();
 		render_all_registered_progress_bars();
 		render_all_registered_images();
-        present_(&parent->base);
+        present_screen(&parent->base);
     }
 
 	// free stuffs

@@ -1,11 +1,14 @@
 /**
- * @file graphics.h
+ * @file sdl2_backend.h
  * @brief Contains all rendering logic for SDL2-based drawing operations
  */
 
-#ifndef GRAPHICS_H
-#define GRAPHICS_H
+#ifndef SDL2_BACKEND_H
+#define SDL2_BACKEND_H
 
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_image.h>
 #include "parent.h" // Access Base
 #include "color.h"   // Access Color struct
 
@@ -14,12 +17,12 @@
  * @param base Pointer to the Base struct containing the renderer
  * @param color The background color to set
  */
-void clear_screen(Base* base, Color color);
+void backend_clear_screen(Base* base, Color color);
 /**
  * @brief Presents the rendered content to the screen
  * @param base Pointer to the Base struct containing the renderer
  */
-void present_screen(Base* base);
+void backend_present(Base* base);
 
 // ______________DRAW FUNCTIONS_____________
 
@@ -32,7 +35,7 @@ void present_screen(Base* base);
  * @param h Height of the rectangle
  * @param color The fill color of the rectangle
  */
-void draw_rect(Base* base, int x, int y, int w, int h, Color color);
+void backend_draw_rect(Base* base, int x, int y, int w, int h, Color color);
 
 /**
  * @brief Draws a filled circle at the specified center with the given radius
@@ -42,7 +45,7 @@ void draw_rect(Base* base, int x, int y, int w, int h, Color color);
  * @param radius Radius of the circle
  * @param color The fill color of the circle
  */
-void draw_circle(Base* base, int x, int y, int radius, Color color);
+void backend_draw_circle(Base* base, int x, int y, int radius, Color color);
 
 /**
  * @brief Draws a filled triangle with the specified vertices
@@ -55,7 +58,7 @@ void draw_circle(Base* base, int x, int y, int radius, Color color);
  * @param y3 Y-coordinate of the third vertex
  * @param color The fill color of the triangle
  */
-void draw_triangle(Base* base, int x1, int y1, int x2, int y2, int x3, int y3, Color color);
+void backend_draw_triangle(Base* base, int x1, int y1, int x2, int y2, int x3, int y3, Color color);
 /**
  * @brief Draws a filled rounded rectangle (similar to raylib's DrawRectangleRounded)
  * @param base Pointer to the Base struct containing the renderer
@@ -66,7 +69,15 @@ void draw_triangle(Base* base, int x1, int y1, int x2, int y2, int x3, int y3, C
  * @param roundness Rounding factor (0.0f = rectangle, 1.0f = full rounded)
  * @param color The fill color of the rounded rectangle
  */
-void draw_rounded_rect(Base* base, int x, int y, int w, int h, float roundness, Color color);
+void backend_draw_rounded_rect(Base* base, int x, int y, int w, int h, float roundness, Color color);
+/**
+ * @brief Text alignment options for draw_text_from_font_
+ */
+typedef enum {
+    ALIGN_LEFT,
+    ALIGN_CENTER,
+    ALIGN_RIGHT
+} TextAlign;
 
 /**
  * @brief Draws text at the specified position using a provided TTF font
@@ -78,7 +89,7 @@ void draw_rounded_rect(Base* base, int x, int y, int w, int h, float roundness, 
  * @param color The color of the text
  * @param align Text alignment (ALIGN_LEFT, ALIGN_CENTER, ALIGN_RIGHT)
  */
-void draw_text_from_font(Base* base, void * font, const char* text, int x, int y, Color color, void* align);
+void backend_draw_text_from_font(Base* base, void* font, const char* text, int x, int y, Color color, void* align);
 /**
  * @brief Draws text at the specified position with the given font size and color
  * @param base Pointer to the Base struct containing the renderer
@@ -88,7 +99,7 @@ void draw_text_from_font(Base* base, void * font, const char* text, int x, int y
  * @param y Y-coordinate for the top-left corner of the text
  * @param color The color of the text
  */
-void draw_text(Base* base, const char* text, int font_size, int x, int y, Color color);
+void backend_draw_text(Base* base, const char* text, int font_size, int x, int y, Color color);
 
 /**
  * @brief Draw an image from file (loads and destroys texture each call).
@@ -99,7 +110,7 @@ void draw_text(Base* base, const char* text, int font_size, int x, int y, Color 
  * @param w    Width (0 to use texture width).
  * @param h    Height (0 to use texture height).
  */
-void draw_image(Base * base, const char * file, int x, int y, int w, int h);
+void backend_draw_image(Base * base, const char * file, int x, int y, int w, int h);
 
 /**
 * @brief Draws an image using sdl texture
@@ -110,6 +121,6 @@ void draw_image(Base * base, const char * file, int x, int y, int w, int h);
 * @param w
 * @param h 
 */
-void draw_image_from_texture(Base *base, void * texture, int x, int y, int w, int h);
+void backend_draw_image_from_texture(Base *base, void * texture, int x, int y, int w, int h);
 
-#endif // GRAPHICS_H
+#endif // SDL2_BACKEND_H

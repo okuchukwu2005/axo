@@ -1,6 +1,7 @@
 #include "../../include/widgets/button.h"
 #include "../../include/core/theme.h"
 #include "../../include/core/graphics.h"
+#include "../../include/core/sdl2_backend.h"
 #include <string.h> // for strdup
 #include <SDL2/SDL_ttf.h> // for TTF_SizeText usage
 #include <math.h>   // For roundf in scaling
@@ -93,7 +94,7 @@ void render_button(Button* button) {
     }
 
     // Draw rounded rectangle (use theme roundness)
-    draw_rounded_rect_(&(button->parent->base), sx, sy, sw, sh, roundness, button_color);
+    draw_rounded_rect(&(button->parent->base), sx, sy, sw, sh, roundness, button_color);
 
     // Draw text centered
     if (button->label) {
@@ -105,7 +106,7 @@ void render_button(Button* button) {
             int text_x = sx + (sw - text_w) / 2;
             int text_y = sy + (sh - text_h) / 2;
             Color text_color = button->custom_text_color ? *button->custom_text_color : current_theme->button_text;
-            draw_text_from_font_(&(button->parent->base), font, button->label, text_x, text_y, text_color, ALIGN_LEFT);
+            draw_text_from_font(&(button->parent->base), font, button->label, text_x, text_y, text_color, ALIGN_LEFT);
             TTF_CloseFont(font);
         }
     }
