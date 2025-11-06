@@ -3,6 +3,8 @@
 
 #include "../core/parent.h"
 #include "../core/color.h"
+#include "../core/interface.h"
+
 #include <SDL2/SDL.h>
 #include <stdbool.h>
 
@@ -35,7 +37,7 @@ void set_slider_label_color(Slider* slider, Color color);
 void render_slider(Slider* slider);
 
 // -------- Update --------
-void update_slider(Slider* slider, SDL_Event event);
+void update_slider(Slider* slider, Event *event);
 // -------- Free --------
 void free_slider(Slider* slider);
 
@@ -50,6 +52,6 @@ void register_slider(Slider* slider);
 // -------- Helpers for all Sliders --------
 void render_all_registered_sliders(void);
 
-void update_all_registered_sliders(SDL_Event event);
+void update_all_registered_sliders(Event* event);
 void free_all_registered_sliders(void);
 #endif // SLIDER_H

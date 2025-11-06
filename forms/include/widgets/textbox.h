@@ -2,6 +2,8 @@
 #define  TEXTBOX_H
 
 #include "../core/parent.h"
+#include "../core/interface.h"
+
 #include <SDL2/SDL.h> // for SDL_Event, SDLK_*, etc.
 #include <SDL2/SDL_ttf.h> // for TTF_SizeText usage
 
@@ -43,7 +45,7 @@ void update_visible_lines(TextBox* textbox);
 // Parameters:
 // - textbox: The TextBox widget to update
 // - event: The SDL event to process
-void update_textbox(TextBox* textbox, SDL_Event event);
+void update_textbox(TextBox* textbox, Event *event);
 
 void free_textbox(TextBox* textbox);
 
@@ -57,7 +59,7 @@ void register_textbox(TextBox* textbox);
 
 void render_all_registered_textboxs(void);
 
-void update_all_registered_textboxs(SDL_Event event);
+void update_all_registered_textboxs(Event* event);
 
 void free_all_registered_textboxes(void);
 

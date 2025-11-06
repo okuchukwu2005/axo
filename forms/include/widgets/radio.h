@@ -8,6 +8,8 @@
 
 #include "../core/parent.h"
 #include "../core/color.h"
+#include "../core/interface.h"
+
 #include <stdbool.h>
 #include <SDL2/SDL.h> // for SDL_Event, etc.
 
@@ -42,7 +44,7 @@ extern Radio* radio_widgets[MAX_RADIOS];
 extern int radios_count;
 
 // -------- Update --------
-void update_radio_(Radio* radio, SDL_Event event);
+void update_radio_(Radio* radio, Event *event);
 // -------- Free --------
 void free_radio_(Radio* radio);
 
@@ -52,7 +54,7 @@ void register_radio(Radio* radio);
 // -------- Helpers for all radios --------
 void render_all_registered_radios(void);
 
-void update_all_registered_radios(SDL_Event event);
+void update_all_registered_radios(Event* event);
 
 void free_all_registered_radios(void);
 

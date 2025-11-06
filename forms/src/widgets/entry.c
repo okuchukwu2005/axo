@@ -311,7 +311,7 @@ void update_visible_text(Entry* entry) {
 // Parameters:
 // - entry: The Entry widget to update
 // - event: The SDL event to process
-void update_entry(Entry* entry, SDL_Event event) {
+void update_entry(Entry* entry, Event* event) {
     // Validate inputs to ensure the entry, its parent, and parent state are valid
     if (!entry || !entry->parent || !entry->parent->is_open) {
         printf("Invalid entry, parent, or parent is not open\n");
@@ -347,9 +347,9 @@ void update_entry(Entry* entry, SDL_Event event) {
     }
 
     // Handle mouse button down event (left click)
-    if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
-        int mouseX = event.button.x;
-        int mouseY = event.button.y;
+    if (event->type == EVENT_MOUSEBUTTONDOWN && event->mouseButton.button == MOUSE_LEFT) {
+        int mouseX = event->mouseButton.x;
+        int mouseY = event->mouseButton.y;
         // Check if click is within the entry's bounds
         if (mouseX >= s_abs_x && mouseX <= s_abs_x + s_w &&
             mouseY >= s_abs_y && mouseY <= s_abs_y + s_h) {
@@ -382,13 +382,13 @@ void update_entry(Entry* entry, SDL_Event event) {
         }
     } 
     // Handle mouse button up event (left click)
-    else if (event.type == SDL_MOUSEBUTTONUP && event.button.button == SDL_BUTTON_LEFT) {
+    else if (event->type == EVENT_MOUSEBUTTONUP && event->mouseButton.button == MOUSE_LEFT) {
         entry->is_mouse_selecting = 0; // End mouse-based selection
     } 
     // Handle mouse motion for drag selection
-    else if (event.type == SDL_MOUSEMOTION && entry->is_mouse_selecting && (event.motion.state & SDL_BUTTON_LMASK)) {
-        int mouseX = event.motion.x;
-        int mouseY = event.motion.y;
+    else if (event->type == EVENT_MOUSEMOTION && entry->is_mouse_selecting && (event->mouseMove.button_state & MOUSE_BUTTON_LEFT_MASK)) {
+        int mouseX = event->mouseMove.x;
+        int mouseY = event->mouseMove.y;
         // Update selection if mouse is within entry bounds (optional: can remove bounds check)
         if (mouseX >= s_abs_x && mouseX <= s_abs_x + s_w &&
             mouseY >= s_abs_y && mouseY <= s_abs_y + s_h) {
@@ -416,7 +416,7 @@ void update_entry(Entry* entry, SDL_Event event) {
         }
     } 
     // Handle text input when entry is active
-    else if (event.type == SDL_TEXTINPUT && entry->is_active) {
+    else if (event->type == EVENT_TEXTINPUT && entry->is_active) {
         // If there's a selection, delete it before inserting new text
         if (entry->selection_start != -1) {
             int sel_start = entry->selection_start < entry->cursor_pos ? entry->selection_start : entry->cursor_pos;
@@ -427,18 +427,18 @@ void update_entry(Entry* entry, SDL_Event event) {
         }
         // Insert new text at cursor position
         int len = strlen(entry->text);
-        int input_len = strlen(event.text.text);
+        int input_len = strlen(event->text.text);
         if (len + input_len < entry->max_length) {
             memmove(entry->text + entry->cursor_pos + input_len, 
                     entry->text + entry->cursor_pos, len - entry->cursor_pos + 1);
-            strncpy(entry->text + entry->cursor_pos, event.text.text, input_len);
+            strncpy(entry->text + entry->cursor_pos, event->text.text, input_len);
             entry->cursor_pos += input_len;
             update_visible_text(entry);
         }
     } 
     // Handle key presses when entry is active
-    else if (event.type == SDL_KEYDOWN && entry->is_active) {
-        if (event.key.keysym.sym == SDLK_BACKSPACE) {
+    else if (event->type == EVENT_KEYDOWN && entry->is_active) {
+        if (event->type == EVENT_KEYDOWN && event->key.key == KEY_BACKSPACE) {
             if (entry->selection_start != -1) {
                 // Delete selected text
                 int sel_start = entry->selection_start < entry->cursor_pos ? entry->selection_start : entry->cursor_pos;
@@ -453,7 +453,7 @@ void update_entry(Entry* entry, SDL_Event event) {
                 entry->cursor_pos--;
             }
             update_visible_text(entry);
-        } else if (event.key.keysym.sym == SDLK_DELETE) {
+        } else if (event->type == EVENT_KEYDOWN && event->key.key == KEY_DELETE) {
             if (entry->selection_start != -1) {
                 // Delete selected text (same as backspace)
                 int sel_start = entry->selection_start < entry->cursor_pos ? entry->selection_start : entry->cursor_pos;
@@ -467,7 +467,7 @@ void update_entry(Entry* entry, SDL_Event event) {
                         entry->text + entry->cursor_pos + 1, strlen(entry->text) - entry->cursor_pos);
             }
             update_visible_text(entry);
-        } else if (event.key.keysym.sym == SDLK_LEFT) {
+        } else if (event->type == EVENT_KEYDOWN && event->key.key == KEY_LEFT) {
             if (entry->cursor_pos > 0) {
                 if (mod & KMOD_SHIFT) {
                     // Extend selection with Shift+Left
@@ -480,7 +480,7 @@ void update_entry(Entry* entry, SDL_Event event) {
                 }
                 update_visible_text(entry);
             }
-        } else if (event.key.keysym.sym == SDLK_RIGHT) {
+        } else if (event->type == EVENT_KEYDOWN && event->key.key == KEY_RIGHT) {
             if (entry->cursor_pos < strlen(entry->text)) {
                 if (mod & KMOD_SHIFT) {
                     // Extend selection with Shift+Right
@@ -493,17 +493,17 @@ void update_entry(Entry* entry, SDL_Event event) {
                 }
                 update_visible_text(entry);
             }
-        } else if (event.key.keysym.sym == SDLK_RETURN) {
+        } else if (event->type == EVENT_KEYDOWN && event->key.key == KEY_RETURN) {
             // Deactivate entry on Enter key
             entry->is_active = 0;
             entry->selection_start = -1;
-        } else if (event.key.keysym.sym == SDLK_a && (mod & KMOD_CTRL)) {
+        } else if (event->type == EVENT_KEYDOWN && event->key.key == KEY_A && (event->key.mod & KEY_MOD_CTRL)) {
             // Ctrl+A: Select all text
             if (strlen(entry->text) > 0) {
                 entry->selection_start = 0;
                 entry->cursor_pos = strlen(entry->text);
             }
-        } else if (event.key.keysym.sym == SDLK_c && (mod & KMOD_CTRL)) {
+        } else if (event->type == EVENT_KEYDOWN && event->key.key == KEY_C && (event->key.mod & KEY_MOD_CTRL)) {
             // Ctrl+C: Copy selected text to clipboard
             if (entry->selection_start != -1) {
                 int sel_start = entry->selection_start < entry->cursor_pos ? entry->selection_start : entry->cursor_pos;
@@ -514,7 +514,7 @@ void update_entry(Entry* entry, SDL_Event event) {
                 SDL_SetClipboardText(sel_text);
                 free(sel_text);
             }
-        } else if (event.key.keysym.sym == SDLK_x && (mod & KMOD_CTRL)) {
+        } else if (event->type == EVENT_KEYDOWN && event->key.key == KEY_X && (event->key.mod & KEY_MOD_CTRL)) {
             // Ctrl+X: Cut selected text (copy to clipboard and delete)
             if (entry->selection_start != -1) {
                 int sel_start = entry->selection_start < entry->cursor_pos ? entry->selection_start : entry->cursor_pos;
@@ -531,7 +531,7 @@ void update_entry(Entry* entry, SDL_Event event) {
                 entry->selection_start = -1;
                 update_visible_text(entry);
             }
-        } else if (event.key.keysym.sym == SDLK_v && (mod & KMOD_CTRL)) {
+        } else if (event->type == EVENT_KEYDOWN && event->key.key == KEY_V && (event->key.mod & KEY_MOD_CTRL)) {
             // Ctrl+V: Paste text from clipboard
             if (SDL_HasClipboardText()) {
                 char* paste_text = SDL_GetClipboardText();
@@ -601,7 +601,7 @@ void render_all_registered_entrys(void) {
 // Updates all registered entry widgets based on an SDL event
 // Parameters:
 // - event: The SDL event to process
-void update_all_registered_entrys(SDL_Event event) {
+void update_all_registered_entrys(Event* event) {
     for (int i = 0; i < entrys_count; i++) {
         if (entry_widgets[i]) {
             update_entry(entry_widgets[i], event); // Update each valid entry

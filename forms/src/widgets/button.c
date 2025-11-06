@@ -1,6 +1,7 @@
 #include "../../include/widgets/button.h"
 #include "../../include/core/theme.h"
 #include "../../include/core/graphics.h"
+#include "../../include/core/interface.h"
 
 #include <string.h> // for strdup
 #include <SDL2/SDL_ttf.h> // for TTF_SizeText usage
@@ -114,7 +115,7 @@ void render_button(Button* button) {
     SDL_RenderSetClipRect(button->parent->base.sdl_renderer, NULL);
 }
 
-void update_button(Button* button, SDL_Event event) {
+void update_button(Button* button, Event event) {
     if (!button || !button->parent || !button->parent->is_open) {
         printf("Invalid button, parent, or parent is not open\n");
         return;
@@ -174,7 +175,7 @@ void render_all_registered_buttons(void) {
     }
 }
 
-void update_all_registered_buttons(SDL_Event event) {
+void update_all_registered_buttons(Event event) {
     for (int i = 0; i < buttons_count; i++) {
         if (button_widgets[i]) {
             update_button(button_widgets[i], event);

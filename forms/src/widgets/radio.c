@@ -125,7 +125,7 @@ Radio* radio_widgets[MAX_RADIOS];
 int radios_count = 0;
 
 // -------- Update --------
-void update_radio_(Radio* radio, SDL_Event event) {
+void update_radio_(Radio* radio, Event* event) {
     if (!radio || !radio->parent || !radio->parent->is_open) {
         printf("Invalid radio, parent, or parent is not open\n");
         return;
@@ -143,9 +143,9 @@ void update_radio_(Radio* radio, SDL_Event event) {
                  mouse_y >= abs_y - radio->h/2 && mouse_y <= abs_y + radio->h/2);
     radio->is_hovered = over;
 
-    if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
-        int mx = event.button.x;
-        int my = event.button.y;
+    if (event->type == EVENT_MOUSEBUTTONDOWN && event->mouseButton.button == MOUSE_LEFT) {
+        int mx = event->mouseButton.x;
+        int my = event->mouseButton.y;
 
         // Hitbox: circle bounding box
         if (mx >= abs_x - radio->h/2 && mx <= abs_x + radio->h/2 &&
@@ -188,7 +188,7 @@ void render_all_registered_radios(void) {
     }
 }
 
-void update_all_registered_radios(SDL_Event event) {
+void update_all_registered_radios(Event * event) {
     for (int i = 0; i < radios_count; i++) {
         if (radio_widgets[i]) {
             update_radio_(radio_widgets[i], event);

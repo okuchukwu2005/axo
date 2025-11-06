@@ -2,6 +2,8 @@
 #define CONTAINER_H
 
 #include "../core/parent.h"
+#include "../core/interface.h"
+
 #include<SDL2/SDL.h>
 #include<stdbool.h>
 
@@ -11,7 +13,7 @@ void set_container_properties(Parent* container, bool moveable, const char* titl
 void draw_title_bar_(Parent* container);
 void render_container(Parent* container);
 
-void update_container(Parent* container, SDL_Event event);
+void update_container(Parent* container, Event* event);
 // registering stuffs
 
 #define MAX_CONTAINERS 100
@@ -22,7 +24,7 @@ extern int containers_count;
 void register_container(Parent* container);
 
 void render_all_registered_containers(void);
-void update_all_registered_containers(SDL_Event event);
+void update_all_registered_containers(Event* event);
 
 void free_con_(Parent* parent);
 

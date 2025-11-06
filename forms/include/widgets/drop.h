@@ -8,6 +8,8 @@
 
 #include "../core/parent.h"
 #include "../core/color.h"
+#include "../core/interface.h"
+
 #include<stdbool.h>
 #include <SDL2/SDL.h> // for SDL_Event, etc.
 
@@ -49,14 +51,14 @@ void set_drop_font_size(Drop* drop, int size);
 void draw_upside_down_triangle_(Base* base, int x1, int y1, int x2, int y2, int x3, int y3, Color color);
 
 void render_drop_down_(Drop* drop);
-void update_drop_down_(Drop* drop, SDL_Event event);
+void update_drop_down_(Drop* drop, Event *event);
 void free_drop_(Drop* drop);
 
 void register_drop(Drop* drop);
 
 void render_all_registered_drops(void);
 
-void update_all_registered_drops(SDL_Event event);
+void update_all_registered_drops(Event *event);
 
 void free_all_registered_drops(void);
 #endif // DROP_H

@@ -8,6 +8,8 @@
 
 #include "../core/parent.h"
 #include "../core/color.h"
+#include "../core/interface.h"
+
 #include <stdbool.h>
 #include <SDL2/SDL.h> // for SDL_Event, etc.
 
@@ -39,7 +41,7 @@ void set_progress_bar_value(ProgressBar* progress_bar, int value);
 // -------- Render --------
 void render_progress_bar(ProgressBar* progress_bar);
 // -------- Update --------
-void update_progress_bar(ProgressBar* progress_bar, SDL_Event event);
+void update_progress_bar(ProgressBar* progress_bar, Event* event);
 
 // -------- Free --------
 void free_progress_bar(ProgressBar* progress_bar);
@@ -54,7 +56,7 @@ void register_progress_bar(ProgressBar* progress_bar);
 
 void render_all_registered_progress_bars(void);
 
-void update_all_registered_progress_bars(SDL_Event event);
+void update_all_registered_progress_bars(Event* event);
 
 void free_all_registered_progress_bars(void);
 

@@ -2,6 +2,8 @@
 #define ENTRY_H
 
 #include"../core/parent.h"
+#include "../core/interface.h"
+
 #include <SDL2/SDL.h> // SDL library for handling graphics, events (e.g., SDL_Event, SDLK_* for key codes)
 
 // Defines a struct for a text entry widget, representing an input field in a GUI
@@ -45,7 +47,7 @@ void update_visible_text(Entry* entry);
 // Parameters:
 // - entry: The Entry widget to update
 // - event: The SDL event to process
-void update_entry(Entry* entry, SDL_Event event);
+void update_entry(Entry* entry, Event* event);
 // Frees the memory allocated for an Entry widget
 // Parameters:
 // - entry: The Entry widget to free
@@ -68,7 +70,7 @@ void render_all_registered_entrys(void);
 // Updates all registered entry widgets based on an SDL event
 // Parameters:
 // - event: The SDL event to process
-void update_all_registered_entrys(SDL_Event event);
+void update_all_registered_entrys(Event* event);
 
 void free_all_registered_entrys(void);
 

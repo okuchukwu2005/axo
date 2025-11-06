@@ -2,6 +2,9 @@
 #include "../../include/widgets/drop.h"
 #include "../../include/core/theme.h"
 #include "../../include/core/graphics.h"
+#include "../../include/core/interface.h"
+
+
 #include <string.h> // for strdup
 #include <SDL2/SDL_ttf.h> // for TTF_SizeText if needed
 #include <math.h>   // For roundf in scaling
@@ -184,7 +187,7 @@ void render_drop_down_(Drop* drop) {
         SDL_RenderSetClipRect(drop->parent->base.sdl_renderer, NULL);
 }
 
-void update_drop_down_(Drop* drop, SDL_Event event) {
+void update_drop_down_(Drop* drop, Event event) {
     if (!drop || !drop->parent || !drop->parent->is_open) {
         printf("Invalid drop, parent, or parent is not open\n");
         return;
@@ -264,7 +267,7 @@ void render_all_registered_drops(void) {
     }
 }
 
-void update_all_registered_drops(SDL_Event event) {
+void update_all_registered_drops(Event event) {
     for (int i = 0; i < drops_count; i++) {
         if (drop_widgets[i]) {
             update_drop_down_(drop_widgets[i], event);

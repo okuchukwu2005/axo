@@ -8,6 +8,8 @@
 
 #include "../core/parent.h"
 #include "../core/graphics.h"
+#include "../core/interface.h"
+
 
 #include <SDL2/SDL.h> // for SDL_Event, etc.
 
@@ -26,7 +28,7 @@ void render_text(Text* text);
 // Setters for overrides
 void set_text_color(Text* text, Color color);
 
-void update_text(Text* text, SDL_Event event);
+void update_text(Text* text, Event *event);
 
 void free_text(Text *text);
 
@@ -41,7 +43,7 @@ void register_text(Text* text);
 
 void render_all_registered_texts(void);
 
-void update_all_registered_texts(SDL_Event event);
+void update_all_registered_texts(Event* event);
 
 void free_all_registered_texts(void);
 #endif // TEXT_H

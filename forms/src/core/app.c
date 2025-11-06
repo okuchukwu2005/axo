@@ -1,9 +1,9 @@
 #include "../../include/core/app.h"
-// SDL
-#include<SDL2/SDL.h>
+
 // core
 #include "../../include/core/theme.h"
 #include "../../include/core/graphics.h"
+#include "../../include/core/interface.h"
 // widgets
 #include"../../include/widgets/container.h"
 #include"../../include/widgets/entry.h"
@@ -45,47 +45,42 @@ int is_any_text_widget_active(void) {
 }
 
 void app_run_(Parent *parent) {
-    SDL_Event event;
+    Event event;
     int running = 1;
     while (running) {
-        while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_QUIT) {
+        while (poll_event(&event)) {
+            if (event.type == EVENT_QUIT) {
                 running = 0;
             } else {
-                // New: Handle theme switching on key press
- // === THEME SWITCHING (F1–F10) ===
-            if (event.type == SDL_KEYDOWN) {
-                switch (event.key.keysym.sym) {
-                    case SDLK_F1:  set_theme(&THEME_LIGHT);           break;
-                    case SDLK_F2:  set_theme(&THEME_DARK);            break;
-                    case SDLK_F3:  set_theme(&THEME_HACKER);          break;
-                    case SDLK_F4:  set_theme(&THEME_IMGUI_DARK);      break;
-                    case SDLK_F5:  set_theme(&THEME_NUKLEAR);         break;
-                    case SDLK_F6:  set_theme(&THEME_MATERIAL_DARK);   break;
-                    case SDLK_F7:  set_theme(&THEME_DRACULA);         break;
-                    case SDLK_F8:  set_theme(&THEME_NORD);            break;
-                    case SDLK_F9:  set_theme(&THEME_SOLARIZED_DARK);  break;
-                    case SDLK_F10: set_theme(&THEME_WIN95);      break;
-
-                    default:
-                        break;
-                }
-            
-
+                // === THEME SWITCHING (F1–F10) ===
+                if (event.type == EVENT_KEYDOWN) {
+                    switch (event.key.key) {
+                        case KEY_F1:  set_theme(&THEME_LIGHT); break;
+                        case KEY_F2:  set_theme(&THEME_DARK); break;
+                        case KEY_F3:  set_theme(&THEME_HACKER); break;
+                        case KEY_F4:  set_theme(&THEME_IMGUI_DARK); break;
+                        case KEY_F5:  set_theme(&THEME_NUKLEAR); break;
+                        case KEY_F6:  set_theme(&THEME_MATERIAL_DARK); break;
+                        case KEY_F7:  set_theme(&THEME_DRACULA); break;
+                        case KEY_F8:  set_theme(&THEME_NORD); break;
+                        case KEY_F9:  set_theme(&THEME_SOLARIZED_DARK); break;
+                        case KEY_F10: set_theme(&THEME_WIN95); break;
+                    }
                 }
 
-                update_all_registered_containers(event);
-                update_all_registered_radios(event);
-                update_all_registered_entrys(event);
-                update_all_registered_textboxs(event);
-                update_all_registered_sliders(event);  // Update sliders
-                update_all_registered_buttons(event);
-                update_all_registered_texts(event);
-                update_all_registered_drops(event);
-                update_all_registered_progress_bars(event);
-                update_all_registered_images(event);
+                // === UPDATE ALL WIDGETS ===
+                update_all_registered_containers(&event);
+                update_all_registered_radios(&event);
+                update_all_registered_entrys(&event);
+            -> i stopped    update_all_registered_textboxs(&event);
+                update_all_registered_sliders(&event);
+                update_all_registered_buttons(&event);
+                update_all_registered_texts(&event);     // ← Added
+                update_all_registered_drops(&event);
+                update_all_registered_progress_bars(&event);
+                update_all_registered_images(&event);
 
-                // Global text input management after all updates
+                // Text input management
                 if (is_any_text_widget_active()) {
                     SDL_StartTextInput();
                 } else {
@@ -94,30 +89,31 @@ void app_run_(Parent *parent) {
             }
         }
 
-        clear_screen(&parent->base, parent->color);  /// to change bg color use app.window->color = COLOR; 	
+        // === RENDER ===
+        clear_screen(&parent->base, parent->color);
         render_all_registered_containers();
         render_all_registered_drops();
         render_all_registered_radios();
         render_all_registered_entrys();
         render_all_registered_textboxs();
-        render_all_registered_sliders();  // Render sliders
+        render_all_registered_sliders();
         render_all_registered_buttons();
-		render_all_registered_texts();
-		render_all_registered_progress_bars();
-		render_all_registered_images();
+        render_all_registered_texts();
+        render_all_registered_progress_bars();
+        render_all_registered_images();
         present_screen(&parent->base);
     }
 
-	// free stuffs
-	free_all_registered_images();
-	free_all_registered_buttons();
-	free_all_registered_drops();
-	free_all_registered_radios();
-	free_all_registered_texts();
-	free_all_registered_containers();
-	free_all_registered_entrys();
-	free_all_registered_progress_bars();
-	free_all_registered_sliders();
-	free_all_registered_textboxes();
+    // === CLEANUP ===
+    free_all_registered_images();
+    free_all_registered_buttons();
+    free_all_registered_drops();
+    free_all_registered_radios();
+    free_all_registered_texts();
+    free_all_registered_containers();
+    free_all_registered_entrys();
+    free_all_registered_progress_bars();
+    free_all_registered_sliders();
+    free_all_registered_textboxes();  // ← Match name above
     destroy_parent(parent);
 }

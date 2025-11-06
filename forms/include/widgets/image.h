@@ -2,6 +2,8 @@
 #define IMAGE_H
 
 #include "../core/parent.h"
+#include "../core/interface.h"
+
 #include<SDL2/SDL.h>
 typedef struct{
 	Parent *parent;
@@ -15,7 +17,7 @@ Image new_image(Parent * parent, int x, int y, const char * file_path, int w, in
 
 void render_image(Image * image);
 
-void update_image(Image *image, SDL_Event event);
+void update_image(Image *image, Event *event);
 void free_image(Image *image);
 
 
@@ -29,7 +31,7 @@ void register_image(Image* image);
 
 void render_all_registered_images(void);
 
-void update_all_registered_images(SDL_Event event);
+void update_all_registered_images(Event* event);
 
 void free_all_registered_images(void);
 

@@ -1,6 +1,8 @@
 #include"../../include/widgets/container.h"
 #include"../../include/core/theme.h"
 #include"../../include/core/graphics.h"
+#include "../../include/core/interface.h"
+
 #include <math.h>  // For roundf in scaling
 
 Parent new_container(Parent* root, int x, int y, int w, int h) {
@@ -115,7 +117,7 @@ void render_container(Parent* container) {
                current_theme->container_bg);
 }
 
-void update_container(Parent* container, SDL_Event event) {
+void update_container(Parent* container, Event* event) {
     if (!container || !container->is_open) return;
 
     float dpi = container->base.dpi_scale;
@@ -156,9 +158,9 @@ void update_container(Parent* container, SDL_Event event) {
         mouse_y >= s_y + s_h - s_resize_zone &&
         mouse_y <= s_y + s_h;
 
-    switch (event.type) {
-        case SDL_MOUSEBUTTONDOWN:
-            if (event.button.button == SDL_BUTTON_LEFT) {
+    switch (event->type) {
+        case EVENT_MOUSEBUTTONDOWN:
+            if (event->mouseButton.button == MOUSE_LEFT) {
                 if (in_close_button) {
                     container->is_open = false;
                 } else if (in_resize_area) {
@@ -172,14 +174,14 @@ void update_container(Parent* container, SDL_Event event) {
             }
             break;
 
-        case SDL_MOUSEBUTTONUP:
-            if (event.button.button == SDL_BUTTON_LEFT) {
+        case EVENT_MOUSEBUTTONUP:
+            if (event->mouseButton.button == MOUSE_LEFT) {
                 container->is_dragging = false;
                 container->is_resizing = false;
             }
             break;
 
-        case SDL_MOUSEMOTION:
+        case EVENT_MOUSEMOTION:
             if (container->is_dragging) {
                 container->x = (int)roundf(mouse_x / dpi) - container->drag_offset_x;
                 container->y = (int)roundf(mouse_y / dpi) - container->drag_offset_y;
@@ -212,7 +214,7 @@ void render_all_registered_containers(void) {
     }
 }
 
-void update_all_registered_containers(SDL_Event event) {
+void update_all_registered_containers(Event *event) {
     for (int i = 0; i < containers_count; i++) {
         update_container(container_widgets[i], event);
     }

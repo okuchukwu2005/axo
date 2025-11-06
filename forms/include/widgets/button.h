@@ -11,6 +11,7 @@
 
 #include "../core/color.h"
 #include "../core/parent.h"
+#include "../core/interface.h"
 
 #define MAX_BUTTONS 100
 
@@ -34,7 +35,7 @@ void set_button_text_color(Button* button, Color color);
 
 void render_button(Button* button);
 void function_callback_override ();
-void update_button(Button* button, SDL_Event event);
+void update_button(Button* button, Event* event);
 void free_button(Button* button);
 
 #define OVERRIDE function_callback_override
@@ -49,7 +50,7 @@ void register_button(Button* button);
 
 void render_all_registered_buttons(void);
 
-void update_all_registered_buttons(SDL_Event event);
+void update_all_registered_buttons(Event* event);
 void free_all_registered_buttons(void);
 
 #endif // BUTTON_H

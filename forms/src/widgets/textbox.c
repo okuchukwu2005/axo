@@ -398,7 +398,7 @@ void update_visible_lines(TextBox* textbox) {
 // Parameters:
 // - textbox: The TextBox widget to update
 // - event: The SDL event to process
-void update_textbox(TextBox* textbox, SDL_Event event) {
+void update_textbox(TextBox* textbox, Event* event) {
     // Validate inputs to ensure the textbox, its parent, and parent state are valid
     if (!textbox || !textbox->parent || !textbox->parent->is_open) {
         printf("Invalid textbox, parent, or parent is not open\n");
@@ -434,9 +434,9 @@ void update_textbox(TextBox* textbox, SDL_Event event) {
     }
 
     // Handle mouse button down event (left click)
-    if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
-        int mouseX = event.button.x;
-        int mouseY = event.button.y;
+    if (event->type == EVENT_MOUSEBUTTONDOWN && event->mouseButton.button == MOUSE_LEFT) {
+        int mouseX = event->mouseButton.x;
+        int mouseY = event->mouseButton.y;
         // Check if click is inside the textbox (physical coords)
         if (mouseX >= s_abs_x && mouseX <= s_abs_x + s_w &&
             mouseY >= s_abs_y && mouseY <= s_abs_y + s_h) {
@@ -481,13 +481,13 @@ void update_textbox(TextBox* textbox, SDL_Event event) {
         }
     } 
     // Handle mouse button up event (left click)
-    else if (event.type == SDL_MOUSEBUTTONUP && event.button.button == SDL_BUTTON_LEFT) {
+    else if (event->type == EVENT_MOUSEBUTTONUP && event->mouseButton.button == MOUSE_LEFT) {
         textbox->is_mouse_selecting = 0; // End mouse-based selection
     } 
     // Handle mouse motion for drag selection
-    else if (event.type == SDL_MOUSEMOTION && textbox->is_mouse_selecting && (event.motion.state & SDL_BUTTON_LMASK)) {
-        int mouseX = event.motion.x;
-        int mouseY = event.motion.y;
+    else if (event->type == EVENT_MOUSEMOTION && textbox->is_mouse_selecting && (event->mouseMove.button_state & MOUSE_BUTTON_LEFT_MASK)) {
+        int mouseX = event->mouseMove.x;
+        int mouseY = event->mouseMove.y;
         // Update selection if mouse is within textbox bounds (optional: can remove bounds check)
         if (mouseX >= s_abs_x && mouseX <= s_abs_x + s_w &&
             mouseY >= s_abs_y && mouseY <= s_abs_y + s_h) {
@@ -526,7 +526,7 @@ void update_textbox(TextBox* textbox, SDL_Event event) {
         }
     } 
     // Handle text input when textbox is active
-    else if (event.type == SDL_TEXTINPUT && textbox->is_active) {
+    else if (event->type == EVENT_TEXTINPUT && textbox->is_active) {
         // If there's a selection, delete it before inserting new text
         if (textbox->selection_start != -1) {
             int sel_start = textbox->selection_start < textbox->cursor_pos ? textbox->selection_start : textbox->cursor_pos;
@@ -537,18 +537,18 @@ void update_textbox(TextBox* textbox, SDL_Event event) {
         }
         // Insert new text at cursor position
         int len = strlen(textbox->text);
-        int input_len = strlen(event.text.text);
+        int input_len = strlen(event->text.text);
         if (len + input_len < textbox->max_length) {
             memmove(textbox->text + textbox->cursor_pos + input_len, 
                     textbox->text + textbox->cursor_pos, len - textbox->cursor_pos + 1);
-            strncpy(textbox->text + textbox->cursor_pos, event.text.text, input_len);
+            strncpy(textbox->text + textbox->cursor_pos, event->text.text, input_len);
             textbox->cursor_pos += input_len;
             update_visible_lines(textbox);
         }
     } 
     // Handle key presses when textbox is active
-    else if (event.type == SDL_KEYDOWN && textbox->is_active) {
-        if (event.key.keysym.sym == SDLK_BACKSPACE) {
+    else if (event->type == EVENT_KEYDOWN && textbox->is_active) {
+        if (event->type == EVENT_KEYDOWN && event->key.key == KEY_BACKSPACE) {
             if (textbox->selection_start != -1) {
                 // Delete selected text
                 int sel_start = textbox->selection_start < textbox->cursor_pos ? textbox->selection_start : textbox->cursor_pos;
@@ -563,7 +563,7 @@ void update_textbox(TextBox* textbox, SDL_Event event) {
                 textbox->cursor_pos--;
             }
             update_visible_lines(textbox);
-        } else if (event.key.keysym.sym == SDLK_DELETE) {
+        } else if (event->type == EVENT_KEYDOWN && event->key.key == KEY_DELETE) {
             if (textbox->selection_start != -1) {
                 // Delete selected text (same as backspace)
                 int sel_start = textbox->selection_start < textbox->cursor_pos ? textbox->selection_start : textbox->cursor_pos;
@@ -577,7 +577,7 @@ void update_textbox(TextBox* textbox, SDL_Event event) {
                         textbox->text + textbox->cursor_pos + 1, strlen(textbox->text) - textbox->cursor_pos);
             }
             update_visible_lines(textbox);
-        } else if (event.key.keysym.sym == SDLK_LEFT) {
+        } else if (event->type == EVENT_KEYDOWN && event->key.key == KEY_LEFT) {
             if (textbox->cursor_pos > 0) {
                 if (mod & KMOD_SHIFT) {
                     // Extend selection with Shift+Left
@@ -590,7 +590,7 @@ void update_textbox(TextBox* textbox, SDL_Event event) {
                 }
                 update_visible_lines(textbox);
             }
-        } else if (event.key.keysym.sym == SDLK_RIGHT) {
+        } else if (event->type == EVENT_KEYDOWN && event->key.key == KEY_RIGHT) {
             if (textbox->cursor_pos < strlen(textbox->text)) {
                 if (mod & KMOD_SHIFT) {
                     // Extend selection with Shift+Right
@@ -603,7 +603,7 @@ void update_textbox(TextBox* textbox, SDL_Event event) {
                 }
                 update_visible_lines(textbox);
             }
-        } else if (event.key.keysym.sym == SDLK_UP || event.key.keysym.sym == SDLK_DOWN) {
+        } else if (event->type == EVENT_KEYDOWN && (event->key.key == KEY_UP || event->key.key == KEY_DOWN)) {
             int max_text_width = textbox->w - 2 * logical_padding;
             int num_lines = 0;
             Line* lines = compute_visual_lines(textbox->text, max_text_width, font, &num_lines);
@@ -630,8 +630,8 @@ void update_textbox(TextBox* textbox, SDL_Event event) {
                     int preferred_width = 0;
                     TTF_SizeText(font, temp, &preferred_width, NULL);
                     free(temp);
-
-                    int delta = event.key.keysym.sym == SDLK_DOWN ? 1 : -1;
+                    
+					int delta = (event->type == EVENT_KEYDOWN && event->key.key == KEY_DOWN) ? 1 : -1;
                     int target_line_idx = curr_line_idx + delta;
                     if (target_line_idx >= 0 && target_line_idx < num_lines) {
                         Line target_l = lines[target_line_idx];
@@ -670,7 +670,7 @@ void update_textbox(TextBox* textbox, SDL_Event event) {
                 textbox->selection_start = -1;
             }
             update_visible_lines(textbox);
-        } else if (event.key.keysym.sym == SDLK_RETURN) {
+        } else if (event->type == EVENT_KEYDOWN && event->key.key == KEY_RETURN) {
             // Insert \n
             int len = strlen(textbox->text);
             if (len + 1 < textbox->max_length) {
@@ -679,13 +679,13 @@ void update_textbox(TextBox* textbox, SDL_Event event) {
                 textbox->cursor_pos++;
                 update_visible_lines(textbox);
             }
-        } else if (event.key.keysym.sym == SDLK_a && (mod & KMOD_CTRL)) {
+        } else if (event->type == EVENT_KEYDOWN && event->key.key == KEY_A && (event->key.mod & KEY_MOD_CTRL)) {
             // Ctrl+A: Select all text
             if (strlen(textbox->text) > 0) {
                 textbox->selection_start = 0;
                 textbox->cursor_pos = strlen(textbox->text);
             }
-        } else if (event.key.keysym.sym == SDLK_c && (mod & KMOD_CTRL)) {
+        } else if (event->type == EVENT_KEYDOWN && event->key.key == KEY_C && (event->key.mod & KEY_MOD_CTRL)) {
             // Ctrl+C: Copy selected text to clipboard
             if (textbox->selection_start != -1) {
                 int sel_start = textbox->selection_start < textbox->cursor_pos ? textbox->selection_start : textbox->cursor_pos;
@@ -696,7 +696,7 @@ void update_textbox(TextBox* textbox, SDL_Event event) {
                 SDL_SetClipboardText(sel_text);
                 free(sel_text);
             }
-        } else if (event.key.keysym.sym == SDLK_x && (mod & KMOD_CTRL)) {
+        } else if (event->type == EVENT_KEYDOWN && event->key.key == KEY_X && (event->key.mod & KEY_MOD_CTRL)) {
             // Ctrl+X: Cut selected text (copy to clipboard and delete)
             if (textbox->selection_start != -1) {
                 int sel_start = textbox->selection_start < textbox->cursor_pos ? textbox->selection_start : textbox->cursor_pos;
@@ -711,7 +711,7 @@ void update_textbox(TextBox* textbox, SDL_Event event) {
                 textbox->selection_start = -1;
                 update_visible_lines(textbox);
             }
-        } else if (event.key.keysym.sym == SDLK_v && (mod & KMOD_CTRL)) {
+        } else if (event->type == EVENT_KEYDOWN && event->key.key == KEY_V && (event->key.mod & KEY_MOD_CTRL)) {
             // Ctrl+V: Paste text from clipboard
             if (SDL_HasClipboardText()) {
                 char* paste_text = SDL_GetClipboardText();
