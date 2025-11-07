@@ -3,20 +3,26 @@
 #include <stdio.h>
 
 /*
- * DEBUG_PRINT macro:
- * - Prints messages only if DEBUG is defined at compile time.
- * - Otherwise, it does nothing (no runtime overhead).
+ * DEBUG_PRINT macro
+ * -------------------------------------------------
+ * • Enabled only when -DDEBUG is passed to the compiler
+ * • Prints:  [DEBUG:file.c:line] <your message>
+ * • Uses fprintf(stderr, ...) – always visible even if stdout is redirected
+ * • Zero-cost when DEBUG is not defined
  *
- * Usage:
- *   DEBUG_PRINT("Value of x: %d\n", x);
+ * Example output:
+ *   [DEBUG:button.c:20] Error: NULL parent passed to new_button()
  *
- * Enable by compiling with:
- *   gcc -DDEBUG ...
+ * Compile with debug:
+ *   gcc -DDEBUG your_files.c
  */
 
 #ifdef DEBUG
     #define DEBUG_PRINT(fmt, ...) \
-        do { fprintf(stderr, "[DEBUG] %s:%d: " fmt, __FILE__, __LINE__, ##__VA_ARGS__); } while (0)
+        do { \
+            fprintf(stderr, "[DEBUG:%s:%d] " fmt "\n", \
+                    __FILE__, __LINE__, ##__VA_ARGS__); \
+        } while (0)
 #else
-    #define DEBUG_PRINT(fmt, ...) do {} while (0)
+    #define DEBUG_PRINT(fmt, ...) do { } while (0)
 #endif

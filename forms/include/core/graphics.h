@@ -8,6 +8,7 @@
 
 #include "parent.h" // Access Base
 #include "color.h"   // Access Color struct
+#include "debug.h"
 
 /**
  * @brief Clears the screen to the specified color

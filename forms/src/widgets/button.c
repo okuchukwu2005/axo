@@ -8,14 +8,14 @@
 #include <math.h>   // For roundf in scaling
 
 void function_callback_override (){
-    printf("Button was clicked!\n");
+    DEBUG_PRINT("Button was clicked!\n");
     // Add custom logic, e.g., open a dialog, submit a form, etc.
 }
 
 
 Button new_button(Parent* parent, int x, int y, int w, int h, const char* label, void (*callback)(void)) {
     if (!parent || !parent->base.sdl_renderer) {
-        printf("Invalid parent or renderer\n");
+        DEBUG_PRINT("Error: Invalid parent or renderer passed to new_button()\n");
     }
 
     Button new_button;
@@ -27,7 +27,7 @@ Button new_button(Parent* parent, int x, int y, int w, int h, const char* label,
     new_button.h = h;
     new_button.label = strdup(label);
     if (!new_button.label) {
-        printf("Failed to allocate memory for button label\n");
+        DEBUG_PRINT("Erorr: Failed to allocate memory for button label\n");
     }
     new_button.callback = callback;
     new_button.is_hovered = 0;
@@ -60,7 +60,7 @@ void set_button_text_color(Button* button, Color color) {
 
 void render_button(Button* button) {
     if (!button || !button->parent || !button->parent->base.sdl_renderer || !button->parent->is_open) {
-        printf("Invalid button, renderer, or parent is not open\n");
+        DEBUG_PRINT("Erorr: Invalid button, renderer, or parent is not open\n");
         return;
     }
 	//set container clipping

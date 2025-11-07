@@ -62,7 +62,7 @@ static const Theme THEME_LIGHT = {
     .container_bg = {250, 250, 250, 255},    // Slightly whiter for contrast
     .container_title_bg = {220, 220, 220, 255}, // Lighter gray for title bar
     .default_font_size = 16,
-    .font_file = "forms/fonts/core/FreeMono.ttf",
+    .font_file = "forms/include/core/fonts/FreeMono.ttf",
     .padding = 10,
     .roundness = 0.2f
 };
@@ -85,7 +85,7 @@ static const Theme THEME_DARK = {
     .container_bg = {35, 35, 35, 255},       // Slightly darker for contrast
     .container_title_bg = {50, 50, 50, 255}, // Lighter dark gray for title bar
     .default_font_size = 16,
-    .font_file = "forms/fonts/core/FreeMono.ttf",
+    .font_file = "forms/include/core/fonts/FreeMono.ttf",
     .padding = 10,
     .roundness = 0.2f
 };
@@ -108,7 +108,7 @@ static const Theme THEME_HACKER = {
     .container_bg = {10, 10, 10, 255},       // Even darker gray for contrast
     .container_title_bg = {30, 30, 30, 255}, // Lighter dark for title bar
     .default_font_size = 16,
-    .font_file = "forms/fonts/core/FreeMono.ttf",
+    .font_file = "forms/include/core/fonts/FreeMono.ttf",
     .padding = 10,
     .roundness = 0.1f                        // Less rounded for a "techy" feel
 };
@@ -129,8 +129,8 @@ static const Theme THEME_IMGUI_DARK = {
     .button_text         = {255,255,255,255},
     .container_bg        = {35, 35, 35, 255},
     .container_title_bg  = {55, 55, 55, 255},
-    .default_font_size   = 13,
-    .font_file           = "forms/fonts/core/Roboto-Medium.ttf",
+    .default_font_size   = 16,
+    .font_file           = "forms/include/core/fonts/FreeMono.ttf",
     .padding             = 8,
     .roundness           = 0.15f
 };
@@ -152,7 +152,7 @@ static const Theme THEME_NUKLEAR = {
     .container_bg        = {55, 55, 55, 255},
     .container_title_bg  = {75, 75, 75, 255},
     .default_font_size   = 14,
-    .font_file           = "forms/fonts/core/Roboto-Medium.ttf",
+    .font_file           = "forms/include/core/fonts/FreeMono.ttf",
     .padding             = 6,
     .roundness           = 0.0f
 };
@@ -175,7 +175,7 @@ static const Theme THEME_MATERIAL_DARK = {
     .container_bg        = {25, 25, 25, 255},
     .container_title_bg  = {66, 165, 245, 255},
     .default_font_size   = 14,
-    .font_file           = "forms/fonts/core/Roboto-Medium.ttf",
+    .font_file           = "forms/include/core/fonts/FreeMono.ttf",
     .padding             = 16,
     .roundness           = 0.3f
 };
@@ -196,8 +196,8 @@ static const Theme THEME_DRACULA = {
     .container_bg        = {45, 47, 59, 255},
     .container_title_bg  = {68, 71, 90, 255},
     .default_font_size   = 14,
-    .font_file           = "forms/fonts/core/FiraCode-Regular.ttf",
-    .padding             = 12,
+    .font_file           = "forms/include/core/fonts/FreeMono.ttf",
+    .padding             = 16,
     .roundness           = 0.2f
 };
 
@@ -217,7 +217,7 @@ static const Theme THEME_NORD = {
     .container_bg        = {51, 57, 69, 255},
     .container_title_bg  = {76, 86, 106, 255},
     .default_font_size   = 14,
-    .font_file           = "forms/fonts/core/FiraCode-Regular.ttf",
+    .font_file           = "forms/include/core/fonts/FreeMono.ttf",
     .padding             = 10,
     .roundness           = 0.15f
 };
@@ -239,7 +239,7 @@ static const Theme THEME_SOLARIZED_DARK = {
     .container_bg        = {5, 49, 60, 255},
     .container_title_bg  = {30, 73, 84, 255},
     .default_font_size   = 14,
-    .font_file           = "forms/fonts/core/FiraCode-Regular.ttf",
+    .font_file           = "forms/include/core/fonts/FreeMono.ttf",
     .padding             = 10,
     .roundness           = 0.0f
 };
@@ -261,7 +261,7 @@ static const Theme THEME_WIN95 = {
     .container_bg        = {212, 208, 200, 255},
     .container_title_bg  = {0, 0, 128, 255},
     .default_font_size   = 11,
-    .font_file           = "forms/fonts/core/FiraCode-Regular.ttf",
+    .font_file           = "forms/include/core/fonts/FreeMono.ttf",
     .padding             = 3,
     .roundness           = 0.0f
 };
