@@ -115,7 +115,7 @@ void render_button(Button* button) {
     SDL_RenderSetClipRect(button->parent->base.sdl_renderer, NULL);
 }
 
-void update_button(Button* button, Event event) {
+void update_button(Button* button, Event* event) {
     if (!button || !button->parent || !button->parent->is_open) {
         printf("Invalid button, parent, or parent is not open\n");
         return;
@@ -132,13 +132,13 @@ void update_button(Button* button, Event event) {
     int over = (mouseX >= abs_x && mouseX <= abs_x + button->w &&
                 mouseY >= abs_y && mouseY <= abs_y + button->h);
 
-    if (event.type == SDL_MOUSEMOTION) {
+    if (event->type == EVENT_MOUSEMOTION) {
         button->is_hovered = over;
-    } else if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
+    } else if (event->type == EVENT_MOUSEBUTTONDOWN && event->mouseButton.button == SDL_BUTTON_LEFT) {
         if (over) {
             button->is_pressed = 1;
         }
-    } else if (event.type == SDL_MOUSEBUTTONUP && event.button.button == SDL_BUTTON_LEFT) {
+    } else if (event->type == EVENT_MOUSEBUTTONUP && event->mouseButton.button == SDL_BUTTON_LEFT) {
         if (button->is_pressed && over) {
             if (button->callback) {
                 button->callback();
@@ -175,7 +175,7 @@ void render_all_registered_buttons(void) {
     }
 }
 
-void update_all_registered_buttons(Event event) {
+void update_all_registered_buttons(Event* event) {
     for (int i = 0; i < buttons_count; i++) {
         if (button_widgets[i]) {
             update_button(button_widgets[i], event);

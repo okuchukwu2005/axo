@@ -178,9 +178,8 @@ void backend_draw_rounded_rect(Base* base, int x, int y, int w, int h, float rou
     }
 }
 
-void backend_draw_text_from_font(Base* base, void * font_ptr, const char* text, int x, int y, Color color, void * align_ptr) {
+void backend_draw_text_from_font(Base* base, void * font_ptr, const char* text, int x, int y, Color color, TextAlign align) {
 	TTF_Font *font = (TTF_Font *) font_ptr; // type cast
-	TextAlign *align = (TextAlign *) align_ptr; // type cast
     if (!font) {
         printf("No font provided for text rendering\n");
         return;

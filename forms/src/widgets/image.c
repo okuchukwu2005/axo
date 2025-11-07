@@ -46,7 +46,7 @@ void render_image(Image * image){
 	SDL_RenderSetClipRect(image->parent->base.sdl_renderer, NULL);
 }
 
-void update_image(Image *image, Event event){ } // incase in the future, image needs to be resizeable, movable, ...
+void update_image(Image *image, Event *event){ } // incase in the future, image needs to be resizeable, movable, ...
 
 void free_image(Image *image) {
     if (image) {
@@ -78,7 +78,7 @@ void render_all_registered_images(void) {
     }
 }
 
-void update_all_registered_images(Event event) {
+void update_all_registered_images(Event* event) {
     for (int i = 0; i < images_count; i++) {
         if (image_widgets[i]) {
             update_image(image_widgets[i], event);

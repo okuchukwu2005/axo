@@ -29,7 +29,7 @@ void draw_rounded_rect(Base* base, int x, int y, int w, int h, float roundness, 
    backend_draw_rounded_rect(base,x,y,w,h,roundness,color);
 }
 
-void draw_text_from_font(Base* base, void * font, const char* text, int x, int y, Color color, void* align) {
+void draw_text_from_font(Base* base, void * font, const char* text, int x, int y, Color color, TextAlign align) {
    backend_draw_text_from_font(base,font,text,x,y,color,align);
 }
 

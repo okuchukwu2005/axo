@@ -769,7 +769,7 @@ void render_all_registered_textboxs(void) {
     }
 }
 
-void update_all_registered_textboxs(SDL_Event event) {
+void update_all_registered_textboxs(Event *event) {
     for (int i = 0; i < textboxs_count; i++) {
         if (textbox_widgets[i]) {
             update_textbox(textbox_widgets[i], event);

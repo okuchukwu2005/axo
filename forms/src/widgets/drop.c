@@ -187,7 +187,7 @@ void render_drop_down_(Drop* drop) {
         SDL_RenderSetClipRect(drop->parent->base.sdl_renderer, NULL);
 }
 
-void update_drop_down_(Drop* drop, Event event) {
+void update_drop_down_(Drop* drop, Event* event) {
     if (!drop || !drop->parent || !drop->parent->is_open) {
         printf("Invalid drop, parent, or parent is not open\n");
         return;
@@ -205,9 +205,9 @@ void update_drop_down_(Drop* drop, Event event) {
                         mouse_y >= abs_y && mouse_y <= abs_y + drop->h);
     drop->is_hovered = over_button;
 
-    if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
-        int event_mouse_x = event.button.x;
-        int event_mouse_y = event.button.y;
+    if (event->type == EVENT_MOUSEBUTTONDOWN && event->mouseButton.button == SDL_BUTTON_LEFT) {
+        int event_mouse_x = event->mouseButton.x;
+        int event_mouse_y = event->mouseButton.y;
 
         // Check if click is on the dropdown button
         if (event_mouse_x >= abs_x && event_mouse_x <= abs_x + drop->w &&
@@ -267,7 +267,7 @@ void render_all_registered_drops(void) {
     }
 }
 
-void update_all_registered_drops(Event event) {
+void update_all_registered_drops(Event* event) {
     for (int i = 0; i < drops_count; i++) {
         if (drop_widgets[i]) {
             update_drop_down_(drop_widgets[i], event);

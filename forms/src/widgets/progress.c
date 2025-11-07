@@ -4,6 +4,7 @@
 #include "../../include/core/graphics.h"
 #include <stdlib.h> // for malloc
 #include <SDL2/SDL.h> // for SDL_Event, etc.
+#include <SDL2/SDL_ttf.h> // for SDL_Event, etc.
 #include <math.h>   // For roundf in scaling
 
 
@@ -131,7 +132,7 @@ void render_progress_bar(ProgressBar* progress_bar) {
 }
 
 // -------- Update --------
-void update_progress_bar(ProgressBar* progress_bar, SDL_Event event) {
+void update_progress_bar(ProgressBar* progress_bar, Event* event) {
     // Progress bar is non-interactive, so no event handling needed.
     // If you add interactive features (e.g., clickable to pause), implement here.
 }
@@ -164,7 +165,7 @@ void render_all_registered_progress_bars(void) {
     }
 }
 
-void update_all_registered_progress_bars(SDL_Event event) {
+void update_all_registered_progress_bars(Event* event) {
     for (int i = 0; i < progress_bars_count; i++) {
         if (progress_bar_widgets[i]) {
             update_progress_bar(progress_bar_widgets[i], event);

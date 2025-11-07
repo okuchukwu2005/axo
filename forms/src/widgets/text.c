@@ -78,7 +78,7 @@ void set_text_color(Text* text, Color color) {
     *(text->color) = color;  // copy the struct
 }
 
-void update_text(Text* text, SDL_Event event) {
+void update_text(Text* text, Event* event) {
     // Text widgets are static, no updates needed for events
     (void)text;
     (void)event;
@@ -111,7 +111,7 @@ void render_all_registered_texts(void) {
     }
 }
 
-void update_all_registered_texts(SDL_Event event) {
+void update_all_registered_texts(Event* event) {
     for (int i = 0; i < texts_count; i++) {
         if (text_widgets[i]) {
             update_text(text_widgets[i], event);

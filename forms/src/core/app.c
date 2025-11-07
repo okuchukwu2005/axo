@@ -72,7 +72,7 @@ void app_run_(Parent *parent) {
                 update_all_registered_containers(&event);
                 update_all_registered_radios(&event);
                 update_all_registered_entrys(&event);
-            -> i stopped    update_all_registered_textboxs(&event);
+            	update_all_registered_textboxs(&event);
                 update_all_registered_sliders(&event);
                 update_all_registered_buttons(&event);
                 update_all_registered_texts(&event);     // ← Added

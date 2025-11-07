@@ -123,7 +123,7 @@ void render_slider(Slider* slider) {
 }
 
 // -------- Update --------
-void update_slider(Slider* slider, SDL_Event event) {
+void update_slider(Slider* slider, Event* event) {
     if (!slider || !slider->parent || !slider->parent->is_open) {
         printf("Invalid slider, parent, or parent is not open\n");
         return;
@@ -148,7 +148,7 @@ void update_slider(Slider* slider, SDL_Event event) {
     int over_thumb = (mouse_x >= thumb_rect.x && mouse_x <= thumb_rect.x + thumb_rect.w &&
                       mouse_y >= thumb_rect.y && mouse_y <= thumb_rect.y + thumb_rect.h);
 
-    if (event.type == SDL_MOUSEMOTION) {
+    if (event->type == EVENT_MOUSEMOTION) {
         slider->is_hovered = over_thumb;
         if (slider->dragging) {
             // Update value based on mouse position, clamped to slider bounds
@@ -157,11 +157,11 @@ void update_slider(Slider* slider, SDL_Event event) {
             if (new_value > slider->max) new_value = slider->max;
             slider->value = new_value;
         }
-    } else if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT) {
+    } else if (event->type == EVENT_MOUSEBUTTONDOWN && event->mouseButton.button == SDL_BUTTON_LEFT) {
         if (over_thumb) {
             slider->dragging = true;
         }
-    } else if (event.type == SDL_MOUSEBUTTONUP && event.button.button == SDL_BUTTON_LEFT) {
+    } else if (event->type == EVENT_MOUSEBUTTONUP && event->mouseButton.button == MOUSE_LEFT) {
         slider->dragging = false;
     }
 }
@@ -196,7 +196,7 @@ void render_all_registered_sliders(void) {
     }
 }
 
-void update_all_registered_sliders(SDL_Event event) {
+void update_all_registered_sliders(Event* event) {
     for (int i = 0; i < sliders_count; i++) {
         if (sliders[i]) {
             update_slider(sliders[i], event);
