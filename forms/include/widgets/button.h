@@ -11,7 +11,7 @@
 
 #include "../core/color.h"
 #include "../core/parent.h"
-#include "../core/interface.h"
+#include "../core/backends/sdl2/sdl2_events.h"
 
 #define MAX_BUTTONS 100
 

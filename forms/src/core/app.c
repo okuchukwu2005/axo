@@ -3,7 +3,8 @@
 // core
 #include "../../include/core/theme.h"
 #include "../../include/core/graphics.h"
-#include "../../include/core/interface.h"
+#include "../../include/core/backends/sdl2/sdl2_events.h"
+
 // widgets
 #include"../../include/widgets/container.h"
 #include"../../include/widgets/entry.h"
@@ -16,18 +17,29 @@
 #include"../../include/widgets/progress.h"
 #include"../../include/widgets/image.h"
 
+Font_ttf* global_font = NULL;
+
 App init_app(void) {
     App app = {0}; // Initialize struct members to zero
-    
-    // Set default theme (e.g., light mode)
+
+    // Set default theme (e.g., dark mode)
     set_theme(&THEME_DARK);
-    
-    // Initialize other global resources if needed
-    // For example: Load global fonts, set SDL hints, or init other subsystems
-    
+
+    // Get DPI scaling for primary display
+    app.dpi_scale = get_display_dpi(0);
+
+    // Scale font size based on DPI
+    int scaled_font_size = (int)(current_theme->default_font_size * app.dpi_scale + 0.5f); // round to nearest int
+
+    // Load global font with DPI-scaled size
+    global_font = load_font_ttf(current_theme->font_file, scaled_font_size);
+
     return app;
 }
 
+void app_quit(){
+	free_font_ttf(global_font);
+}
 int is_any_text_widget_active(void) {
     // Check entries
     for (int i = 0; i < entrys_count; i++) {
@@ -115,5 +127,7 @@ void app_run_(Parent *parent) {
     free_all_registered_progress_bars();
     free_all_registered_sliders();
     free_all_registered_textboxes();  // ← Match name above
+
+    app_quit();
     destroy_parent(parent);
 }

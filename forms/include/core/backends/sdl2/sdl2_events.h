@@ -1,5 +1,6 @@
-#ifndef INTERFACE_H
-#define INTERFACE_H
+#ifndef SDL2_EVENTS_H
+#define SDL2_EVENTS_H
+
 #include <SDL2/SDL.h>
 #include <string.h>
 
@@ -87,4 +88,4 @@ int poll_event(Event *out);
 void enable_text_input(void);
 void disable_text_input(void);
 
-#endif // INTERFACE_H
+#endif // SDL2_EVENTS_H

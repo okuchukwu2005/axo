@@ -13,7 +13,7 @@ mkdir -p "$BUILD_DIR"
 echo "Compiling .c files from core, widgets and backends..."
 
 # Compile all .c files from core, widgets and backends into .o in build
-for dir in "$SRC_DIR/core" "$SRC_DIR/widgets" "$SRC_DIR/core/backends"; do
+for dir in "$SRC_DIR/core" "$SRC_DIR/widgets" "$SRC_DIR/core/backends/sdl2"; do
     for file in "$dir"/*.c; do
         [ -e "$file" ] || continue
         base=$(basename "$file" .c)

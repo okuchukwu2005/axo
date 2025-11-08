@@ -2,7 +2,7 @@
 #define  TEXTBOX_H
 
 #include "../core/parent.h"
-#include "../core/interface.h"
+#include "../core/backends/sdl2/sdl2_events.h"
 
 #include <SDL2/SDL.h> // for SDL_Event, SDLK_*, etc.
 #include <SDL2/SDL_ttf.h> // for TTF_SizeText usage

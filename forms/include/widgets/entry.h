@@ -2,7 +2,7 @@
 #define ENTRY_H
 
 #include"../core/parent.h"
-#include "../core/interface.h"
+#include "../core/backends/sdl2/sdl2_events.h"
 
 #include <SDL2/SDL.h> // SDL library for handling graphics, events (e.g., SDL_Event, SDLK_* for key codes)
 

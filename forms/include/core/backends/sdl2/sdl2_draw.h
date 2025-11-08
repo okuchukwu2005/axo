@@ -3,15 +3,16 @@
  * @brief Contains all rendering logic for SDL2-based drawing operations
  */
 
-#ifndef SDL2_BACKEND_H
-#define SDL2_BACKEND_H
+#ifndef SDL2_DRAW_H
+#define SDL2_DRAW_H
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_image.h>
-#include "../graphics.h" // for text Align struct
-#include "../parent.h" // Access Base
-#include "../color.h"   // Access Color struct
+#include "../../graphics.h" // for text Align struct
+#include "../../parent.h" // Access Base
+#include "../../color.h"   // Access Color struct
+#include "sdl2_ttf.h"   // Access Color struct
 
 /**
  * @brief Clears the screen to the specified color
@@ -83,7 +84,7 @@ void backend_draw_rounded_rect(Base* base, int x, int y, int w, int h, float rou
  * @param color The color of the text
  * @param align Text alignment (ALIGN_LEFT, ALIGN_CENTER, ALIGN_RIGHT)
  */
-void backend_draw_text_from_font(Base* base, void* font, const char* text, int x, int y, Color color, TextAlign align);
+void backend_draw_text_from_font(Base* base, Font_ttf* font, const char* text, int x, int y, Color color, TextAlign align);
 /**
  * @brief Draws text at the specified position with the given font size and color
  * @param base Pointer to the Base struct containing the renderer
@@ -117,4 +118,4 @@ void backend_draw_image(Base * base, const char * file, int x, int y, int w, int
 */
 void backend_draw_image_from_texture(Base *base, void * texture, int x, int y, int w, int h);
 
-#endif // SDL2_BACKEND_H
+#endif // SDL2_DRAW_H

@@ -1,4 +1,4 @@
-#include "../../include/core/interface.h"
+#include "../../../../include/core/backends/sdl2/sdl2_events.h"
 #include <SDL2/SDL.h>
 #include <string.h>
 

@@ -1,7 +1,6 @@
 #include "../../include/widgets/button.h"
 #include "../../include/core/theme.h"
 #include "../../include/core/graphics.h"
-#include "../../include/core/interface.h"
 
 #include <string.h> // for strdup
 #include <SDL2/SDL_ttf.h> // for TTF_SizeText usage

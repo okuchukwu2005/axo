@@ -2,7 +2,6 @@
 #include "../../include/widgets/drop.h"
 #include "../../include/core/theme.h"
 #include "../../include/core/graphics.h"
-#include "../../include/core/interface.h"
 
 
 #include <string.h> // for strdup

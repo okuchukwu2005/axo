@@ -1,4 +1,6 @@
-#include "../../../include/core/backends/sdl2_backend.h"
+#include "../../../../include/core/backends/sdl2/sdl2_draw.h"
+#include "../../../../include/core/backends/sdl2/sdl2_ttf.h"
+#include "../../../../include/core/theme.h"
 #include <stdio.h>
 #include <math.h>
 
@@ -178,64 +180,61 @@ void backend_draw_rounded_rect(Base* base, int x, int y, int w, int h, float rou
     }
 }
 
-void backend_draw_text_from_font(Base* base, void * font_ptr, const char* text, int x, int y, Color color, TextAlign align) {
-	TTF_Font *font = (TTF_Font *) font_ptr; // type cast
-    if (!font) {
-        printf("No font provided for text rendering\n");
+void backend_draw_text_from_font(Base* base, Font_ttf* font, const char* text,
+                                 int x, int y, Color color, TextAlign align)
+{
+    if (!font || !text || text[0] == '\0') {
+        printf("Invalid font or empty text\n");
         return;
     }
 
-    SDL_Color sdl_color = {color.r, color.g, color.b, color.a};
-    SDL_Surface* surface = TTF_RenderText_Solid(font, text, sdl_color);
-    if (!surface) {
-        printf("Failed to render text: %s\n", TTF_GetError());
+    SDL_Color fg = { color.r, color.g, color.b, color.a };
+    SDL_Color bg = { 0, 0, 0, 0 };  // not used in SOLID
+
+    // Use SOLID for speed (aliased), or BLENDED for smooth
+    TTF_TextResult result = render_text_ttf(
+        base->sdl_renderer,
+        font,
+        text,
+        TTF_RENDER_SOLID,   // or TTF_RENDER_BLENDED
+        fg,
+        bg
+    );
+
+    if (!result.texture) {
+        printf("Failed to render text (TTF error hidden in wrapper)\n");
         return;
     }
 
-    SDL_Texture* texture = SDL_CreateTextureFromSurface(base->sdl_renderer, surface);
-    if (!texture) {
-        printf("Failed to create texture from text surface: %s\n", SDL_GetError());
-        SDL_FreeSurface(surface);
-        return;
-    }
-
-    int text_width = surface->w;
-    int text_height = surface->h;
-    int adjusted_x = x;
-
-    // Adjust x-coordinate based on alignment
+    int draw_x = x;
     switch (align) {
         case ALIGN_CENTER:
-            adjusted_x = x - text_width / 2;
+            draw_x = x - result.w / 2;
             break;
         case ALIGN_RIGHT:
-            adjusted_x = x - text_width;
+            draw_x = x - result.w;
             break;
         case ALIGN_LEFT:
         default:
-            // No adjustment for left alignment
             break;
     }
 
-    SDL_Rect dst_rect = {adjusted_x, y, text_width, text_height};
-    SDL_RenderCopy(base->sdl_renderer, texture, NULL, &dst_rect);
+    SDL_Rect dst = { draw_x, y, result.w, result.h };
+    SDL_RenderCopy(base->sdl_renderer, result.texture, NULL, &dst);
 
-    // Clean up
-    SDL_DestroyTexture(texture);
-    SDL_FreeSurface(surface);
+    // Clean up texture
+    free_ttf_result(&result);
 }
 
-static char *FONT_FILE = "forms/core/FreeMono.ttf";
-
 void backend_draw_text(Base* base, const char* text, int font_size, int x, int y, Color color) {
-    TTF_Font* font = TTF_OpenFont(FONT_FILE, font_size);
-    if (!font) {
-        printf("Failed to load font '%s': %s\n", FONT_FILE, TTF_GetError());
-        return;
-    }
-
-    backend_draw_text_from_font(base, font, text, x, y, color, ALIGN_LEFT);
-    TTF_CloseFont(font);
+//     TTF_Font* font = TTF_OpenFont(current_theme->font_file, font_size);
+//     if (!font) {
+//         printf("Failed to load font '%s': %s\n",current_theme->font_file , TTF_GetError());
+//         return;
+//     }
+// 
+//     backend_draw_text_from_font(base, font, text, x, y, color, ALIGN_LEFT);
+//     TTF_CloseFont(font);
 }
 
 

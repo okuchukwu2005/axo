@@ -2,11 +2,14 @@
 #define APP_H
 
 #include "parent.h"
+#include "backends/sdl2/sdl2_ttf.h"
 
 #define PRINT_THEME(name) printf("Switched to %s\n", name)
 //------------------------- APP ___________
+extern Font_ttf* global_font;
 typedef struct {
     Parent window; // Window struct from window.h
+    float dpi_scale;
 } App;
 
 App init_app(void);

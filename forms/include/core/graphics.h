@@ -9,6 +9,7 @@
 #include "parent.h" // Access Base
 #include "color.h"   // Access Color struct
 #include "debug.h"
+#include "backends/sdl2/sdl2_ttf.h"
 
 /**
  * @brief Clears the screen to the specified color
@@ -87,7 +88,7 @@ typedef enum {
  * @param color The color of the text
  * @param align Text alignment (ALIGN_LEFT, ALIGN_CENTER, ALIGN_RIGHT)
  */
-void draw_text_from_font(Base* base, void * font, const char* text, int x, int y, Color color, TextAlign align);
+void draw_text_from_font(Base* base, Font_ttf * font, const char* text, int x, int y, Color color, TextAlign align);
 /**
  * @brief Draws text at the specified position with the given font size and color
  * @param base Pointer to the Base struct containing the renderer

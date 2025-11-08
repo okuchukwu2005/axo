@@ -51,6 +51,9 @@ typedef struct {
  * @param h The height of the window (logical size).
  * @return Pointer to the created Parent, or NULL on failure.
  */
+ 
+// Returns DPI scale relative to standard 96 DPI
+float get_display_dpi(int display_index);
 
  Parent new_window(char* title, int w, int h);
 

@@ -3,6 +3,31 @@
 #include <SDL2/SDL_image.h>
 #include <stdio.h>
 
+
+// Returns DPI scale relative to standard 96 DPI
+float get_display_dpi(int display_index) {
+    // Make sure SDL video subsystem is initialized
+    if (SDL_WasInit(SDL_INIT_VIDEO) == 0) {
+        if (SDL_Init(SDL_INIT_VIDEO) != 0) {
+            printf("SDL_Init failed: %s\n", SDL_GetError());
+            return 1.0f; // fallback
+        }
+    }
+
+    float ddpi, hdpi, vdpi;
+    if (SDL_GetDisplayDPI(display_index, &ddpi, &hdpi, &vdpi) != 0) {
+        printf("Failed to get display DPI: %s\n", SDL_GetError());
+        return 1.0f; // fallback
+    }
+
+    // Normalize to standard 96 DPI
+    float dpi_scale = ddpi / 96.0f;
+    if (dpi_scale < 1.0f) dpi_scale = 1.0f; // minimum 1.0
+
+    return dpi_scale;
+}
+
+
  Parent new_window(char* title, int w, int h) {
     // Enable DPI scaling hint for Windows
   SDL_SetHint(SDL_HINT_WINDOWS_DPI_SCALING, "1");
@@ -43,16 +68,13 @@
         SDL_Quit();
     }
 
-    // Compute DPI scale (use width for uniform assumption)
-    int pw, ph;
-    SDL_GetRendererOutputSize(sdl_ren, &pw, &ph);
-    float dpi_scale = (float)pw / w;  // Assume uniform x/y scale
 
     Parent parent;
 
     parent.base.sdl_window = sdl_win;
     parent.base.sdl_renderer = sdl_ren;
-    parent.base.dpi_scale = dpi_scale > 1.0f ? dpi_scale : 1.0f;  // Minimum 1.0
+    // Compute DPI scale using the same helper
+    parent.base.dpi_scale = get_display_dpi(0);
     parent.is_window = 1;
     parent.w = w;
     parent.h = h;

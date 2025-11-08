@@ -8,7 +8,7 @@
 
 #include "../core/parent.h"
 #include "../core/color.h"
-#include "../core/interface.h"
+#include "../core/backends/sdl2/sdl2_events.h"
 
 #include <stdbool.h>
 #include <SDL2/SDL.h> // for SDL_Event, etc.

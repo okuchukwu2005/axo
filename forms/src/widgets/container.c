@@ -1,7 +1,9 @@
 #include"../../include/widgets/container.h"
 #include"../../include/core/theme.h"
 #include"../../include/core/graphics.h"
-#include "../../include/core/interface.h"
+#include"../../include/core/app.h"
+
+#include<SDL2/SDL_ttf.h>
 
 #include <math.h>  // For roundf in scaling
 
@@ -72,12 +74,14 @@ void draw_title_bar_(Parent* container) {
                current_theme->container_title_bg);  // Use theme-specific title bg
 
     if (container->title_bar) {
-        draw_text(&container->base,
+        if(!global_font){
+        	// handle erorr
+        }
+        draw_text_from_font(&container->base, global_font,
                    container->title_bar,
-                   font_size,
                    sx + pad,
                    sy + pad / 2,  // Approximate vertical centering
-                   current_theme->text_primary);  // Use theme text color
+                   current_theme->text_primary, ALIGN_LEFT);  // Use theme text color
     }
 
     if (container->closeable) {
