@@ -32,13 +32,12 @@ App init_app(void) {
     int scaled_font_size = (int)(current_theme->default_font_size * app.dpi_scale + 0.5f); // round to nearest int
 
     // Load global font with DPI-scaled size
-    global_font = load_font_ttf(current_theme->font_file, scaled_font_size);
 
     return app;
 }
 
 void app_quit(){
-	free_font_ttf(global_font);
+	
 }
 int is_any_text_widget_active(void) {
     // Check entries

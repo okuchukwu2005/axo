@@ -77,6 +77,7 @@ void draw_title_bar_(Parent* container) {
         if(!global_font){
         	// handle erorr
         }
+
         draw_text_from_font(&container->base, global_font,
                    container->title_bar,
                    sx + pad,

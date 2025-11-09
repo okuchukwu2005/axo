@@ -1,6 +1,7 @@
 #include "../../include/widgets/radio.h"
 #include "../../include/core/theme.h"
 #include "../../include/core/graphics.h"
+#include "../../include/core/app.h"
 #include <stdlib.h> // for malloc
 #include <string.h> // for strdup
 #include <math.h>   // For roundf in scaling
@@ -113,9 +114,12 @@ void render_radio_(Radio* radio) {
 
     // Label text (to the right, vertically centered)
     int label_y = sy - (int)roundf((radio->h / 6) * dpi);  // Adjusted for better centering (was /3)
-    draw_text(base, radio->label, font_size,
+    
+               
+draw_text_from_font(base, global_font, radio->label,
                sx + sh + pad / 2, label_y,
-               label_color);
+               label_color,ALIGN_LEFT);
+
 
     // Reset clipping
     SDL_RenderSetClipRect(radio->parent->base.sdl_renderer, NULL);

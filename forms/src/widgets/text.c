@@ -1,6 +1,7 @@
 #include "../../include/widgets/text.h"
 #include "../../include/core/theme.h"
 #include "../../include/core/graphics.h"
+#include "../../include/core/app.h"
 #include <stdlib.h> // for malloc
 #include <string.h> // for strdup
 #include <SDL2/SDL_ttf.h> // for TTF_Font
@@ -52,10 +53,8 @@ void render_text(Text* text) {
 
     // Draw the text
     if (text->content) {
-        TTF_Font* font = TTF_OpenFont(current_theme->font_file, text->font_size);
-        if (font) {
-            draw_text_from_font(&(text->parent->base), font, text->content, abs_x, abs_y, *color_to_use, text->align);
-            TTF_CloseFont(font);
+        if (global_font) {
+            draw_text_from_font(&(text->parent->base), global_font, text->content, abs_x, abs_y, *color_to_use, text->align);
         } else {
             printf("Failed to load font for text rendering\n");
         }

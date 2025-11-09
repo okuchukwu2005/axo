@@ -180,9 +180,10 @@ void backend_draw_rounded_rect(Base* base, int x, int y, int w, int h, float rou
     }
 }
 
-void backend_draw_text_from_font(Base* base, Font_ttf* font, const char* text,
+void backend_draw_text_from_font(Base* base, void* font_ptr, const char* text,
                                  int x, int y, Color color, TextAlign align)
 {
+	Font_ttf* font = (Font_ttf*)font_ptr;
     if (!font || !text || text[0] == '\0') {
         printf("Invalid font or empty text\n");
         return;
@@ -227,14 +228,14 @@ void backend_draw_text_from_font(Base* base, Font_ttf* font, const char* text,
 }
 
 void backend_draw_text(Base* base, const char* text, int font_size, int x, int y, Color color) {
-//     TTF_Font* font = TTF_OpenFont(current_theme->font_file, font_size);
-//     if (!font) {
-//         printf("Failed to load font '%s': %s\n",current_theme->font_file , TTF_GetError());
-//         return;
-//     }
-// 
-//     backend_draw_text_from_font(base, font, text, x, y, color, ALIGN_LEFT);
-//     TTF_CloseFont(font);
+    Font_ttf* font = load_font_ttf(current_theme->font_file, font_size);
+    if (!font) {
+        printf("Failed to load font '%s': %s\n",current_theme->font_file , TTF_GetError());
+        return;
+    }
+
+    backend_draw_text_from_font(base, font, text, x, y, color, ALIGN_LEFT);
+    free_font_ttf(font);
 }
 
 

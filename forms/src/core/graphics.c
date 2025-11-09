@@ -29,12 +29,11 @@ void draw_rounded_rect(Base* base, int x, int y, int w, int h, float roundness, 
    backend_draw_rounded_rect(base,x,y,w,h,roundness,color);
 }
 
-void draw_text_from_font(Base* base, Font_ttf * font, const char* text, int x, int y, Color color, TextAlign align) {
+void draw_text_from_font(Base* base ,void * font, const char* text, int x, int y, Color color, TextAlign align) {
    backend_draw_text_from_font(base,font,text,x,y,color,align);
 }
 
 
-static char *FONT_FILE = "forms/core/FreeMono.ttf";
 
 void draw_text(Base* base, const char* text, int font_size, int x, int y, Color color) {
    backend_draw_text(base,text,font_size,x,y,color);
