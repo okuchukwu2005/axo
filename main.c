@@ -55,26 +55,26 @@ int main(void) {
           int option_count = 4;
           Drop drop_down = new_drop_down(&container, 15, 200, 170, 30, options, option_count);
           register_drop(&drop_down);
-// // ---------- SLIDER DEMO ----------
-//     // Create a slider in container (horizontal, 100px wide, 20px high, range 0-100, starting at 50)
-//     Slider slider = new_slider(&container, 10, 370, 250, 15, 0, 100, 50, "Volume");
-//     register_slider(&slider);
+ // ---------- SLIDER DEMO ----------
+     // Create a slider in container (horizontal, 100px wide, 20px high, range 0-100, starting at 50)
+     Slider slider = new_slider(&container, 10, 370, 250, 15, 0, 100, 50, "Volume");
+     register_slider(&slider);
 // 
-//  	 Entry entry =  new_entry(&container2, 20, 70, 300, 2048);
-//  	 set_entry_placeholder(&entry, "enter text");
-// 	register_entry(&entry);
+  	 Entry entry =  new_entry(&container2, 20, 70, 300, 2048);
+  	 set_entry_placeholder(&entry, "enter text");
+ 	register_entry(&entry);
 // 
 // // 
-//      TextBox texty = new_textbox(&container2, 20, 150, 300, 1024);
+      TextBox texty = new_textbox(&container2, 20, 150, 300, 1024);
+
+    register_textbox(&texty);
+
+    	Button button = new_button(&container2, 100, 400, 120, 40, "Click Me", OVERRIDE);
+ 	register_button(&button);
 // 
-//     register_textbox(&texty);
-// 
-//    	Button button = new_button(&container2, 100, 400, 120, 40, "Click Me", OVERRIDE);
-// 	register_button(&button);
-// 
-// 	ProgressBar prox = new_progress_bar(&container2, 20, 500, 250, 15, 0, 100, 50, true);
-// 
-//     register_progress_bar(&prox);
+ 	ProgressBar prox = new_progress_bar(&container2, 20, 500, 250, 15, 0, 100, 50, true);
+ 
+     register_progress_bar(&prox);
 
  //   Image  image = new_image(&app.window, 400, 0, "img.jpg", 0, 0 );
 //	register_image(&image);

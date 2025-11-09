@@ -1,215 +1,230 @@
 #include "../../include/widgets/slider.h"
 #include "../../include/core/theme.h"
 #include "../../include/core/graphics.h"
-#include <stdlib.h> // for malloc
-#include <string.h> // for strdup
-#include <math.h>   // For roundf in scaling
+#include "../../include/core/app.h"
+/* slider.c --------------------------------------------------------------- */
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
 
-// -------- Create --------
-Slider new_slider(Parent* parent, int x, int y, int w, int h, int min, int max, int start_value, const char* label) {
+/* --------------------------------------------------------------------- */
+/*  Slider definition (opaque)                                           */
+/* --------------------------------------------------------------------- */
+struct Slider {
+    Parent*    parent;
+    int        x, y, w, h;          /* logical coordinates */
+    int        min, max, value;
+    char*      label;
+    bool       dragging;
+    bool       is_hovered;
+
+    Color*     custom_track_color;
+    Color*     custom_thumb_color;
+    Color*     custom_label_color;
+};
+
+/* --------------------------------------------------------------------- */
+Slider new_slider(Parent* parent, int x, int y, int w, int h,
+                  int min, int max, int start_value, const char* label)
+{
     if (!parent || !parent->base.sdl_renderer) {
         printf("Invalid parent or renderer\n");
     }
+    if (!current_theme) current_theme = (Theme*)&THEME_LIGHT;
 
-    Slider slider;
-    
-    slider.parent = parent;
-    slider.x = x;
-    slider.y = y;
-    slider.w = w;
-    slider.h = h;
-    slider.min = min;
-    slider.max = max;
-    slider.value = start_value;
-    slider.label = label ? strdup(label) : NULL;  // Copy label if provided
-    slider.dragging = false;
-    slider.is_hovered = false;
-    slider.custom_track_color = NULL;
-    slider.custom_thumb_color = NULL;
-    slider.custom_label_color = NULL;
-
-    return slider;
+    Slider s = {0};
+    s.parent     = parent;
+    s.x          = x;
+    s.y          = y;
+    s.w          = w;
+    s.h          = h;
+    s.min        = min;
+    s.max        = max;
+    s.value      = start_value;
+    s.label      = label ? strdup(label) : NULL;
+    return s;
 }
 
-// Setters for overrides
-void set_slider_track_color(Slider* slider, Color color) {
-    if (slider) {
-        if (!slider->custom_track_color) {
-            slider->custom_track_color = (Color*)malloc(sizeof(Color));
-        }
-        *slider->custom_track_color = color;
-    }
+/* --------------------------------------------------------------------- */
+/*  Setters – unchanged (just copy)                                      */
+/* --------------------------------------------------------------------- */
+void set_slider_track_color(Slider* s, Color c) {
+    if (!s) return;
+    if (!s->custom_track_color) s->custom_track_color = malloc(sizeof(Color));
+    if (s->custom_track_color) *s->custom_track_color = c;
+}
+void set_slider_thumb_color(Slider* s, Color c) {
+    if (!s) return;
+    if (!s->custom_thumb_color) s->custom_thumb_color = malloc(sizeof(Color));
+    if (s->custom_thumb_color) *s->custom_thumb_color = c;
+}
+void set_slider_label_color(Slider* s, Color c) {
+    if (!s) return;
+    if (!s->custom_label_color) s->custom_label_color = malloc(sizeof(Color));
+    if (s->custom_label_color) *s->custom_label_color = c;
 }
 
-void set_slider_thumb_color(Slider* slider, Color color) {
-    if (slider) {
-        if (!slider->custom_thumb_color) {
-            slider->custom_thumb_color = (Color*)malloc(sizeof(Color));
-        }
-        *slider->custom_thumb_color = color;
-    }
-}
+/* --------------------------------------------------------------------- */
+void render_slider(Slider* s)
+{
+    if (!s || !s->parent || !s->parent->base.sdl_renderer || !s->parent->is_open) return;
+    if (!global_font) { printf("global_font missing\n"); return; }
 
-void set_slider_label_color(Slider* slider, Color color) {
-    if (slider) {
-        if (!slider->custom_label_color) {
-            slider->custom_label_color = (Color*)malloc(sizeof(Color));
-        }
-        *slider->custom_label_color = color;
-    }
-}
+    SDL_Renderer* ren = s->parent->base.sdl_renderer;
+    float dpi         = s->parent->base.dpi_scale;
 
-// -------- Render --------
-void render_slider(Slider* slider) {
-    if (!slider || !slider->parent || !slider->parent->base.sdl_renderer || !slider->parent->is_open) {
-        printf("Invalid slider, renderer, or parent is not open\n");
-        return;
-    }
-	//set container clipping
-	if(slider->parent->is_window == false){
-	SDL_Rect parent_bounds = get_parent_rect(slider->parent);
-	SDL_RenderSetClipRect(slider->parent->base.sdl_renderer, &parent_bounds);
-	}
+    /* ---------- SAVE CLIP ---------- */
+    SDL_Rect saved_clip; SDL_RenderGetClipRect(ren, &saved_clip);
+    SDL_bool clip_was = SDL_RenderIsClipEnabled(ren);
 
-    // Fallback if no theme set
-    if (!current_theme) {
-        current_theme = (Theme*)&THEME_LIGHT;  // Or set a static fallback
+    /* ---------- PARENT CLIP (if not window) ---------- */
+    if (!s->parent->is_window) {
+        SDL_Rect pr = get_parent_rect(s->parent);
+        pr.x = (int)roundf(pr.x * dpi);
+        pr.y = (int)roundf(pr.y * dpi);
+        pr.w = (int)roundf(pr.w * dpi);
+        pr.h = (int)roundf(pr.h * dpi);
+        SDL_RenderSetClipRect(ren, &pr);
     }
 
-    float dpi = slider->parent->base.dpi_scale;
-    // Calculate absolute position relative to parent (logical), then scale
-    int abs_x = slider->x + slider->parent->x;
-    int abs_y = slider->y + slider->parent->y + slider->parent->title_height;
+    /* ---------- DPI-SCALED VALUES ---------- */
+    int abs_x = s->x + s->parent->x;
+    int abs_y = s->y + s->parent->y + s->parent->title_height;
+
     int sx = (int)roundf(abs_x * dpi);
     int sy = (int)roundf(abs_y * dpi);
-    int sw = (int)roundf(slider->w * dpi);
-    int sh = (int)roundf(slider->h * dpi);
-    int track_height = (int)roundf(4 * dpi);  // Scaled thin track
-    int thumb_width = (int)roundf(10 * dpi);  // Scaled fixed width for rectangular thumb
-    int label_pad = (int)roundf(10 * dpi);    // Scaled padding for label
-    int label_v_offset = (int)roundf(8 * dpi); // Scaled vertical offset for label
-    int font_size = (int)roundf(current_theme->default_font_size * dpi);  // Scaled from theme
+    int sw = (int)roundf(s->w  * dpi);
+    int sh = (int)roundf(s->h  * dpi);
+    int track_h = (int)roundf(4 * dpi);
+    int thumb_w = (int)roundf(10 * dpi);
+    int label_pad = (int)roundf(10 * dpi);
+    int label_v_offset = (int)roundf(8 * dpi);
 
-    Base* base = &slider->parent->base;
+    Base* base = &s->parent->base;
 
-    // Draw track (horizontal bar)
-    Color track_color = slider->custom_track_color ? *slider->custom_track_color : current_theme->bg_secondary;
-    draw_rect(base, sx, sy + (sh / 2) - (track_height / 2), sw, track_height, track_color);
+    /* ---------- TRACK ---------- */
+    Color track = s->custom_track_color ? *s->custom_track_color : current_theme->bg_secondary;
+    draw_rect(base, sx, sy + (sh/2) - (track_h/2), sw, track_h, track);
 
-    // Calculate thumb position
-    float range = slider->max - slider->min;
-    float pos_ratio = (slider->value - slider->min) / range;
-    int thumb_x_logical = abs_x + (int)(pos_ratio * slider->w);
-    int sthumb_x = (int)roundf(thumb_x_logical * dpi);
+    /* ---------- THUMB POSITION (physical) ---------- */
+    float range = s->max - s->min;
+    float ratio = (s->value - s->min) / range;
+    int thumb_x = sx + (int)(ratio * sw);  // already in physical pixels
 
-    // Determine thumb color: custom > theme accent with state variants
-    Color thumb_color = slider->custom_thumb_color ? *slider->custom_thumb_color : current_theme->accent;
-    if (slider->dragging) {
-        thumb_color = slider->custom_thumb_color ? darken_color(*slider->custom_thumb_color, 0.2f) : current_theme->accent_pressed;
-    } else if (slider->is_hovered) {
-        thumb_color = slider->custom_thumb_color ? lighten_color(*slider->custom_thumb_color, 0.1f) : current_theme->accent_hovered;
+    /* ---------- THUMB COLOR ---------- */
+    Color thumb = s->custom_thumb_color ? *s->custom_thumb_color : current_theme->accent;
+    if (s->dragging) {
+        thumb = s->custom_thumb_color ? darken_color(*s->custom_thumb_color, 0.2f)
+                                      : current_theme->accent_pressed;
+    } else if (s->is_hovered) {
+        thumb = s->custom_thumb_color ? lighten_color(*s->custom_thumb_color, 0.1f)
+                                      : current_theme->accent_hovered;
     }
 
-    // Draw thumb as rectangle
-    draw_rect(base, sthumb_x - (thumb_width / 2), sy, thumb_width, sh, thumb_color);
+    /* ---------- DRAW THUMB ---------- */
+    draw_rect(base, thumb_x - thumb_w/2, sy, thumb_w, sh, thumb);
 
-    // Draw label if exists (positioned to the right of the slider, centered vertically)
-    if (slider->label) {
-        Color label_color = slider->custom_label_color ? *slider->custom_label_color : current_theme->text_secondary;
-        draw_text(base, slider->label, font_size, sx + sw + label_pad, sy + (sh / 2) - label_v_offset, label_color);
+    /* ---------- LABEL (if any) ---------- */
+    if (s->label) {
+        Color label_col = s->custom_label_color ? *s->custom_label_color : current_theme->text_secondary;
+        int label_x = sx + sw + label_pad;
+        int label_y = sy + (sh/2) - label_v_offset;
+        draw_text_from_font(base, global_font, s->label, label_x, label_y, label_col, ALIGN_LEFT);
     }
-    // Reset clipping
-    SDL_RenderSetClipRect(slider->parent->base.sdl_renderer, NULL);
+
+    /* ---------- RESTORE CLIP ---------- */
+    if (clip_was) SDL_RenderSetClipRect(ren, &saved_clip);
+    else          SDL_RenderSetClipRect(ren, NULL);
 }
 
-// -------- Update --------
-void update_slider(Slider* slider, Event* event) {
-    if (!slider || !slider->parent || !slider->parent->is_open) {
-        printf("Invalid slider, parent, or parent is not open\n");
-        return;
-    }
+/* --------------------------------------------------------------------- */
+void update_slider(Slider* s, Event* ev)
+{
+    if (!s || !s->parent || !s->parent->is_open) return;
 
-    // Calculate absolute position relative to parent (logical)
-    int abs_x = slider->x + slider->parent->x;
-    int abs_y = slider->y + slider->parent->y + slider->parent->title_height;
+    float dpi = s->parent->base.dpi_scale;
 
-    // Calculate thumb position and bounds (logical)
-    float range = slider->max - slider->min;
-    float pos_ratio = (slider->value - slider->min) / range;
-    int thumb_x = abs_x + (int)(pos_ratio * slider->w);
-    int thumb_width = 10;  // Fixed width logical for hit testing
-    int thumb_height = slider->h;
-    SDL_Rect thumb_rect = {thumb_x - (thumb_width / 2), abs_y, thumb_width, thumb_height};
+    /* ---------- DPI-SCALED ABSOLUTE POSITION ---------- */
+    int abs_x = s->x + s->parent->x;
+    int abs_y = s->y + s->parent->y + s->parent->title_height;
+    int sx    = (int)roundf(abs_x * dpi);
+    int sy    = (int)roundf(abs_y * dpi);
+    int sw    = (int)roundf(s->w  * dpi);
+    int sh    = (int)roundf(s->h  * dpi);
+    int thumb_w = (int)roundf(10 * dpi);
 
+    /* ---------- THUMB PHYSICAL BOUNDS ---------- */
+    float range = s->max - s->min;
+    float ratio = (s->value - s->min) / range;
+    int thumb_x = sx + (int)(ratio * sw);
+    int thumb_left  = thumb_x - thumb_w/2;
+    int thumb_right = thumb_x + thumb_w/2;
+
+    /* ---------- MOUSE STATE (physical pixels) ---------- */
     int mouse_x, mouse_y;
     SDL_GetMouseState(&mouse_x, &mouse_y);
 
-    // Check if mouse is over the thumb for hover
-    int over_thumb = (mouse_x >= thumb_rect.x && mouse_x <= thumb_rect.x + thumb_rect.w &&
-                      mouse_y >= thumb_rect.y && mouse_y <= thumb_rect.y + thumb_rect.h);
+    /* ---------- HOVER ---------- */
+    bool over_thumb = (mouse_x >= thumb_left && mouse_x <= thumb_right &&
+                       mouse_y >= sy && mouse_y <= sy + sh);
+    s->is_hovered = over_thumb;
 
-    if (event->type == EVENT_MOUSEMOTION) {
-        slider->is_hovered = over_thumb;
-        if (slider->dragging) {
-            // Update value based on mouse position, clamped to slider bounds
-            int new_value = slider->min + (int)(((mouse_x - abs_x) / (float)slider->w) * range);
-            if (new_value < slider->min) new_value = slider->min;
-            if (new_value > slider->max) new_value = slider->max;
-            slider->value = new_value;
+    /* ---------- DRAG LOGIC ---------- */
+    if (ev->type == EVENT_MOUSEMOTION) {
+        if (s->dragging) {
+            // Map mouse X (physical) → logical value
+            int rel_x = mouse_x - sx;
+            if (rel_x < 0) rel_x = 0;
+            if (rel_x > sw) rel_x = sw;
+            float logical_ratio = rel_x / (float)sw;
+            int new_val = s->min + (int)(logical_ratio * range);
+            s->value = new_val;
         }
-    } else if (event->type == EVENT_MOUSEBUTTONDOWN && event->mouseButton.button == SDL_BUTTON_LEFT) {
+    }
+    else if (ev->type == EVENT_MOUSEBUTTONDOWN && ev->mouseButton.button == MOUSE_LEFT) {
         if (over_thumb) {
-            slider->dragging = true;
+            s->dragging = true;
         }
-    } else if (event->type == EVENT_MOUSEBUTTONUP && event->mouseButton.button == MOUSE_LEFT) {
-        slider->dragging = false;
+    }
+    else if (ev->type == EVENT_MOUSEBUTTONUP && ev->mouseButton.button == MOUSE_LEFT) {
+        s->dragging = false;
     }
 }
 
-// -------- Free --------
-void free_slider(Slider* slider) {
-    if (slider) {
-        free(slider->label);
-        if (slider->custom_track_color) free(slider->custom_track_color);
-        if (slider->custom_thumb_color) free(slider->custom_thumb_color);
-        if (slider->custom_label_color) free(slider->custom_label_color);
-    }
+/* --------------------------------------------------------------------- */
+void free_slider(Slider* s)
+{
+    if (!s) return;
+    free(s->label);
+    free(s->custom_track_color);
+    free(s->custom_thumb_color);
+    free(s->custom_label_color);
 }
 
-
+/* --------------------------------------------------------------------- */
+/*  Global registration (unchanged)                                      */
+/* --------------------------------------------------------------------- */
 Slider* sliders[MAX_SLIDERS];
-int sliders_count = 0;
+int     sliders_count = 0;
 
-// -------- Register --------
-void register_slider(Slider* slider) {
-    if (sliders_count < MAX_SLIDERS) {
-        sliders[sliders_count++] = slider;
-    }
+void register_slider(Slider* s)
+{
+    if (sliders_count < MAX_SLIDERS) sliders[sliders_count++] = s;
 }
-
-// -------- Helpers for all Sliders --------
-void render_all_registered_sliders(void) {
-    for (int i = 0; i < sliders_count; i++) {
-        if (sliders[i]) {
-            render_slider(sliders[i]);
-        }
-    }
+void render_all_registered_sliders(void)
+{
+    for (int i = 0; i < sliders_count; ++i)
+        if (sliders[i]) render_slider(sliders[i]);
 }
-
-void update_all_registered_sliders(Event* event) {
-    for (int i = 0; i < sliders_count; i++) {
-        if (sliders[i]) {
-            update_slider(sliders[i], event);
-        }
-    }
+void update_all_registered_sliders(Event* ev)
+{
+    for (int i = 0; i < sliders_count; ++i)
+        if (sliders[i]) update_slider(sliders[i], ev);
 }
-
-void free_all_registered_sliders(void) {
-    for (int i = 0; i < sliders_count; i++) {
-        if (sliders[i]) {
-            free_slider(sliders[i]);
-            sliders[i] = NULL;
-        }
+void free_all_registered_sliders(void)
+{
+    for (int i = 0; i < sliders_count; ++i) {
+        if (sliders[i]) { free_slider(sliders[i]); sliders[i] = NULL; }
     }
     sliders_count = 0;
 }

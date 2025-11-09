@@ -1,620 +1,490 @@
-#include"../../include/widgets/entry.h"
-#include"../../include/core/theme.h"
-#include"../../include/core/graphics.h"
-#include <stdlib.h> // Provides memory allocation functions like malloc and free
-#include <string.h> // Includes string manipulation functions like strlen, strcat, strdup
-#include <SDL2/SDL_ttf.h> // SDL_ttf for rendering text (e.g., TTF_SizeText for text measurements)
-#include <math.h>   // For mathematical functions like roundf used in DPI scaling
+/* entry.c --------------------------------------------------------------- */
+#include "../../include/widgets/entry.h"
+#include "../../include/core/theme.h"
+#include "../../include/core/graphics.h"
+#include "../../include/core/app.h"
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
 
+/* --------------------------------------------------------------------- */
+/* Entry definition (opaque to the rest of the program) */
+/* --------------------------------------------------------------------- */
+struct Entry {
+    Parent* parent;
+    char*   place_holder;
+    int     x, y, w, h;
+    int     max_length;
+    char*   text;
+    int     is_active;
+    int     cursor_pos;
+    int     selection_start;
+    int     visible_text_start;
+    int     is_mouse_selecting;
+};
 
-// Creates a new text entry widget with specified properties
-// Parameters:
-// - parent: The parent window/container
-// - x, y: Logical position relative to parent
-// - w: Logical width of the entry
-// - max_length: Maximum number of characters allowed
-// Returns: Pointer to the new Entry or NULL on failure
-Entry new_entry(Parent* parent, int x, int y, int w, int max_length) {
-    // Validate the parent and its renderer to ensure they exist
+/* --------------------------------------------------------------------- */
+/* Helper: measure a UTF-8 substring with the *global* font */
+/* --------------------------------------------------------------------- */
+static int measure_utf8(const char* txt, int* w, int* h)
+{
+    if (!global_font) return -1;
+    return ttf_size_utf8(global_font, txt, w, h);
+}
+
+/* --------------------------------------------------------------------- */
+/* new_entry – no font loading any more */
+/* --------------------------------------------------------------------- */
+Entry new_entry(Parent* parent, int x, int y, int w, int max_length)
+{
     if (!parent || !parent->base.sdl_renderer) {
         printf("Invalid parent or renderer\n");
     }
+    if (!current_theme) current_theme = (Theme*)&THEME_LIGHT;
 
-    // If no theme is set, default to a light theme to ensure consistent styling
-    if (!current_theme) {
-        current_theme = (Theme*)&THEME_LIGHT;
-    }
-
-    // Get default font size and padding from the current theme for consistent styling
     int logical_font_size = current_theme->default_font_size;
-    int logical_padding = current_theme->padding;
+    int logical_padding   = current_theme->padding;
 
-    // Allocate memory for the new Entry struct
-    Entry new_entry;
-
-    // Initialize the entry's parent pointer
-    new_entry.parent = parent;
-
-    // Allocate and set a default placeholder (single space) to avoid null pointer issues
-    new_entry.place_holder = strdup(" ");
-    if(!new_entry.place_holder) {
-        printf("Failed to allocate memory for placeholder\n");
-    }
-
-    // Set position and dimensions (logical coordinates)
-    new_entry.x = x;
-    new_entry.y = y;
-    new_entry.w = w;
-    new_entry.h = logical_font_size + 2 * logical_padding; // Height based on font size plus padding
-
-    // Set maximum text length
-    new_entry.max_length = max_length;
-
-    // Allocate memory for the text buffer, including space for null terminator
-    new_entry.text = (char*)malloc(max_length + 1);
-    if (!new_entry.text) {
-        printf("Failed to allocate memory for entry text\n");
-        free(new_entry.place_holder); // Clean up placeholder
-    }
-
-    // Initialize text buffer as empty
-    new_entry.text[0] = '\0';
-    new_entry.is_active = 0; // Entry is not active by default
-    new_entry.cursor_pos = 0; // Cursor starts at the beginning
-    new_entry.selection_start = -1; // No selection initially
-    new_entry.visible_text_start = 0; // Start displaying text from the beginning
-    new_entry.is_mouse_selecting = 0; // Initialize mouse selection flag
-
-    return new_entry; // Return the created entry
+    Entry e = {0};
+    e.parent       = parent;
+    e.place_holder = strdup(" ");
+    e.x = x;  e.y = y;  e.w = w;
+    e.h = logical_font_size + 2 * logical_padding;
+    e.max_length = max_length;
+    e.text = malloc(max_length + 1);
+    if (e.text) e.text[0] = '\0';
+    return e;
 }
 
-void set_entry_placeholder(Entry* entry, const char* placeholder) {
-    if (!entry) return;
-    free(entry->place_holder);  // Free previous
-    entry->place_holder = placeholder ? strdup(placeholder) : strdup(" ");
-    // in main never do entry->place_holder = "enter text"; (it will lead to double free)
+/* --------------------------------------------------------------------- */
+void set_entry_placeholder(Entry* e, const char* placeholder)
+{
+    if (!e) return;
+    free(e->place_holder);
+    e->place_holder = placeholder ? strdup(placeholder) : strdup(" ");
 }
 
-// Renders the text entry widget to the screen
-// Parameters:
-// - entry: The Entry widget to render
-// Renders the text entry widget to the screen
-// Parameters:
-// - entry: The Entry widget to render
-void render_entry(Entry* entry) {
-    if (!entry || !entry->parent || !entry->parent->base.sdl_renderer || !entry->parent->is_open) {
-        return;
-    }
+/* --------------------------------------------------------------------- */
+/* render_entry – uses only wrapper functions, clipping fixed */
+/* --------------------------------------------------------------------- */
+void render_entry(Entry* e)
+{
+    if (!e || !e->parent || !e->parent->base.sdl_renderer || !e->parent->is_open) return;
 
-    SDL_Renderer* renderer = entry->parent->base.sdl_renderer;
-    float dpi = entry->parent->base.dpi_scale;
+    SDL_Renderer* ren = e->parent->base.sdl_renderer;
+    float dpi = e->parent->base.dpi_scale;
 
-    /* ---------- SAVE CURRENT CLIP STATE ---------- */
-    SDL_Rect saved_clip;
-    SDL_RenderGetClipRect(renderer, &saved_clip);
-    SDL_bool clip_was_enabled = SDL_RenderIsClipEnabled(renderer);
+    /* ---------- SAVE CLIP ---------- */
+    SDL_Rect saved_clip; SDL_RenderGetClipRect(ren, &saved_clip);
+    SDL_bool clip_enabled = SDL_RenderIsClipEnabled(ren);
 
-    /* ---------- OPTIONAL: APPLY PARENT CLIP ---------- */
+    /* ---------- PARENT CLIP (if any) ---------- */
     SDL_Rect parent_clip = {0,0,0,0};
     SDL_bool has_parent_clip = SDL_FALSE;
-
-    if (!entry->parent->is_window) {
-        parent_clip = get_parent_rect(entry->parent);
+    if (!e->parent->is_window) {
+        parent_clip = get_parent_rect(e->parent);
         parent_clip.x = (int)roundf(parent_clip.x * dpi);
         parent_clip.y = (int)roundf(parent_clip.y * dpi);
         parent_clip.w = (int)roundf(parent_clip.w * dpi);
         parent_clip.h = (int)roundf(parent_clip.h * dpi);
-
-        SDL_RenderSetClipRect(renderer, &parent_clip);
+        SDL_RenderSetClipRect(ren, &parent_clip);
         has_parent_clip = SDL_TRUE;
     }
 
-    /* ---------- CALCULATE ENTRY BOUNDS (physical pixels) ---------- */
-    int abs_x = entry->x + entry->parent->x;
-    int abs_y = entry->y + entry->parent->y + entry->parent->title_height;
+    /* ---------- PHYSICAL BOUNDS ---------- */
+    int abs_x = e->x + e->parent->x;
+    int abs_y = e->y + e->parent->y + e->parent->title_height;
     int sx = (int)roundf(abs_x * dpi);
     int sy = (int)roundf(abs_y * dpi);
-    int sw = (int)roundf(entry->w * dpi);
-    int sh = (int)roundf(entry->h * dpi);
-    int border_width = (int)roundf(2 * dpi);
-    int padding      = (int)roundf(current_theme->padding * dpi);
-    int font_size    = (int)roundf(current_theme->default_font_size * dpi);
+    int sw = (int)roundf(e->w * dpi);
+    int sh = (int)roundf(e->h * dpi);
+    int border = (int)roundf(2 * dpi);
+    int pad    = (int)roundf(current_theme->padding * dpi);
 
-    /* ---------- LOAD FONT ---------- */
-    char* font_file = current_theme->font_file ? current_theme->font_file : "FreeMono.ttf";
-    TTF_Font* font = TTF_OpenFont(font_file, font_size);
-    if (!font) {
-        printf("Failed to load font: %s\n", TTF_GetError());
-        goto restore_clip;
-    }
-    int font_height = TTF_FontHeight(font);
+    if (!global_font) { goto restore; }
 
-    /* ---------- DRAW BORDER / BACKGROUND (respects parent clip) ---------- */
-    draw_rect(&entry->parent->base, sx, sy, sw, sh, current_theme->accent);
-    draw_rect(&entry->parent->base,
-               sx + border_width, sy + border_width,
-               sw - 2*border_width, sh - 2*border_width,
-               current_theme->bg_secondary);
+    int font_h = ttf_font_height(global_font);   /* wrapper for TTF_FontHeight */
 
-    /* ---------- TEXT CLIPPING (intersect with parent if needed) ---------- */
+    /* ---------- BACKGROUND / BORDER ---------- */
+    draw_rect(&e->parent->base, sx, sy, sw, sh, current_theme->accent);
+    draw_rect(&e->parent->base,
+              sx + border, sy + border,
+              sw - 2*border, sh - 2*border,
+              current_theme->bg_secondary);
+
+    /* ---------- TEXT CLIP – now includes the padding area ---------- */
     SDL_Rect text_clip = {
-        sx + border_width,
-        sy + border_width,
-        sw - 2*border_width,
-        sh - 2*border_width
+        sx + border,               /* left   = border */
+        sy + border,               /* top    = border */
+        sw - 2*border,             /* width  = full inner width  */
+        sh - 2*border              /* height = full inner height */
     };
-
     if (has_parent_clip) {
-        if (!SDL_IntersectRect(&parent_clip, &text_clip, &text_clip)) {
-            /* Nothing visible – skip drawing text */
-            TTF_CloseFont(font);
-            goto restore_clip;
-        }
+        if (!SDL_IntersectRect(&parent_clip, &text_clip, &text_clip))
+            goto restore;
     }
-    SDL_RenderSetClipRect(renderer, &text_clip);
+    SDL_RenderSetClipRect(ren, &text_clip);
 
-    /* ---------- DRAW TEXT, SELECTION, CURSOR (all clipped) ---------- */
-    int text_x = sx + padding;
-    int text_y = sy + (sh - font_height) / 2;
+    /* ---------- TEXT DRAWING AREA (inside padding) ---------- */
+    int text_x = sx + border + pad;
+    int text_y = sy + (sh - font_h) / 2;               /* vertical centre */
 
-    char* display_text = (entry->is_active || entry->text[0] != '\0')
-                         ? entry->text + entry->visible_text_start
-                         : entry->place_holder;
+    const char* display = (e->is_active || e->text[0])
+                          ? e->text + e->visible_text_start
+                          : e->place_holder;
+    Color txt_col = (display == e->place_holder) ? current_theme->text_secondary
+                                                 : current_theme->text_primary;
 
-    Color text_color = (display_text == entry->place_holder)
-                       ? current_theme->text_secondary
-                       : current_theme->text_primary;
-
-    /* ---- selection highlight (unchanged) ---- */
-    if (entry->selection_start != -1 && entry->is_active) {
-        int sel_start = (entry->selection_start < entry->cursor_pos
-                         ? entry->selection_start : entry->cursor_pos)
-                        - entry->visible_text_start;
-        int sel_end   = (entry->selection_start < entry->cursor_pos
-                         ? entry->cursor_pos : entry->selection_start)
-                        - entry->visible_text_start;
+    /* ---------- SELECTION ---------- */
+    if (e->selection_start != -1 && e->is_active) {
+        int sel_start = (e->selection_start < e->cursor_pos ? e->selection_start : e->cursor_pos)
+                        - e->visible_text_start;
+        int sel_end   = (e->selection_start < e->cursor_pos ? e->cursor_pos : e->selection_start)
+                        - e->visible_text_start;
 
         if (sel_start < 0) sel_start = 0;
-        if (sel_end   > (int)strlen(display_text)) sel_end = strlen(display_text);
+        if (sel_end   > (int)strlen(display)) sel_end = (int)strlen(display);
         if (sel_start < sel_end) {
-            char temp[entry->max_length + 1];
-            strncpy(temp, display_text, sel_start);
-            temp[sel_start] = '\0';
-            int offset = 0;
-            TTF_SizeText(font, temp, &offset, NULL);
-            int hx = text_x + offset;
+            char tmp[256];
+            int offset = 0, w = 0;
 
-            strncpy(temp, display_text + sel_start, sel_end - sel_start);
-            temp[sel_end - sel_start] = '\0';
-            int w = 0;
-            TTF_SizeText(font, temp, &w, NULL);
+            /* left part */
+            strncpy(tmp, display, sel_start); tmp[sel_start] = '\0';
+            measure_utf8(tmp, &offset, NULL);
 
-            draw_rect(&entry->parent->base, hx, text_y, w, font_height,
-                       current_theme->accent_hovered);
+            /* selected part */
+            strncpy(tmp, display + sel_start, sel_end - sel_start);
+            tmp[sel_end - sel_start] = '\0';
+            measure_utf8(tmp, &w, NULL);
+
+            draw_rect(&e->parent->base,
+                      text_x + offset, text_y,
+                      w, font_h,
+                      current_theme->accent_hovered);
         }
     }
 
-    /* ---- text ---- */
-    draw_text_from_font(&entry->parent->base, font, display_text,
-                         text_x, text_y, text_color, ALIGN_LEFT);
+    /* ---------- TEXT ---------- */
+    draw_text_from_font(&e->parent->base,
+                        global_font, display,
+                        text_x, text_y,
+                        txt_col, ALIGN_LEFT);
 
-    /* ---- cursor ---- */
-    if (entry->is_active) {
-        int cursor_offset = 0;
-        if (entry->cursor_pos - entry->visible_text_start > 0) {
-            char temp[entry->max_length + 1];
-            strncpy(temp, display_text,
-                    entry->cursor_pos - entry->visible_text_start);
-            temp[entry->cursor_pos - entry->visible_text_start] = '\0';
-            TTF_SizeText(font, temp, &cursor_offset, NULL);
+    /* ---------- CURSOR ---------- */
+    if (e->is_active) {
+        int cur_off = 0;
+        if (e->cursor_pos - e->visible_text_start > 0) {
+            char tmp[256];
+            int len = e->cursor_pos - e->visible_text_start;
+            strncpy(tmp, display, len); tmp[len] = '\0';
+            measure_utf8(tmp, &cur_off, NULL);
         }
-        int cursor_x = text_x + cursor_offset;
-        int cursor_w = (int)roundf(2 * dpi);
-        draw_rect(&entry->parent->base, cursor_x, text_y,
-                   cursor_w, font_height, current_theme->accent);
+        int cur_w = (int)roundf(2 * dpi);
+        draw_rect(&e->parent->base,
+                  text_x + cur_off, text_y,
+                  cur_w, font_h,
+                  current_theme->accent);
     }
 
-    TTF_CloseFont(font);
-
-restore_clip:
-    /* ---------- RESTORE ORIGINAL CLIP STATE ---------- */
-    if (clip_was_enabled) {
-        SDL_RenderSetClipRect(renderer, &saved_clip);
-    } else {
-        SDL_RenderSetClipRect(renderer, NULL);
-    }
-}
-// Updates the visible portion of the text when the cursor moves or text changes
-// Parameters:
-// - entry: The Entry widget to update
-void update_visible_text(Entry* entry) {
-    // Validate inputs
-    if (!entry || !entry->parent) {
-        printf("Invalid entry or parent\n");
-        return; // Exit if validation fails
-    }
-
-    // Default to light theme if none is set
-    if (!current_theme) {
-        current_theme = (Theme*)&THEME_LIGHT;
-    }
-
-    // Get theme properties
-    int logical_font_size = current_theme->default_font_size;
-    char* font_file = current_theme->font_file ? current_theme->font_file : "FreeMono.ttf";
-    int logical_padding = current_theme->padding;
-
-    // Load the font for text measurements
-    TTF_Font* font = TTF_OpenFont(font_file, logical_font_size);
-    if (!font) {
-        printf("Failed to load font: %s\n", TTF_GetError());
-        return; // Exit if font loading fails
-    }
-
-    // Calculate how many characters can fit within the entry's width (logical)
-    int max_visible_width = entry->w - 2 * logical_padding;
-    int text_width = 0;
-    int max_visible_chars = 0;
-    for (int i = 0; i < strlen(entry->text); i++) {
-        char ch[2] = {entry->text[i], '\0'};
-        int char_width;
-        TTF_SizeText(font, ch, &char_width, NULL);
-        if (text_width + char_width <= max_visible_width) {
-            text_width += char_width;
-            max_visible_chars++;
-        } else {
-            break; // Stop when text exceeds visible width
-        }
-    }
-
-    // Calculate pixel position of the cursor
-    int cursor_pixel_x = 0;
-    if (entry->cursor_pos > 0) {
-        char temp[entry->max_length + 1];
-        strncpy(temp, entry->text, entry->cursor_pos);
-        temp[entry->cursor_pos] = '\0';
-        TTF_SizeText(font, temp, &cursor_pixel_x, NULL);
-    }
-
-    // If cursor is beyond visible area, scroll text to keep cursor in view
-    if (cursor_pixel_x > max_visible_width) {
-        while (cursor_pixel_x > max_visible_width && entry->visible_text_start < strlen(entry->text)) {
-            char ch[2] = {entry->text[entry->visible_text_start], '\0'};
-            int char_width;
-            TTF_SizeText(font, ch, &char_width, NULL);
-            cursor_pixel_x -= char_width;
-            entry->visible_text_start++;
-        }
-    } else if (entry->cursor_pos < entry->visible_text_start) {
-        // If cursor moves before visible text, scroll back
-        entry->visible_text_start = entry->cursor_pos;
-    }
-
-    // If there's a selection, try to show as much of it as possible
-    if (entry->selection_start != -1) {
-        int sel_end = entry->selection_start > entry->cursor_pos ? entry->selection_start : entry->cursor_pos;
-        if (sel_end < entry->visible_text_start) {
-            entry->visible_text_start = sel_end > max_visible_chars ? sel_end - max_visible_chars : 0;
-        }
-    }
-
-    // Ensure visible_text_start stays within bounds
-    if (entry->visible_text_start > strlen(entry->text) - max_visible_chars) {
-        entry->visible_text_start = strlen(entry->text) > max_visible_chars 
-                                   ? strlen(entry->text) - max_visible_chars : 0;
-    }
-
-    TTF_CloseFont(font); // Free the font resource
+restore:
+    if (clip_enabled) SDL_RenderSetClipRect(ren, &saved_clip);
+    else SDL_RenderSetClipRect(ren, NULL);
 }
 
-// Updates the text entry widget based on SDL events (mouse, keyboard, text input)
-// Parameters:
-// - entry: The Entry widget to update
-// - event: The SDL event to process
-void update_entry(Entry* entry, Event* event) {
-    // Validate inputs to ensure the entry, its parent, and parent state are valid
-    if (!entry || !entry->parent || !entry->parent->is_open) {
-        printf("Invalid entry, parent, or parent is not open\n");
-        return;
-    }
+/* --------------------------------------------------------------------- */
+/* update_visible_text – uses wrapper size functions, fixed scrolling */
+/* --------------------------------------------------------------------- */
+void update_visible_text(Entry* e)
+{
+    if (!e || !e->parent || !global_font) return;
+    if (!current_theme) current_theme = (Theme*)&THEME_LIGHT;
 
-    // Default to light theme if none is set for consistent styling
-    if (!current_theme) {
-        current_theme = (Theme*)&THEME_LIGHT;
-    }
-
-    // Get DPI scale for converting logical to physical coordinates
-    float dpi = entry->parent->base.dpi_scale;
-    Uint16 mod = SDL_GetModState(); // Get current keyboard modifier state (e.g., Shift, Ctrl)
-
-    // Calculate absolute position in logical coordinates, accounting for parent and title bar
-    int abs_x = entry->x + entry->parent->x;
-    int abs_y = entry->y + entry->parent->y + entry->parent->title_height;
-    // Convert to physical coordinates for hit testing
-    int s_abs_x = (int)roundf(abs_x * dpi);
-    int s_abs_y = (int)roundf(abs_y * dpi);
-    int s_w = (int)roundf(entry->w * dpi);
-    int s_h = (int)roundf(entry->h * dpi);
-
-    // Load font for cursor position calculations
-    int logical_font_size = current_theme->default_font_size;
-    char* font_file = current_theme->font_file ? current_theme->font_file : "FreeMono.ttf";
     int logical_padding = current_theme->padding;
-    TTF_Font* font = TTF_OpenFont(font_file, logical_font_size);
-    if (!font) {
-        printf("Failed to load font: %s\n", TTF_GetError());
-        return; // Exit if font loading fails
+    int max_vis_w = e->w - 2 * logical_padding;   /* logical pixels */
+
+    /* ---- how many characters fit in the visible area? ---- */
+    int fit_w = 0, fit_chars = 0;
+    const char* txt = e->text;
+    for (int i = 0; i < (int)strlen(txt); ++i) {
+        char ch[2] = { txt[i], '\0' };
+        int cw = 0;
+        if (measure_utf8(ch, &cw, NULL) != 0) break;
+        if (fit_w + cw > max_vis_w) break;
+        fit_w += cw;
+        ++fit_chars;
     }
 
-    // Handle mouse button down event (left click)
-    if (event->type == EVENT_MOUSEBUTTONDOWN && event->mouseButton.button == MOUSE_LEFT) {
-        int mouseX = event->mouseButton.x;
-        int mouseY = event->mouseButton.y;
-        // Check if click is within the entry's bounds
-        if (mouseX >= s_abs_x && mouseX <= s_abs_x + s_w &&
-            mouseY >= s_abs_y && mouseY <= s_abs_y + s_h) {
-            entry->is_active = 1; // Activate the entry
-            printf("Entry clicked! Active\n");
-            entry->is_mouse_selecting = 1; // Enable mouse-based selection
-            entry->selection_start = -1; // Clear existing selection
+    /* ---- cursor pixel position (logical) ---- */
+    int cursor_px = 0;
+    if (e->cursor_pos > 0) {
+        char tmp[256];
+        int len = e->cursor_pos;
+        strncpy(tmp, txt, len); tmp[len] = '\0';
+        measure_utf8(tmp, &cursor_px, NULL);
+    }
 
-            // Calculate cursor position from click location
-            int logical_mouse_x = (int)roundf(mouseX / dpi);
-            int click_offset = logical_mouse_x - (abs_x + logical_padding);
-            int cum_width = 0;
-            entry->cursor_pos = 0;
-            for (int i = 0; i < strlen(entry->text); i++) {
-                char ch[2] = {entry->text[i], '\0'};
-                int char_w;
-                TTF_SizeText(font, ch, &char_w, NULL);
-                if (cum_width + char_w / 2 > click_offset) { // Closest character by midpoint
-                    break;
-                }
-                cum_width += char_w;
-                entry->cursor_pos = i + 1;
+    /* ---- scroll right ---- */
+    if (cursor_px > max_vis_w) {
+        while (cursor_px > max_vis_w && e->visible_text_start < (int)strlen(txt)) {
+            char ch[2] = { txt[e->visible_text_start], '\0' };
+            int cw = 0;
+            measure_utf8(ch, &cw, NULL);
+            cursor_px -= cw;
+            ++e->visible_text_start;
+        }
+    }
+    /* ---- scroll left ---- */
+    else if (e->cursor_pos < e->visible_text_start) {
+        e->visible_text_start = e->cursor_pos;
+    }
+
+    /* ---- keep selection visible (optional) ---- */
+    if (e->selection_start != -1) {
+        int sel_end = (e->selection_start > e->cursor_pos) ? e->selection_start : e->cursor_pos;
+        if (sel_end < e->visible_text_start) {
+            e->visible_text_start = (sel_end > fit_chars) ? sel_end - fit_chars : 0;
+        }
+    }
+
+    /* ---- clamp ---- */
+    int max_start = (int)strlen(txt) - fit_chars;
+    if (max_start < 0) max_start = 0;
+    if (e->visible_text_start > max_start) e->visible_text_start = max_start;
+}
+
+/* --------------------------------------------------------------------- */
+/* update_entry – same logic, only size calls go through the wrapper */
+/* --------------------------------------------------------------------- */
+void update_entry(Entry* e, Event* ev)
+{
+    if (!e || !e->parent || !e->parent->is_open || !global_font) return;
+
+    float dpi = e->parent->base.dpi_scale;
+    Uint16 mod = SDL_GetModState();
+
+    int abs_x = e->x + e->parent->x;
+    int abs_y = e->y + e->parent->y + e->parent->title_height;
+    int sx = (int)roundf(abs_x * dpi);
+    int sy = (int)roundf(abs_y * dpi);
+    int sw = (int)roundf(e->w * dpi);
+    int sh = (int)roundf(e->h * dpi);
+    int pad = (int)roundf(current_theme->padding * dpi);
+
+    /* ---------- MOUSE DOWN ---------- */
+    if (ev->type == EVENT_MOUSEBUTTONDOWN && ev->mouseButton.button == MOUSE_LEFT) {
+        int mx = ev->mouseButton.x;
+        int my = ev->mouseButton.y;
+        if (mx >= sx && mx <= sx+sw && my >= sy && my <= sy+sh) {
+            e->is_active = 1;
+            e->is_mouse_selecting = 1;
+            e->selection_start = -1;
+
+            int logical_mx = (int)roundf(mx / dpi);
+            int click_off  = logical_mx - (abs_x + current_theme->padding);
+            int cum = 0, pos = 0;
+            for (int i = 0; i < (int)strlen(e->text); ++i) {
+                char ch[2] = { e->text[i], '\0' };
+                int cw = 0;
+                measure_utf8(ch, &cw, NULL);
+                if (cum + cw/2 > click_off) break;
+                cum += cw;
+                pos = i+1;
             }
-            update_visible_text(entry); // Update visible text to reflect cursor position
+            e->cursor_pos = pos;
+            update_visible_text(e);
         } else {
-            entry->is_active = 0; // Deactivate if clicked outside
-            entry->is_mouse_selecting = 0; // Stop mouse selection
-            printf("Clicked outside entry! Inactive\n");
-            entry->selection_start = -1; // Clear selection
+            e->is_active = 0;
+            e->is_mouse_selecting = 0;
+            e->selection_start = -1;
         }
-    } 
-    // Handle mouse button up event (left click)
-    else if (event->type == EVENT_MOUSEBUTTONUP && event->mouseButton.button == MOUSE_LEFT) {
-        entry->is_mouse_selecting = 0; // End mouse-based selection
-    } 
-    // Handle mouse motion for drag selection
-    else if (event->type == EVENT_MOUSEMOTION && entry->is_mouse_selecting && (event->mouseMove.button_state & MOUSE_BUTTON_LEFT_MASK)) {
-        int mouseX = event->mouseMove.x;
-        int mouseY = event->mouseMove.y;
-        // Update selection if mouse is within entry bounds (optional: can remove bounds check)
-        if (mouseX >= s_abs_x && mouseX <= s_abs_x + s_w &&
-            mouseY >= s_abs_y && mouseY <= s_abs_y + s_h) {
-            // Set selection anchor on first drag motion if not already set
-            if (entry->selection_start == -1) {
-                entry->selection_start = entry->cursor_pos;
+    }
+    /* ---------- MOUSE UP ---------- */
+    else if (ev->type == EVENT_MOUSEBUTTONUP && ev->mouseButton.button == MOUSE_LEFT) {
+        e->is_mouse_selecting = 0;
+    }
+    /* ---------- MOUSE DRAG ---------- */
+    else if (ev->type == EVENT_MOUSEMOTION && e->is_mouse_selecting &&
+             (ev->mouseMove.button_state & MOUSE_BUTTON_LEFT_MASK)) {
+        int mx = ev->mouseMove.x;
+        int my = ev->mouseMove.y;
+        if (mx >= sx && mx <= sx+sw && my >= sy && my <= sy+sh) {
+            if (e->selection_start == -1) e->selection_start = e->cursor_pos;
+
+            int logical_mx = (int)roundf(mx / dpi);
+            int click_off  = logical_mx - (abs_x + current_theme->padding);
+            int cum = 0, pos = 0;
+            for (int i = 0; i < (int)strlen(e->text); ++i) {
+                char ch[2] = { e->text[i], '\0' };
+                int cw = 0;
+                measure_utf8(ch, &cw, NULL);
+                if (cum + cw/2 > click_off) break;
+                cum += cw;
+                pos = i+1;
             }
-            // Calculate new cursor position from mouse position
-            int logical_mouse_x = (int)roundf(mouseX / dpi);
-            int click_offset = logical_mouse_x - (abs_x + logical_padding);
-            int cum_width = 0;
-            int new_cursor_pos = 0;
-            for (int i = 0; i < strlen(entry->text); i++) {
-                char ch[2] = {entry->text[i], '\0'};
-                int char_w;
-                TTF_SizeText(font, ch, &char_w, NULL);
-                if (cum_width + char_w / 2 > click_offset) {
-                    break;
-                }
-                cum_width += char_w;
-                new_cursor_pos = i + 1;
-            }
-            entry->cursor_pos = new_cursor_pos; // Update cursor to new position
-            update_visible_text(entry); // Update visible text to keep cursor/selection in view
+            e->cursor_pos = pos;
+            update_visible_text(e);
         }
-    } 
-    // Handle text input when entry is active
-    else if (event->type == EVENT_TEXTINPUT && entry->is_active) {
-        // If there's a selection, delete it before inserting new text
-        if (entry->selection_start != -1) {
-            int sel_start = entry->selection_start < entry->cursor_pos ? entry->selection_start : entry->cursor_pos;
-            int sel_end = entry->selection_start < entry->cursor_pos ? entry->cursor_pos : entry->selection_start;
-            memmove(entry->text + sel_start, entry->text + sel_end, strlen(entry->text) - sel_end + 1);
-            entry->cursor_pos = sel_start;
-            entry->selection_start = -1;
+    }
+    /* ---------- TEXT INPUT ---------- */
+    else if (ev->type == EVENT_TEXTINPUT && e->is_active) {
+        if (e->selection_start != -1) {
+            int start = (e->selection_start < e->cursor_pos) ? e->selection_start : e->cursor_pos;
+            int end   = (e->selection_start < e->cursor_pos) ? e->cursor_pos : e->selection_start;
+            memmove(e->text + start, e->text + end, strlen(e->text) - end + 1);
+            e->cursor_pos = start;
+            e->selection_start = -1;
         }
-        // Insert new text at cursor position
-        int len = strlen(entry->text);
-        int input_len = strlen(event->text.text);
-        if (len + input_len < entry->max_length) {
-            memmove(entry->text + entry->cursor_pos + input_len, 
-                    entry->text + entry->cursor_pos, len - entry->cursor_pos + 1);
-            strncpy(entry->text + entry->cursor_pos, event->text.text, input_len);
-            entry->cursor_pos += input_len;
-            update_visible_text(entry);
+        int len = strlen(e->text);
+        int add = strlen(ev->text.text);
+        if (len + add < e->max_length) {
+            memmove(e->text + e->cursor_pos + add,
+                    e->text + e->cursor_pos,
+                    len - e->cursor_pos + 1);
+            memcpy(e->text + e->cursor_pos, ev->text.text, add);
+            e->cursor_pos += add;
+            update_visible_text(e);
         }
-    } 
-    // Handle key presses when entry is active
-    else if (event->type == EVENT_KEYDOWN && entry->is_active) {
-        if (event->type == EVENT_KEYDOWN && event->key.key == KEY_BACKSPACE) {
-            if (entry->selection_start != -1) {
-                // Delete selected text
-                int sel_start = entry->selection_start < entry->cursor_pos ? entry->selection_start : entry->cursor_pos;
-                int sel_end = entry->selection_start < entry->cursor_pos ? entry->cursor_pos : entry->selection_start;
-                memmove(entry->text + sel_start, entry->text + sel_end, strlen(entry->text) - sel_end + 1);
-                entry->cursor_pos = sel_start;
-                entry->selection_start = -1;
-            } else if (entry->cursor_pos > 0) {
-                // Delete character before cursor
-                memmove(entry->text + entry->cursor_pos - 1, 
-                        entry->text + entry->cursor_pos, strlen(entry->text) - entry->cursor_pos + 1);
-                entry->cursor_pos--;
+    }
+    /* ---------- KEYBOARD ---------- */
+    else if (ev->type == EVENT_KEYDOWN && e->is_active) {
+        #define DEL_SEL() do { \
+            int s = (e->selection_start < e->cursor_pos) ? e->selection_start : e->cursor_pos; \
+            int d = (e->selection_start < e->cursor_pos) ? e->cursor_pos : e->selection_start; \
+            memmove(e->text + s, e->text + d, strlen(e->text) - d + 1); \
+            e->cursor_pos = s; e->selection_start = -1; \
+        } while(0)
+
+        if (ev->key.key == KEY_BACKSPACE) {
+            if (e->selection_start != -1) { DEL_SEL(); }
+            else if (e->cursor_pos > 0) {
+                memmove(e->text + e->cursor_pos - 1,
+                        e->text + e->cursor_pos,
+                        strlen(e->text) - e->cursor_pos + 1);
+                --e->cursor_pos;
             }
-            update_visible_text(entry);
-        } else if (event->type == EVENT_KEYDOWN && event->key.key == KEY_DELETE) {
-            if (entry->selection_start != -1) {
-                // Delete selected text (same as backspace)
-                int sel_start = entry->selection_start < entry->cursor_pos ? entry->selection_start : entry->cursor_pos;
-                int sel_end = entry->selection_start < entry->cursor_pos ? entry->cursor_pos : entry->selection_start;
-                memmove(entry->text + sel_start, entry->text + sel_end, strlen(entry->text) - sel_end + 1);
-                entry->cursor_pos = sel_start;
-                entry->selection_start = -1;
-            } else if (entry->cursor_pos < strlen(entry->text)) {
-                // Delete character after cursor
-                memmove(entry->text + entry->cursor_pos, 
-                        entry->text + entry->cursor_pos + 1, strlen(entry->text) - entry->cursor_pos);
+            update_visible_text(e);
+        }
+        else if (ev->key.key == KEY_DELETE) {
+            if (e->selection_start != -1) { DEL_SEL(); }
+            else if (e->cursor_pos < (int)strlen(e->text)) {
+                memmove(e->text + e->cursor_pos,
+                        e->text + e->cursor_pos + 1,
+                        strlen(e->text) - e->cursor_pos);
             }
-            update_visible_text(entry);
-        } else if (event->type == EVENT_KEYDOWN && event->key.key == KEY_LEFT) {
-            if (entry->cursor_pos > 0) {
+            update_visible_text(e);
+        }
+        else if (ev->key.key == KEY_LEFT) {
+            if (e->cursor_pos > 0) {
                 if (mod & KMOD_SHIFT) {
-                    // Extend selection with Shift+Left
-                    if (entry->selection_start == -1) entry->selection_start = entry->cursor_pos;
-                    entry->cursor_pos--;
+                    if (e->selection_start == -1) e->selection_start = e->cursor_pos;
+                    --e->cursor_pos;
                 } else {
-                    // Move cursor left, clear selection
-                    entry->cursor_pos--;
-                    entry->selection_start = -1;
+                    --e->cursor_pos;
+                    e->selection_start = -1;
                 }
-                update_visible_text(entry);
+                update_visible_text(e);
             }
-        } else if (event->type == EVENT_KEYDOWN && event->key.key == KEY_RIGHT) {
-            if (entry->cursor_pos < strlen(entry->text)) {
+        }
+        else if (ev->key.key == KEY_RIGHT) {
+            if (e->cursor_pos < (int)strlen(e->text)) {
                 if (mod & KMOD_SHIFT) {
-                    // Extend selection with Shift+Right
-                    if (entry->selection_start == -1) entry->selection_start = entry->cursor_pos;
-                    entry->cursor_pos++;
+                    if (e->selection_start == -1) e->selection_start = e->cursor_pos;
+                    ++e->cursor_pos;
                 } else {
-                    // Move cursor right, clear selection
-                    entry->cursor_pos++;
-                    entry->selection_start = -1;
+                    ++e->cursor_pos;
+                    e->selection_start = -1;
                 }
-                update_visible_text(entry);
+                update_visible_text(e);
             }
-        } else if (event->type == EVENT_KEYDOWN && event->key.key == KEY_RETURN) {
-            // Deactivate entry on Enter key
-            entry->is_active = 0;
-            entry->selection_start = -1;
-        } else if (event->type == EVENT_KEYDOWN && event->key.key == KEY_A && (event->key.mod & KEY_MOD_CTRL)) {
-            // Ctrl+A: Select all text
-            if (strlen(entry->text) > 0) {
-                entry->selection_start = 0;
-                entry->cursor_pos = strlen(entry->text);
+        }
+        else if (ev->key.key == KEY_RETURN) {
+            e->is_active = 0;
+            e->selection_start = -1;
+        }
+        else if (ev->key.key == KEY_A && (ev->key.mod & KEY_MOD_CTRL)) {
+            if (e->text[0]) {
+                e->selection_start = 0;
+                e->cursor_pos = (int)strlen(e->text);
             }
-        } else if (event->type == EVENT_KEYDOWN && event->key.key == KEY_C && (event->key.mod & KEY_MOD_CTRL)) {
-            // Ctrl+C: Copy selected text to clipboard
-            if (entry->selection_start != -1) {
-                int sel_start = entry->selection_start < entry->cursor_pos ? entry->selection_start : entry->cursor_pos;
-                int sel_len = abs(entry->cursor_pos - entry->selection_start);
-                char* sel_text = malloc(sel_len + 1);
-                strncpy(sel_text, entry->text + sel_start, sel_len);
-                sel_text[sel_len] = '\0';
-                SDL_SetClipboardText(sel_text);
-                free(sel_text);
+        }
+        else if (ev->key.key == KEY_C && (ev->key.mod & KEY_MOD_CTRL)) {
+            if (e->selection_start != -1) {
+                int s   = (e->selection_start < e->cursor_pos) ? e->selection_start : e->cursor_pos;
+                int len = abs(e->cursor_pos - e->selection_start);
+                char* sel = malloc(len + 1);
+                if (sel) {
+                    strncpy(sel, e->text + s, len); sel[len] = '\0';
+                    SDL_SetClipboardText(sel);
+                    free(sel);
+                }
             }
-        } else if (event->type == EVENT_KEYDOWN && event->key.key == KEY_X && (event->key.mod & KEY_MOD_CTRL)) {
-            // Ctrl+X: Cut selected text (copy to clipboard and delete)
-            if (entry->selection_start != -1) {
-                int sel_start = entry->selection_start < entry->cursor_pos ? entry->selection_start : entry->cursor_pos;
-                int sel_len = abs(entry->cursor_pos - entry->selection_start);
-                char* sel_text = malloc(sel_len + 1);
-                strncpy(sel_text, entry->text + sel_start, sel_len);
-                sel_text[sel_len] = '\0';
-                SDL_SetClipboardText(sel_text);
-                free(sel_text);
-                // Delete selected text
-                memmove(entry->text + sel_start, entry->text + sel_start + sel_len, 
-                        strlen(entry->text) - (sel_start + sel_len) + 1);
-                entry->cursor_pos = sel_start;
-                entry->selection_start = -1;
-                update_visible_text(entry);
+        }
+        else if (ev->key.key == KEY_X && (ev->key.mod & KEY_MOD_CTRL)) {
+            if (e->selection_start != -1) {
+                int s   = (e->selection_start < e->cursor_pos) ? e->selection_start : e->cursor_pos;
+                int len = abs(e->cursor_pos - e->selection_start);
+                char* sel = malloc(len + 1);
+                if (sel) {
+                    strncpy(sel, e->text + s, len); sel[len] = '\0';
+                    SDL_SetClipboardText(sel);
+                    free(sel);
+                }
+                DEL_SEL();
+                update_visible_text(e);
             }
-        } else if (event->type == EVENT_KEYDOWN && event->key.key == KEY_V && (event->key.mod & KEY_MOD_CTRL)) {
-            // Ctrl+V: Paste text from clipboard
+        }
+        else if (ev->key.key == KEY_V && (ev->key.mod & KEY_MOD_CTRL)) {
             if (SDL_HasClipboardText()) {
-                char* paste_text = SDL_GetClipboardText();
-                if (paste_text) {
-                    int paste_len = strlen(paste_text);
-                    int len = strlen(entry->text);
-                    // Delete selection if any
-                    if (entry->selection_start != -1) {
-                        int sel_start = entry->selection_start < entry->cursor_pos ? entry->selection_start : entry->cursor_pos;
-                        int sel_len = abs(entry->cursor_pos - entry->selection_start);
-                        memmove(entry->text + sel_start, entry->text + sel_start + sel_len, 
-                                len - (sel_start + sel_len) + 1);
-                        entry->cursor_pos = sel_start;
-                        entry->selection_start = -1;
-                        len -= sel_len;
+                char* paste = SDL_GetClipboardText();
+                if (paste) {
+                    int plen = strlen(paste);
+                    int len  = strlen(e->text);
+                    if (e->selection_start != -1) { DEL_SEL(); len = strlen(e->text); }
+                    if (len + plen < e->max_length) {
+                        memmove(e->text + e->cursor_pos + plen,
+                                e->text + e->cursor_pos,
+                                len - e->cursor_pos + 1);
+                        memcpy(e->text + e->cursor_pos, paste, plen);
+                        e->cursor_pos += plen;
+                        update_visible_text(e);
                     }
-                    // Insert pasted text if within max length
-                    if (len + paste_len < entry->max_length) {
-                        memmove(entry->text + entry->cursor_pos + paste_len, 
-                                entry->text + entry->cursor_pos, len - entry->cursor_pos + 1);
-                        strncpy(entry->text + entry->cursor_pos, paste_text, paste_len);
-                        entry->cursor_pos += paste_len;
-                        update_visible_text(entry);
-                    }
-                    SDL_free(paste_text);
+                    SDL_free(paste);
                 }
             }
         }
-    }
-
-    TTF_CloseFont(font); // Free the font resource
-}
-// Frees the memory allocated for an Entry widget
-// Parameters:
-// - entry: The Entry widget to free
-void free_entry(Entry* entry) {
-    if (entry) {
-        free(entry->text); // Free the text buffer
-        free(entry->place_holder); // Free the placeholder text
+        #undef DEL_SEL
     }
 }
 
-// ___________________
-// Global array to store all registered entry widgets (up to MAX_ENTRYS)
+/* --------------------------------------------------------------------- */
+void free_entry(Entry* e)
+{
+    if (e) {
+        free(e->text);
+        free(e->place_holder);
+    }
+}
+
+/* --------------------------------------------------------------------- */
+/* Global registration (unchanged) */
+/* --------------------------------------------------------------------- */
 Entry* entry_widgets[MAX_ENTRYS];
-int entrys_count = 0; // Tracks the number of registered entries
+int entrys_count = 0;
 
-// Registers an entry widget in the global array
-// Parameters:
-// - entry: The Entry widget to register
-void register_entry(Entry* entry) {
-    if (entrys_count < MAX_ENTRYS) {
-        entry_widgets[entrys_count] = entry; // Add entry to the array
-        entrys_count++; // Increment the count
-    }
+void register_entry(Entry* e) {
+    if (entrys_count < MAX_ENTRYS) entry_widgets[entrys_count++] = e;
 }
-
-// Renders all registered entry widgets
 void render_all_registered_entrys(void) {
-    for (int i = 0; i < entrys_count; i++) {
-        if (entry_widgets[i]) {
-            render_entry(entry_widgets[i]); // Render each valid entry
-        }
-    }
+    for (int i = 0; i < entrys_count; ++i)
+        if (entry_widgets[i]) render_entry(entry_widgets[i]);
 }
-
-// Updates all registered entry widgets based on an SDL event
-// Parameters:
-// - event: The SDL event to process
-void update_all_registered_entrys(Event* event) {
-    for (int i = 0; i < entrys_count; i++) {
-        if (entry_widgets[i]) {
-            update_entry(entry_widgets[i], event); // Update each valid entry
-        }
-    }
+void update_all_registered_entrys(Event* ev) {
+    for (int i = 0; i < entrys_count; ++i)
+        if (entry_widgets[i]) update_entry(entry_widgets[i], ev);
 }
-
 void free_all_registered_entrys(void) {
-    for (int i = 0; i < entrys_count; i++) {
-        if (entry_widgets[i]) {
-            free_entry(entry_widgets[i]);
-            entry_widgets[i] = NULL;
-        }
+    for (int i = 0; i < entrys_count; ++i) {
+        if (entry_widgets[i]) { free_entry(entry_widgets[i]); entry_widgets[i] = NULL; }
     }
     entrys_count = 0;
 }

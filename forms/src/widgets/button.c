@@ -1,190 +1,198 @@
 #include "../../include/widgets/button.h"
 #include "../../include/core/theme.h"
 #include "../../include/core/graphics.h"
+#include "../../include/core/app.h"
 
-#include <string.h> // for strdup
-#include <SDL2/SDL_ttf.h> // for TTF_SizeText usage
-#include <math.h>   // For roundf in scaling
 
 void function_callback_override (){
     DEBUG_PRINT("Button was clicked!\n");
     // Add custom logic, e.g., open a dialog, submit a form, etc.
 }
 
+/* button.c --------------------------------------------------------------- */
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
 
-Button new_button(Parent* parent, int x, int y, int w, int h, const char* label, void (*callback)(void)) {
+/* --------------------------------------------------------------------- */
+/*  Button definition (opaque)                                           */
+/* --------------------------------------------------------------------- */
+struct Button {
+    Parent*    parent;
+    int        x, y, w, h;          /* logical coordinates */
+    char*      label;
+    void       (*callback)(void);
+    bool       is_hovered;
+    bool       is_pressed;
+    Color*     custom_bg_color;
+    Color*     custom_text_color;
+};
+
+/* --------------------------------------------------------------------- */
+Button new_button(Parent* parent, int x, int y, int w, int h,
+                  const char* label, void (*callback)(void))
+{
     if (!parent || !parent->base.sdl_renderer) {
-        DEBUG_PRINT("Error: Invalid parent or renderer passed to new_button()\n");
+        DEBUG_PRINT("Error: Invalid parent or renderer\n");
     }
+    if (!current_theme) current_theme = (Theme*)&THEME_LIGHT;
 
-    Button new_button;
-
-    new_button.parent = parent;
-    new_button.x = x;
-    new_button.y = y;
-    new_button.w = w;
-    new_button.h = h;
-    new_button.label = strdup(label);
-    if (!new_button.label) {
-        DEBUG_PRINT("Erorr: Failed to allocate memory for button label\n");
-    }
-    new_button.callback = callback;
-    new_button.is_hovered = 0;
-    new_button.is_pressed = 0;
-    new_button.custom_bg_color = NULL;
-    new_button.custom_text_color = NULL;
-
-    return new_button;
+    Button b = {0};
+    b.parent    = parent;
+    b.x         = x;
+    b.y         = y;
+    b.w         = w;
+    b.h         = h;
+    b.label     = label ? strdup(label) : NULL;
+    b.callback  = callback;
+    return b;
 }
 
-// Setter for bg color override
-void set_button_bg_color(Button* button, Color color) {
-    if (button) {
-        if (!button->custom_bg_color) {
-            button->custom_bg_color = (Color*)malloc(sizeof(Color));
-        }
-        *button->custom_bg_color = color;
-    }
+/* --------------------------------------------------------------------- */
+void set_button_bg_color(Button* b, Color c) {
+    if (!b) return;
+    if (!b->custom_bg_color) b->custom_bg_color = malloc(sizeof(Color));
+    if (b->custom_bg_color) *b->custom_bg_color = c;
+}
+void set_button_text_color(Button* b, Color c) {
+    if (!b) return;
+    if (!b->custom_text_color) b->custom_text_color = malloc(sizeof(Color));
+    if (b->custom_text_color) *b->custom_text_color = c;
 }
 
-// Setter for text color override
-void set_button_text_color(Button* button, Color color) {
-    if (button) {
-        if (!button->custom_text_color) {
-            button->custom_text_color = (Color*)malloc(sizeof(Color));
-        }
-        *button->custom_text_color = color;
-    }
-}
+/* --------------------------------------------------------------------- */
+void render_button(Button* b)
+{
+    if (!b || !b->parent || !b->parent->base.sdl_renderer || !b->parent->is_open) return;
+    if (!global_font) return;
 
-void render_button(Button* button) {
-    if (!button || !button->parent || !button->parent->base.sdl_renderer || !button->parent->is_open) {
-        DEBUG_PRINT("Erorr: Invalid button, renderer, or parent is not open\n");
-        return;
-    }
-	//set container clipping
-	if(button->parent->is_window == false){
-	SDL_Rect parent_bounds = get_parent_rect(button->parent);
-	SDL_RenderSetClipRect(button->parent->base.sdl_renderer, &parent_bounds);
-	}
+    SDL_Renderer* ren = b->parent->base.sdl_renderer;
+    float dpi         = b->parent->base.dpi_scale;
 
-    // Fallback if no theme set
-    if (!current_theme) {
-        // Use hardcoded defaults (your original colors)
-        current_theme = (Theme*)&THEME_LIGHT;  // Or set a static fallback
+    /* ---------- SAVE CLIP ---------- */
+    SDL_Rect saved_clip; SDL_RenderGetClipRect(ren, &saved_clip);
+    SDL_bool clip_was = SDL_RenderIsClipEnabled(ren);
+
+    /* ---------- PARENT CLIP (if not window) ---------- */
+    if (!b->parent->is_window) {
+        SDL_Rect pr = get_parent_rect(b->parent);
+        pr.x = (int)roundf(pr.x * dpi);
+        pr.y = (int)roundf(pr.y * dpi);
+        pr.w = (int)roundf(pr.w * dpi);
+        pr.h = (int)roundf(pr.h * dpi);
+        SDL_RenderSetClipRect(ren, &pr);
     }
 
-    float dpi = button->parent->base.dpi_scale;
-    // Calculate absolute position relative to parent (logical), then scale
-    int abs_x = button->x + button->parent->x;
-    int abs_y = button->y + button->parent->y + button->parent->title_height;  // <-- Key offset here
+    /* ---------- DPI-SCALED VALUES ---------- */
+    int abs_x = b->x + b->parent->x;
+    int abs_y = b->y + b->parent->y + b->parent->title_height;
     int sx = (int)roundf(abs_x * dpi);
     int sy = (int)roundf(abs_y * dpi);
-    int sw = (int)roundf(button->w * dpi);
-    int sh = (int)roundf(button->h * dpi);
-    float roundness = current_theme->roundness;  // Roundness is a ratio (0-1), no scaling needed
-    int font_size = (int)roundf(current_theme->default_font_size * dpi);
+    int sw = (int)roundf(b->w * dpi);
+    int sh = (int)roundf(b->h * dpi);
+    float roundness = current_theme->roundness;
 
-    // Determine bg color: custom > theme state variants
-    Color button_color = button->custom_bg_color ? *button->custom_bg_color : current_theme->button_normal;
-    if (button->is_pressed) {
-        button_color = button->custom_bg_color ? darken_color(*button->custom_bg_color, 0.2f) : current_theme->button_pressed;
-    } else if (button->is_hovered) {
-        button_color = button->custom_bg_color ? lighten_color(*button->custom_bg_color, 0.1f) : current_theme->button_hovered;
+    Base* base = &b->parent->base;
+
+    /* ---------- BG COLOR (state-aware) ---------- */
+    Color bg = b->custom_bg_color ? *b->custom_bg_color : current_theme->button_normal;
+    if (b->is_pressed) {
+        bg = b->custom_bg_color ? darken_color(*b->custom_bg_color, 0.2f)
+                                : current_theme->button_pressed;
+    } else if (b->is_hovered) {
+        bg = b->custom_bg_color ? lighten_color(*b->custom_bg_color, 0.1f)
+                                : current_theme->button_hovered;
     }
 
-    // Draw rounded rectangle (use theme roundness)
-    draw_rounded_rect(&(button->parent->base), sx, sy, sw, sh, roundness, button_color);
+    /* ---------- DRAW ROUNDED RECT ---------- */
+    draw_rounded_rect(base, sx, sy, sw, sh, roundness, bg);
 
-    // Draw text centered
-    if (button->label) {
-        char* font_file = current_theme->font_file ? current_theme->font_file : "FreeMono.ttf";
-        TTF_Font* font = TTF_OpenFont(font_file, font_size);
-        if (font) {
-            int text_w, text_h;
-            TTF_SizeText(font, button->label, &text_w, &text_h);
-            int text_x = sx + (sw - text_w) / 2;
-            int text_y = sy + (sh - text_h) / 2;
-            Color text_color = button->custom_text_color ? *button->custom_text_color : current_theme->button_text;
-            draw_text_from_font(&(button->parent->base), font, button->label, text_x, text_y, text_color, ALIGN_LEFT);
-            TTF_CloseFont(font);
-        }
+    /* ---------- TEXT (centered) ---------- */
+    if (b->label) {
+        int text_w = ttf_text_width(global_font, b->label);
+        if (text_w < 0) text_w = 0;
+        int text_h = current_theme->default_font_size;  // approximate, already scaled in font
+
+        int text_x = sx + (sw - text_w) / 2;
+        int text_y = sy + (sh - text_h) / 2;
+
+        Color txt_col = b->custom_text_color ? *b->custom_text_color : current_theme->button_text;
+        draw_text_from_font(base, global_font, b->label, text_x, text_y, txt_col, ALIGN_LEFT);
     }
-    // Reset clipping
-    SDL_RenderSetClipRect(button->parent->base.sdl_renderer, NULL);
+
+    /* ---------- RESTORE CLIP ---------- */
+    if (clip_was) SDL_RenderSetClipRect(ren, &saved_clip);
+    else SDL_RenderSetClipRect(ren, NULL);
 }
 
-void update_button(Button* button, Event* event) {
-    if (!button || !button->parent || !button->parent->is_open) {
-        printf("Invalid button, parent, or parent is not open\n");
-        return;
+/* --------------------------------------------------------------------- */
+void update_button(Button* b, Event* ev)
+{
+    if (!b || !b->parent || !b->parent->is_open) return;
+
+    float dpi = b->parent->base.dpi_scale;
+
+    /* ---------- PHYSICAL BOUNDS ---------- */
+    int abs_x = b->x + b->parent->x;
+    int abs_y = b->y + b->parent->y + b->parent->title_height;
+    int sx = (int)roundf(abs_x * dpi);
+    int sy = (int)roundf(abs_y * dpi);
+    int sw = (int)roundf(b->w * dpi);
+    int sh = (int)roundf(b->h * dpi);
+
+    int mouse_x, mouse_y;
+    SDL_GetMouseState(&mouse_x, &mouse_y);
+
+    bool over = (mouse_x >= sx && mouse_x <= sx + sw &&
+                 mouse_y >= sy && mouse_y <= sy + sh);
+
+    if (ev->type == EVENT_MOUSEMOTION) {
+        b->is_hovered = over;
     }
-
-    // Calculate absolute position relative to parent (logical)
-    int abs_x = button->x + button->parent->x;
-    int abs_y = button->y + button->parent->y+ button->parent->title_height;
-
-    int mouseX, mouseY;
-    SDL_GetMouseState(&mouseX, &mouseY);
-
-    // Check if mouse is over the button (logical)
-    int over = (mouseX >= abs_x && mouseX <= abs_x + button->w &&
-                mouseY >= abs_y && mouseY <= abs_y + button->h);
-
-    if (event->type == EVENT_MOUSEMOTION) {
-        button->is_hovered = over;
-    } else if (event->type == EVENT_MOUSEBUTTONDOWN && event->mouseButton.button == SDL_BUTTON_LEFT) {
-        if (over) {
-            button->is_pressed = 1;
-        }
-    } else if (event->type == EVENT_MOUSEBUTTONUP && event->mouseButton.button == SDL_BUTTON_LEFT) {
-        if (button->is_pressed && over) {
-            if (button->callback) {
-                button->callback();
-            }
-        }
-        button->is_pressed = 0;
+    else if (ev->type == EVENT_MOUSEBUTTONDOWN && ev->mouseButton.button == MOUSE_LEFT) {
+        if (over) b->is_pressed = true;
     }
-}
-
-void free_button(Button* button) {
-    if (button) {
-        free(button->label);
-        if (button->custom_bg_color) free(button->custom_bg_color);
-        if (button->custom_text_color) free(button->custom_text_color);
+    else if (ev->type == EVENT_MOUSEBUTTONUP && ev->mouseButton.button == MOUSE_LEFT) {
+        if (b->is_pressed && over && b->callback) {
+            b->callback();
+        }
+        b->is_pressed = false;
     }
 }
 
+/* --------------------------------------------------------------------- */
+void free_button(Button* b)
+{
+    if (!b) return;
+    free(b->label);
+    free(b->custom_bg_color);
+    free(b->custom_text_color);
+}
 
+/* --------------------------------------------------------------------- */
+/*  Registration (unchanged)                                             */
+/* --------------------------------------------------------------------- */
 Button* button_widgets[MAX_BUTTONS];
-int buttons_count = 0;
+int     buttons_count = 0;
 
-void register_button(Button* button) {
-    if (buttons_count < MAX_BUTTONS) {
-        button_widgets[buttons_count] = button;
-        buttons_count++;
-    }
+void register_button(Button* b)
+{
+    if (buttons_count < MAX_BUTTONS) button_widgets[buttons_count++] = b;
 }
-
-void render_all_registered_buttons(void) {
-    for (int i = 0; i < buttons_count; i++) {
-        if (button_widgets[i]) {
-            render_button(button_widgets[i]);
-        }
-    }
+void render_all_registered_buttons(void)
+{
+    for (int i = 0; i < buttons_count; ++i)
+        if (button_widgets[i]) render_button(button_widgets[i]);
 }
-
-void update_all_registered_buttons(Event* event) {
-    for (int i = 0; i < buttons_count; i++) {
-        if (button_widgets[i]) {
-            update_button(button_widgets[i], event);
-        }
-    }
+void update_all_registered_buttons(Event* ev)
+{
+    for (int i = 0; i < buttons_count; ++i)
+        if (button_widgets[i]) update_button(button_widgets[i], ev);
 }
-void free_all_registered_buttons(void) {
-    for (int i = 0; i < buttons_count; i++) {
-        free_button(button_widgets[i]);
-        button_widgets[i] = NULL;
+void free_all_registered_buttons(void)
+{
+    for (int i = 0; i < buttons_count; ++i) {
+        if (button_widgets[i]) { free_button(button_widgets[i]); button_widgets[i] = NULL; }
     }
     buttons_count = 0;
 }

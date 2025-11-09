@@ -3,6 +3,7 @@
 
 #include "../core/parent.h"
 #include "../core/backends/sdl2/sdl2_events.h"
+#include "../core/backends/sdl2/sdl2_ttf.h"
 
 #include <SDL2/SDL.h> // for SDL_Event, SDLK_*, etc.
 #include <SDL2/SDL_ttf.h> // for TTF_SizeText usage
@@ -12,7 +13,7 @@ typedef struct {
     int len;
 } Line;
 
-Line* compute_visual_lines(const char* text, int max_width, TTF_Font* font, int* num_lines);
+Line* compute_visual_lines(const char* text, int max_width, Font_ttf* font, int* num_lines);
 
 typedef struct {
     Parent* parent;            // Pointer to the parent window or container

@@ -2,128 +2,138 @@
 #include "../../include/core/theme.h"
 #include "../../include/core/graphics.h"
 #include "../../include/core/app.h"
-#include <stdlib.h> // for malloc
-#include <string.h> // for strdup
-#include <SDL2/SDL_ttf.h> // for TTF_Font
+/* text.c --------------------------------------------------------------- */
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
 
+/* --------------------------------------------------------------------- */
+/*  Text definition (opaque)                                            */
+/* --------------------------------------------------------------------- */
+struct Text {
+    Parent*    parent;
+    int        x, y;               /* logical coordinates */
+    char*      content;
+    int        font_size;          /* logical font size */
+    Color*     color;              /* NULL → use theme */
+    TextAlign  align;
+};
 
-Text new_text(Parent* parent, int x, int y, const char* content, int font_size, TextAlign align) {
+/* --------------------------------------------------------------------- */
+Text new_text(Parent* parent, int x, int y, const char* content,
+              int font_size, TextAlign align)
+{
     if (!parent || !parent->base.sdl_renderer) {
         printf("Invalid parent or renderer\n");
     }
+    if (!current_theme) current_theme = (Theme*)&THEME_LIGHT;
 
-    Text new_text;
-    
-    new_text.parent = parent;
-    new_text.x = x;
-    new_text.y = y;
-    new_text.content = strdup(content);
-    if (!new_text.content) {
-        printf("Failed to allocate memory for text content\n");
-    }
-    new_text.font_size = font_size;
-    new_text.color = NULL;
-    new_text.align = align;
-
-    return new_text;
+    Text t = {0};
+    t.parent     = parent;
+    t.x          = x;
+    t.y          = y;
+    t.content    = content ? strdup(content) : NULL;
+    t.font_size  = font_size;
+    t.align      = align;
+    return t;
 }
 
-void render_text(Text* text) {
-    if (!text || !text->parent || !text->parent->base.sdl_renderer || !text->parent->is_open) {
-        printf("Invalid text widget, renderer, or parent is not open\n");
-        return;
-    }
-    //set container clipping
-    if(text->parent->is_window == false){
-    SDL_Rect parent_bounds = get_parent_rect(text->parent);
-    SDL_RenderSetClipRect(text->parent->base.sdl_renderer, &parent_bounds);
-    }
+/* --------------------------------------------------------------------- */
+void render_text(Text* t)
+{
+    if (!t || !t->parent || !t->parent->base.sdl_renderer || !t->parent->is_open) return;
+    if (!t->content) return;
+    if (!global_font) { printf("global_font missing\n"); return; }
 
-      // Fallback if no theme set
-    if (!current_theme) {
-        // Use hardcoded defaults (your original colors)
-        current_theme = (Theme*)&THEME_LIGHT;  // Or set a static fallback
-    }
-    
-	const Color* color_to_use = text->color ? text->color : &current_theme->text_primary;
+    SDL_Renderer* ren = t->parent->base.sdl_renderer;
+    float dpi         = t->parent->base.dpi_scale;
 
-    // Calculate absolute position relative to parent
-    int abs_x = text->x + text->parent->x;
-    int abs_y = text->y + text->parent->y + text->parent->title_height;
+    /* ---------- SAVE CLIP ---------- */
+    SDL_Rect saved_clip; SDL_RenderGetClipRect(ren, &saved_clip);
+    SDL_bool clip_was = SDL_RenderIsClipEnabled(ren);
 
-    // Draw the text
-    if (text->content) {
-        if (global_font) {
-            draw_text_from_font(&(text->parent->base), global_font, text->content, abs_x, abs_y, *color_to_use, text->align);
-        } else {
-            printf("Failed to load font for text rendering\n");
-        }
-    }
-    // Reset clipping
-    SDL_RenderSetClipRect(text->parent->base.sdl_renderer, NULL);
-}
-// Setters for overrides
-void set_text_color(Text* text, Color color) {
-    if (!text) return;
-
-    if (!text->color) {
-        text->color = (Color*)malloc(sizeof(Color));
-        if (!text->color) {
-            printf("Failed to allocate memory for text color\n");
-            return;
-        }
+    /* ---------- PARENT CLIP (if not a window) ---------- */
+    if (!t->parent->is_window) {
+        SDL_Rect pr = get_parent_rect(t->parent);
+        pr.x = (int)roundf(pr.x * dpi);
+        pr.y = (int)roundf(pr.y * dpi);
+        pr.w = (int)roundf(pr.w * dpi);
+        pr.h = (int)roundf(pr.h * dpi);
+        SDL_RenderSetClipRect(ren, &pr);
     }
 
-    *(text->color) = color;  // copy the struct
+    /* ---------- DPI-SCALED VALUES ---------- */
+    int scaled_font = (int)roundf(t->font_size * dpi);
+    int sx          = (int)roundf((t->x + t->parent->x) * dpi);
+    int sy          = (int)roundf((t->y + t->parent->y + t->parent->title_height) * dpi);
+
+    /* ---------- COLOR ---------- */
+    const Color* col = t->color ? t->color : &current_theme->text_primary;
+
+    /* ---------- RENDER TEXT (uses the *global* font) ---------- */
+    /* NOTE: draw_text_from_font expects logical coordinates, but we already
+       scaled sx/sy to physical pixels – the wrapper will render at that size. */
+    draw_text_from_font(&t->parent->base,
+                        global_font,
+                        t->content,
+                        sx, sy,
+                        *col,
+                        t->align);
+
+    /* ---------- RESTORE CLIP ---------- */
+    if (clip_was) SDL_RenderSetClipRect(ren, &saved_clip);
+    else          SDL_RenderSetClipRect(ren, NULL);
 }
 
-void update_text(Text* text, Event* event) {
-    // Text widgets are static, no updates needed for events
-    (void)text;
-    (void)event;
+/* --------------------------------------------------------------------- */
+void set_text_color(Text* t, Color c)
+{
+    if (!t) return;
+    if (!t->color) {
+        t->color = malloc(sizeof(Color));
+        if (!t->color) { printf("malloc failed for text color\n"); return; }
+    }
+    *t->color = c;
 }
 
-void free_text(Text *text) {
-    if (!text) return;
-    free(text->content);
-    free(text->color);
+/* --------------------------------------------------------------------- */
+void update_text(Text* t, Event* ev)
+{
+    (void)t; (void)ev;   /* static widget – no interaction */
 }
 
+/* --------------------------------------------------------------------- */
+void free_text(Text* t)
+{
+    if (!t) return;
+    free(t->content);
+    free(t->color);
+}
 
-// Registration
-
+/* --------------------------------------------------------------------- */
+/*  Global registration (unchanged)                                      */
+/* --------------------------------------------------------------------- */
 Text* text_widgets[MAX_TEXTS];
-int texts_count = 0;
+int   texts_count = 0;
 
-void register_text(Text* text) {
-    if (texts_count < MAX_TEXTS) {
-        text_widgets[texts_count] = text;
-        texts_count++;
-    }
+void register_text(Text* t)
+{
+    if (texts_count < MAX_TEXTS) text_widgets[texts_count++] = t;
 }
-
-void render_all_registered_texts(void) {
-    for (int i = 0; i < texts_count; i++) {
-        if (text_widgets[i]) {
-            render_text(text_widgets[i]);
-        }
-    }
+void render_all_registered_texts(void)
+{
+    for (int i = 0; i < texts_count; ++i)
+        if (text_widgets[i]) render_text(text_widgets[i]);
 }
-
-void update_all_registered_texts(Event* event) {
-    for (int i = 0; i < texts_count; i++) {
-        if (text_widgets[i]) {
-            update_text(text_widgets[i], event);
-        }
-    }
+void update_all_registered_texts(Event* ev)
+{
+    for (int i = 0; i < texts_count; ++i)
+        if (text_widgets[i]) update_text(text_widgets[i], ev);
 }
-
-void free_all_registered_texts(void){
-	for(int i = 0; i<texts_count; i++){
-		if(text_widgets[i]){
-			free_text(text_widgets[i]);
-			text_widgets[i]=NULL;
-		}
-	}
-	texts_count=0;
+void free_all_registered_texts(void)
+{
+    for (int i = 0; i < texts_count; ++i) {
+        if (text_widgets[i]) { free_text(text_widgets[i]); text_widgets[i] = NULL; }
+    }
+    texts_count = 0;
 }

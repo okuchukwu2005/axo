@@ -87,3 +87,44 @@ int ttf_line_skip(Font_ttf* f)
 {
     return f && f->font ? TTF_FontLineSkip(f->font) : 0;
 }
+
+/* ------------------------------------------------------------------ */
+/* Extra measurement helpers – thin wrappers around the real SDL_ttf   */
+/* ------------------------------------------------------------------ */
+
+int ttf_font_height(Font_ttf* f)
+{
+    return f && f->font ? TTF_FontHeight(f->font) : 0;
+}
+
+int ttf_font_ascent(Font_ttf* f)
+{
+    return f && f->font ? TTF_FontAscent(f->font) : 0;
+}
+
+int ttf_font_descent(Font_ttf* f)
+{
+    return f && f->font ? TTF_FontDescent(f->font) : 0;
+}
+
+/* TTF_SizeText – works with any 8-bit string (Latin-1 or UTF-8 if the font supports it) */
+int ttf_size_text(Font_ttf* f, const char* text, int* w, int* h)
+{
+    if (!f || !f->font || !text) {
+        if (w) *w = 0;
+        if (h) *h = 0;
+        return -1;
+    }
+    return TTF_SizeText(f->font, text, w, h);
+}
+
+/* TTF_SizeUTF8 – guaranteed UTF-8, the same call you already use for width/height */
+int ttf_size_utf8(Font_ttf* f, const char* text, int* w, int* h)
+{
+    if (!f || !f->font || !text) {
+        if (w) *w = 0;
+        if (h) *h = 0;
+        return -1;
+    }
+    return TTF_SizeUTF8(f->font, text, w, h);
+}

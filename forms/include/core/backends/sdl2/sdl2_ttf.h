@@ -55,6 +55,17 @@ int ttf_text_width (Font_ttf* f, const char* text);
 int ttf_text_height(Font_ttf* f, const char* text);
 int ttf_line_skip  (Font_ttf* f);
 
+/* ------------------------------------------------------------------ */
+/* Extra measurement helpers (mirrors the raw SDL_ttf API)           */
+/* ------------------------------------------------------------------ */
+int ttf_font_height   (Font_ttf* f);                /* TTF_FontHeight   */
+int ttf_font_ascent   (Font_ttf* f);                /* TTF_FontAscent   */
+int ttf_font_descent  (Font_ttf* f);                /* TTF_FontDescent  */
+
+int ttf_size_text     (Font_ttf* f, const char* text,
+                       int* w, int* h);            /* TTF_SizeText     */
+int ttf_size_utf8     (Font_ttf* f, const char* text,
+                       int* w, int* h);            /* TTF_SizeUTF8     */
 #endif /* SDL2_TTF_H */
 
 /* EXAMPLE USAGE
