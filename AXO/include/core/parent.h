@@ -7,6 +7,7 @@
 #define PARENT_H
 
 #include "backends/sdl2/sdl2.h"
+#include "backends/sdl2/clip.h"
 #include <stdbool.h>
 #include "color.h"
 
@@ -45,14 +46,12 @@ typedef struct {
 // Returns DPI scale relative to standard 96 DPI
 float get_display_dpi(int display_index);
 
- Parent new_window(char* title, int w, int h);
+Parent new_window(char* title, int w, int h);
 
 /**
  * @brief Destroys the Parent struct, cleaning up SDL resources if it's a root window.
  * @param parent Pointer to the Parent to destroy.
  */
 void free_parent(Parent* parent);
-
-//=============== children helper func ====================
-SDL_Rect  get_parent_rect(Parent *p);
+Rect get_parent_rect(const Parent *p);
 #endif /* PARENT_H */

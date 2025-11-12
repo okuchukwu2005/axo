@@ -36,8 +36,7 @@ void free_parent(Parent* parent) {
 
 }
 
-//=============== children helper func ====================
-SDL_Rect  get_parent_rect(Parent *p){
-	SDL_Rect rect ={p->x, p->y,p->w,p->h};
-	return rect;
+Rect get_parent_rect(const Parent *p)
+{
+    return (Rect){ .x = p->x, .y = p->y, .w = p->w, .h = p->h };
 }
