@@ -10,5 +10,7 @@ void clip_begin(Base *base, const Rect *rect);
 
 // Restore previous clip (call after drawing)
 void clip_end(Base *base);
+int rect_intersect(const Rect *a, const Rect *b, Rect *result);
+
 
 #endif

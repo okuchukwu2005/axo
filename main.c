@@ -63,8 +63,8 @@ int main(void) {
   	 Entry entry =  new_entry(&container2, 20, 70, 300, 2048);
   	 set_entry_placeholder(&entry, "enter text");
  	register_entry(&entry);
-// 
-// // 
+
+
       TextBox texty = new_textbox(&container2, 20, 150, 300, 1024);
 
     register_textbox(&texty);

@@ -34,7 +34,10 @@ typedef enum {
     KEY_ESCAPE, KEY_RETURN, KEY_SPACE, KEY_TAB, KEY_BACKSPACE, KEY_DELETE,
     KEY_LEFT, KEY_RIGHT, KEY_UP, KEY_DOWN,
     KEY_LSHIFT, KEY_RSHIFT, KEY_LCTRL, KEY_RCTRL, KEY_LALT, KEY_RALT,
-    KEY_LGUI, KEY_RGUI
+    KEY_LGUI, KEY_RGUI,
+    /* ---- NEW KEYS --------------------------------------------------- */
+    KEY_HOME,                     // SDL_SCANCODE_HOME
+    KEY_END                       // SDL_SCANCODE_END
 } Key;
 
 typedef enum {

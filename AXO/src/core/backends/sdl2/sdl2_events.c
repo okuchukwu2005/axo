@@ -70,11 +70,16 @@ Key translate_sdl_key(SDL_Scancode sc) {
         case SDL_SCANCODE_RALT: return KEY_RALT;
         case SDL_SCANCODE_LGUI: return KEY_LGUI;
         case SDL_SCANCODE_RGUI: return KEY_RGUI;
+        /* ---- NEW MAPPINGS ------------------------------------------------ */
+        case SDL_SCANCODE_HOME: return KEY_HOME;
+        case SDL_SCANCODE_END:  return KEY_END;
         default: return KEY_UNKNOWN;
     }
 }
 
 int translate_sdl_event(const SDL_Event *s, Event *out) {
+    if (!s || !out) return 0;
+
     switch (s->type) {
         case SDL_KEYDOWN:
             out->type = EVENT_KEYDOWN;

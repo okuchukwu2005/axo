@@ -1,33 +1,33 @@
-
+/* drop.c --------------------------------------------------------------- */
 #include "../../include/widgets/drop.h"
 #include "../../include/core/theme.h"
 #include "../../include/core/graphics.h"
 #include "../../include/core/app.h"
+#include "../../include/core/parent.h"   // for Rect
+#include "../../include/core/backends/sdl2/clip.h"     // for clip_begin/end
 
-
-/* drop.c --------------------------------------------------------------- */
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
 
 /* --------------------------------------------------------------------- */
-/*  Drop definition (opaque)                                             */
+/* Drop definition (opaque) */
 /* --------------------------------------------------------------------- */
 struct Drop {
-    Parent*    parent;
-    int        x, y, w, h;          /* logical coordinates */
-    char**     options;
-    int        option_count;
-    int        selected_index;
-    bool       is_expanded;
-    bool       is_hovered;
-    int        font_size;           /* 0 = use theme default */
-    char*      place_holder;
+    Parent* parent;
+    int     x, y, w, h;           // logical coordinates
+    char**  options;
+    int     option_count;
+    int     selected_index;
+    bool    is_expanded;
+    bool    is_hovered;
+    int     font_size;            // 0 = use theme default
+    char*   place_holder;
 
-    Color*     custom_bg_color;
-    Color*     custom_button_color;
-    Color*     custom_text_color;
-    Color*     custom_highlight_color;
+    Color*  custom_bg_color;
+    Color*  custom_button_color;
+    Color*  custom_text_color;
+    Color*  custom_highlight_color;
 };
 
 /* --------------------------------------------------------------------- */
@@ -36,15 +36,14 @@ Drop new_drop_down(Parent* parent, int x, int y, int w, int h,
 {
     if (!parent || !parent->base.sdl_renderer) {
         printf("Invalid parent or renderer\n");
+        Drop d = {0};
+        return d;
     }
     if (!current_theme) current_theme = (Theme*)&THEME_LIGHT;
 
     Drop d = {0};
     d.parent         = parent;
-    d.x              = x;
-    d.y              = y;
-    d.w              = w;
-    d.h              = h;
+    d.x = x; d.y = y; d.w = w; d.h = h;
     d.options        = options;
     d.option_count   = option_count;
     d.selected_index = -1;
@@ -53,8 +52,7 @@ Drop new_drop_down(Parent* parent, int x, int y, int w, int h,
 }
 
 /* --------------------------------------------------------------------- */
-/*  Setters – unchanged (just copy)                                      */
-/* --------------------------------------------------------------------- */
+/* Setters – unchanged (just copy) */
 void set_drop_bg_color(Drop* d, Color c) {
     if (!d) return;
     if (!d->custom_bg_color) d->custom_bg_color = malloc(sizeof(Color));
@@ -82,7 +80,6 @@ void set_drop_font_size(Drop* d, int size) {
 /* --------------------------------------------------------------------- */
 static void draw_upside_down_triangle(Base* base, int x, int y, int size, Color col)
 {
-    // Down-pointing triangle: base at top, point at bottom
     int half = size / 2;
     draw_triangle(base,
                   x,           y,           // top-left
@@ -97,22 +94,8 @@ void render_drop_down_(Drop* d)
     if (!d || !d->parent || !d->parent->base.sdl_renderer || !d->parent->is_open) return;
     if (!global_font) { printf("global_font missing\n"); return; }
 
-    SDL_Renderer* ren = d->parent->base.sdl_renderer;
-    float dpi         = d->parent->base.dpi_scale;
-
-    /* ---------- SAVE CLIP ---------- */
-    SDL_Rect saved_clip; SDL_RenderGetClipRect(ren, &saved_clip);
-    SDL_bool clip_was = SDL_RenderIsClipEnabled(ren);
-
-    /* ---------- PARENT CLIP (if not window) ---------- */
-    if (!d->parent->is_window) {
-        SDL_Rect pr = get_parent_rect(d->parent);
-        pr.x = (int)roundf(pr.x * dpi);
-        pr.y = (int)roundf(pr.y * dpi);
-        pr.w = (int)roundf(pr.w * dpi);
-        pr.h = (int)roundf(pr.h * dpi);
-        SDL_RenderSetClipRect(ren, &pr);
-    }
+    Base* base = &d->parent->base;
+    float dpi  = base->dpi_scale;
 
     /* ---------- DPI-SCALED VALUES ---------- */
     int abs_x = d->x + d->parent->x;
@@ -125,7 +108,17 @@ void render_drop_down_(Drop* d)
     int pad = (int)roundf(current_theme->padding * dpi);
     int font_sz = (int)roundf((d->font_size > 0 ? d->font_size : current_theme->default_font_size) * dpi);
 
-    Base* base = &d->parent->base;
+    /* ---------- PARENT CLIPPING (for containers) ---------- */
+    if (!d->parent->is_window) {
+        Rect pr = get_parent_rect(d->parent);           // our own Rect
+        pr.x = (int)roundf(pr.x * dpi);
+        pr.y = (int)roundf(pr.y * dpi);
+        pr.w = (int)roundf(pr.w * dpi);
+        pr.h = (int)roundf(pr.h * dpi);
+        clip_begin(base, &pr);
+    } else {
+        clip_begin(base, NULL);  // no clipping for root window
+    }
 
     /* ---------- COLORS ---------- */
     Color button = d->custom_button_color ? *d->custom_button_color : current_theme->button_normal;
@@ -133,9 +126,9 @@ void render_drop_down_(Drop* d)
         button = d->custom_button_color ? lighten_color(*d->custom_button_color, 0.1f)
                                         : current_theme->button_hovered;
     }
-    Color bg       = d->custom_bg_color       ? *d->custom_bg_color       : current_theme->bg_secondary;
-    Color text     = d->custom_text_color     ? *d->custom_text_color     : current_theme->text_primary;
-    Color highlight= d->custom_highlight_color? *d->custom_highlight_color: current_theme->accent;
+    Color bg        = d->custom_bg_color        ? *d->custom_bg_color        : current_theme->bg_secondary;
+    Color text      = d->custom_text_color      ? *d->custom_text_color      : current_theme->text_primary;
+    Color highlight = d->custom_highlight_color ? *d->custom_highlight_color : current_theme->accent;
 
     /* ---------- MAIN BUTTON ---------- */
     draw_rect(base, sx, sy, sw, sh, button);
@@ -179,8 +172,7 @@ void render_drop_down_(Drop* d)
     }
 
     /* ---------- RESTORE CLIP ---------- */
-    if (clip_was) SDL_RenderSetClipRect(ren, &saved_clip);
-    else          SDL_RenderSetClipRect(ren, NULL);
+    clip_end(base);
 }
 
 /* --------------------------------------------------------------------- */
@@ -232,9 +224,6 @@ void update_drop_down_(Drop* d, Event* ev)
         if (!clicked_option) {
             d->is_expanded = false;
         }
-    } else {
-        // Click outside when collapsed → close (redundant but safe)
-        d->is_expanded = false;
     }
 }
 
@@ -250,8 +239,7 @@ void free_drop_(Drop* d)
 }
 
 /* --------------------------------------------------------------------- */
-/*  Global registration (unchanged)                                      */
-/* --------------------------------------------------------------------- */
+/* Global registration (unchanged) */
 Drop* drop_widgets[MAX_DROPS];
 int   drops_count = 0;
 
@@ -272,7 +260,10 @@ void update_all_registered_drops(Event* ev)
 void free_all_registered_drops(void)
 {
     for (int i = 0; i < drops_count; ++i) {
-        if (drop_widgets[i]) { free_drop_(drop_widgets[i]); drop_widgets[i] = NULL; }
+        if (drop_widgets[i]) {
+            free_drop_(drop_widgets[i]);
+            drop_widgets[i] = NULL;
+        }
     }
     drops_count = 0;
 }

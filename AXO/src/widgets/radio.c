@@ -1,26 +1,29 @@
+/* radio.c --------------------------------------------------------------- */
 #include "../../include/widgets/radio.h"
 #include "../../include/core/theme.h"
 #include "../../include/core/graphics.h"
 #include "../../include/core/app.h"
-/* radio.c --------------------------------------------------------------- */
+#include "../../include/core/parent.h"   // for Rect
+#include "../../include/core/backends/sdl2/clip.h"     // for clip_begin/end
+
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
 
 /* --------------------------------------------------------------------- */
-/*  Radio definition (opaque)                                            */
+/* Radio definition (opaque) */
 /* --------------------------------------------------------------------- */
 struct Radio {
-    Parent*    parent;
-    int        x, y, w, h;          /* logical coordinates */
-    char*      label;
-    int        group_id;
-    bool       selected;
-    bool       is_hovered;
+    Parent* parent;
+    int     x, y, w, h;           // logical coordinates
+    char*   label;
+    int     group_id;
+    bool    selected;
+    bool    is_hovered;
 
-    Color*     custom_outer_color;
-    Color*     custom_inner_color;
-    Color*     custom_label_color;
+    Color*  custom_outer_color;
+    Color*  custom_inner_color;
+    Color*  custom_label_color;
 };
 
 /* --------------------------------------------------------------------- */
@@ -29,6 +32,8 @@ Radio new_radio_button(Parent* parent, int x, int y, int w, int h,
 {
     if (!parent || !parent->base.sdl_renderer) {
         printf("Invalid parent or renderer\n");
+        Radio r = {0};
+        return r;
     }
     if (!current_theme) current_theme = (Theme*)&THEME_LIGHT;
 
@@ -44,8 +49,7 @@ Radio new_radio_button(Parent* parent, int x, int y, int w, int h,
 }
 
 /* --------------------------------------------------------------------- */
-/*  Setters – unchanged (just copy)                                      */
-/* --------------------------------------------------------------------- */
+/* Setters – unchanged */
 void set_radio_outer_color(Radio* r, Color c) {
     if (!r) return;
     if (!r->custom_outer_color) r->custom_outer_color = malloc(sizeof(Color));
@@ -68,36 +72,32 @@ void render_radio_(Radio* r)
     if (!r || !r->parent || !r->parent->base.sdl_renderer || !r->parent->is_open) return;
     if (!global_font) { printf("global_font missing\n"); return; }
 
-    SDL_Renderer* ren = r->parent->base.sdl_renderer;
-    float dpi         = r->parent->base.dpi_scale;
-
-    /* ---------- SAVE CLIP ---------- */
-    SDL_Rect saved_clip; SDL_RenderGetClipRect(ren, &saved_clip);
-    SDL_bool clip_was = SDL_RenderIsClipEnabled(ren);
-
-    /* ---------- PARENT CLIP (if not window) ---------- */
-    if (!r->parent->is_window) {
-        SDL_Rect pr = get_parent_rect(r->parent);
-        pr.x = (int)roundf(pr.x * dpi);
-        pr.y = (int)roundf(pr.y * dpi);
-        pr.w = (int)roundf(pr.w * dpi);
-        pr.h = (int)roundf(pr.h * dpi);
-        SDL_RenderSetClipRect(ren, &pr);
-    }
+    Base* base = &r->parent->base;
+    float dpi  = base->dpi_scale;
 
     /* ---------- DPI-SCALED VALUES ---------- */
     int abs_x = r->x + r->parent->x;
     int abs_y = r->y + r->parent->y + r->parent->title_height;
 
-    int sx        = (int)roundf(abs_x * dpi);
-    int sy        = (int)roundf(abs_y * dpi);
-    int sh        = (int)roundf(r->h * dpi);           // use height as size
-    int radius    = sh / 2;
-    int pad       = (int)roundf(current_theme->padding * dpi);
-    int inner_m   = (int)roundf(4 * dpi);              // inner margin
-    int inner_r   = radius - inner_m;
+    int sx     = (int)roundf(abs_x * dpi);
+    int sy     = (int)roundf(abs_y * dpi);
+    int sh     = (int)roundf(r->h * dpi);           // use height as size
+    int radius = sh / 2;
+    int pad    = (int)roundf(current_theme->padding * dpi);
+    int inner_m = (int)roundf(4 * dpi);             // inner margin
+    int inner_r = radius - inner_m;
 
-    Base* base = &r->parent->base;
+    /* ---------- PARENT CLIPPING (for containers) ---------- */
+    if (!r->parent->is_window) {
+        Rect pr = get_parent_rect(r->parent);       // our own Rect
+        pr.x = (int)roundf(pr.x * dpi);
+        pr.y = (int)roundf(pr.y * dpi);
+        pr.w = (int)roundf(pr.w * dpi);
+        pr.h = (int)roundf(pr.h * dpi);
+        clip_begin(base, &pr);
+    } else {
+        clip_begin(base, NULL);  // no clipping for root window
+    }
 
     /* ---------- COLORS ---------- */
     Color outer = r->custom_outer_color ? *r->custom_outer_color : current_theme->bg_secondary;
@@ -119,16 +119,14 @@ void render_radio_(Radio* r)
     /* ---------- LABEL (to the right, vertically centered) ---------- */
     if (r->label) {
         int label_x = sx + sh + pad / 2;
-        int label_y = sy - (sh / 6);   // fine-tuned centering (logical → physical via dpi)
+        int label_y = sy - (sh / 6);   // fine-tuned centering
 
         draw_text_from_font(base, global_font, r->label,
-                            label_x, label_y,
-                            label, ALIGN_LEFT);
+                            label_x, label_y, label, ALIGN_LEFT);
     }
 
     /* ---------- RESTORE CLIP ---------- */
-    if (clip_was) SDL_RenderSetClipRect(ren, &saved_clip);
-    else          SDL_RenderSetClipRect(ren, NULL);
+    clip_end(base);
 }
 
 /* --------------------------------------------------------------------- */
@@ -150,7 +148,6 @@ void update_radio_(Radio* r, Event* ev)
     int mouse_x, mouse_y;
     SDL_GetMouseState(&mouse_x, &mouse_y);
 
-    // Distance from center
     int dx = mouse_x - sx;
     int dy = mouse_y - sy;
     r->is_hovered = (dx*dx + dy*dy <= radius*radius);
@@ -184,8 +181,7 @@ void free_radio_(Radio* r)
 }
 
 /* --------------------------------------------------------------------- */
-/*  Global registration (unchanged)                                      */
-/* --------------------------------------------------------------------- */
+/* Global registration (unchanged) */
 Radio* radio_widgets[MAX_RADIOS];
 int    radios_count = 0;
 
@@ -206,7 +202,10 @@ void update_all_registered_radios(Event* ev)
 void free_all_registered_radios(void)
 {
     for (int i = 0; i < radios_count; ++i) {
-        if (radio_widgets[i]) { free_radio_(radio_widgets[i]); radio_widgets[i] = NULL; }
+        if (radio_widgets[i]) {
+            free_radio_(radio_widgets[i]);
+            radio_widgets[i] = NULL;
+        }
     }
     radios_count = 0;
 }

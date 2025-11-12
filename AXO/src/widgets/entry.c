@@ -3,10 +3,12 @@
 #include "../../include/core/theme.h"
 #include "../../include/core/graphics.h"
 #include "../../include/core/app.h"
+#include "../../include/core/parent.h"   // for Rect
+#include "../../include/core/backends/sdl2/clip.h"     // for clip_begin/end
+
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-
 /* --------------------------------------------------------------------- */
 /* Entry definition (opaque to the rest of the program) */
 /* --------------------------------------------------------------------- */
@@ -74,12 +76,8 @@ void render_entry(Entry* e)
     SDL_Renderer* ren = e->parent->base.sdl_renderer;
     float dpi = e->parent->base.dpi_scale;
 
-    /* ---------- SAVE CLIP ---------- */
-    SDL_Rect saved_clip; SDL_RenderGetClipRect(ren, &saved_clip);
-    SDL_bool clip_enabled = SDL_RenderIsClipEnabled(ren);
-
     /* ---------- PARENT CLIP (if any) ---------- */
-    SDL_Rect parent_clip = {0,0,0,0};
+    Rect parent_clip = {0,0,0,0};
     SDL_bool has_parent_clip = SDL_FALSE;
     if (!e->parent->is_window) {
         parent_clip = get_parent_rect(e->parent);
@@ -87,7 +85,6 @@ void render_entry(Entry* e)
         parent_clip.y = (int)roundf(parent_clip.y * dpi);
         parent_clip.w = (int)roundf(parent_clip.w * dpi);
         parent_clip.h = (int)roundf(parent_clip.h * dpi);
-        SDL_RenderSetClipRect(ren, &parent_clip);
         has_parent_clip = SDL_TRUE;
     }
 
@@ -101,9 +98,14 @@ void render_entry(Entry* e)
     int border = (int)roundf(2 * dpi);
     int pad    = (int)roundf(current_theme->padding * dpi);
 
-    if (!global_font) { goto restore; }
+    if (!global_font) { return; }
 
     int font_h = ttf_font_height(global_font);   /* wrapper for TTF_FontHeight */
+
+    Rect parent_r = { parent_clip.x, parent_clip.y, parent_clip.w, parent_clip.h };
+    if (has_parent_clip) {
+        clip_begin(&e->parent->base, &parent_r);
+    }
 
     /* ---------- BACKGROUND / BORDER ---------- */
     draw_rect(&e->parent->base, sx, sy, sw, sh, current_theme->accent);
@@ -112,18 +114,27 @@ void render_entry(Entry* e)
               sw - 2*border, sh - 2*border,
               current_theme->bg_secondary);
 
+    if (has_parent_clip) {
+        clip_end(&e->parent->base);
+    }
+
     /* ---------- TEXT CLIP – now includes the padding area ---------- */
-    SDL_Rect text_clip = {
+    Rect text_clip = {
         sx + border,               /* left   = border */
         sy + border,               /* top    = border */
         sw - 2*border,             /* width  = full inner width  */
         sh - 2*border              /* height = full inner height */
     };
+    Rect effective_text;
     if (has_parent_clip) {
-        if (!SDL_IntersectRect(&parent_clip, &text_clip, &text_clip))
-            goto restore;
+        if (!rect_intersect(&parent_clip, &text_clip, &effective_text))
+            return;
+    } else {
+        effective_text = text_clip;
     }
-    SDL_RenderSetClipRect(ren, &text_clip);
+    if (effective_text.w <= 0 || effective_text.h <= 0) return;
+    Rect text_r = { effective_text.x, effective_text.y, effective_text.w, effective_text.h };
+    clip_begin(&e->parent->base, &text_r);
 
     /* ---------- TEXT DRAWING AREA (inside padding) ---------- */
     int text_x = sx + border + pad;
@@ -186,9 +197,7 @@ void render_entry(Entry* e)
                   current_theme->accent);
     }
 
-restore:
-    if (clip_enabled) SDL_RenderSetClipRect(ren, &saved_clip);
-    else SDL_RenderSetClipRect(ren, NULL);
+    clip_end(&e->parent->base);
 }
 
 /* --------------------------------------------------------------------- */

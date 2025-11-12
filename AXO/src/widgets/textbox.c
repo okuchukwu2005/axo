@@ -3,6 +3,8 @@
 #include "../../include/core/color.h"
 #include "../../include/core/graphics.h"
 #include "../../include/core/app.h"
+#include "../../include/core/parent.h"   // for Rect
+#include "../../include/core/backends/sdl2/clip.h"     // for clip_begin/end
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -65,22 +67,16 @@ void render_textbox(TextBox* textbox) {
     SDL_Renderer* renderer = textbox->parent->base.sdl_renderer;
     float dpi = textbox->parent->base.dpi_scale;
 
-    // Save clip
-    SDL_Rect saved_clip;
-    SDL_RenderGetClipRect(renderer, &saved_clip);
-    SDL_bool clip_was_enabled = SDL_RenderIsClipEnabled(renderer);
-
     // Parent clip
-    SDL_Rect parent_clip = {0,0,0,0};
-    SDL_bool has_parent_clip = SDL_FALSE;
+    Rect parent_clip = {0,0,0,0};
+    int has_parent_clip = 0;
     if (!textbox->parent->is_window) {
-        parent_clip = get_parent_rect(textbox->parent);
-        parent_clip.x = (int)roundf(parent_clip.x * dpi);
-        parent_clip.y = (int)roundf(parent_clip.y * dpi);
-        parent_clip.w = (int)roundf(parent_clip.w * dpi);
-        parent_clip.h = (int)roundf(parent_clip.h * dpi);
-        SDL_RenderSetClipRect(renderer, &parent_clip);
-        has_parent_clip = SDL_TRUE;
+        Rect pr = get_parent_rect(textbox->parent);
+        parent_clip.x = (int)roundf(pr.x * dpi);
+        parent_clip.y = (int)roundf(pr.y * dpi);
+        parent_clip.w = (int)roundf(pr.w * dpi);
+        parent_clip.h = (int)roundf(pr.h * dpi);
+        has_parent_clip = 1;
     }
 
     // Physical bounds
@@ -97,10 +93,14 @@ void render_textbox(TextBox* textbox) {
     Font_ttf* font = global_font;
     if (!font) {
         printf("global_font is NULL — cannot render textbox\n");
-        goto restore_clip;
+        return;
     }
 
     int font_height = ttf_line_skip(font);
+
+    if (has_parent_clip) {
+        clip_begin(&textbox->parent->base, &parent_clip);
+    }
 
     // Background & border
     draw_rect(&textbox->parent->base, sx, sy, sw, sh, current_theme->accent);
@@ -109,17 +109,29 @@ void render_textbox(TextBox* textbox) {
                sw - 2*border_width, sh - 2*border_width,
                current_theme->bg_secondary);
 
+    if (has_parent_clip) {
+        clip_end(&textbox->parent->base);
+    }
+
     // Text clip
-    SDL_Rect text_clip = {
+    Rect text_clip = {
         sx + border_width + padding,
         sy + border_width + padding,
         sw - 2*(border_width + padding),
         sh - 2*(border_width + padding)
     };
-    if (has_parent_clip && !SDL_IntersectRect(&parent_clip, &text_clip, &text_clip)) {
-        goto restore_clip;
+    Rect effective_text;
+    if (has_parent_clip) {
+        if (!rect_intersect(&parent_clip, &text_clip, &effective_text)) {
+            return;
+        }
+    } else {
+        effective_text = text_clip;
     }
-    SDL_RenderSetClipRect(renderer, &text_clip);
+    if (effective_text.w <= 0 || effective_text.h <= 0) {
+        return;
+    }
+    clip_begin(&textbox->parent->base, &effective_text);
 
     // Text to display
     char* display_text = (textbox->is_active || textbox->text[0] != '\0') ? textbox->text : textbox->place_holder;
@@ -214,12 +226,7 @@ void render_textbox(TextBox* textbox) {
 
     free(lines);
 
-restore_clip:
-    if (clip_was_enabled) {
-        SDL_RenderSetClipRect(renderer, &saved_clip);
-    } else {
-        SDL_RenderSetClipRect(renderer, NULL);
-    }
+    clip_end(&textbox->parent->base);
 }
 
 void update_visible_lines(TextBox* textbox) {

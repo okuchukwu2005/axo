@@ -1,21 +1,24 @@
+/* text.c --------------------------------------------------------------- */
 #include "../../include/widgets/text.h"
 #include "../../include/core/theme.h"
 #include "../../include/core/graphics.h"
 #include "../../include/core/app.h"
-/* text.c --------------------------------------------------------------- */
+#include "../../include/core/parent.h"   // for Rect
+#include "../../include/core/backends/sdl2/clip.h"     // for clip_begin/end
+
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
 
 /* --------------------------------------------------------------------- */
-/*  Text definition (opaque)                                            */
+/* Text definition (opaque) */
 /* --------------------------------------------------------------------- */
 struct Text {
     Parent*    parent;
-    int        x, y;               /* logical coordinates */
+    int        x, y;               // logical coordinates
     char*      content;
-    int        font_size;          /* logical font size */
-    Color*     color;              /* NULL → use theme */
+    int        font_size;          // logical font size
+    Color*     color;              // NULL → use theme
     TextAlign  align;
 };
 
@@ -25,6 +28,8 @@ Text new_text(Parent* parent, int x, int y, const char* content,
 {
     if (!parent || !parent->base.sdl_renderer) {
         printf("Invalid parent or renderer\n");
+        Text t = {0};
+        return t;
     }
     if (!current_theme) current_theme = (Theme*)&THEME_LIGHT;
 
@@ -45,44 +50,41 @@ void render_text(Text* t)
     if (!t->content) return;
     if (!global_font) { printf("global_font missing\n"); return; }
 
-    SDL_Renderer* ren = t->parent->base.sdl_renderer;
-    float dpi         = t->parent->base.dpi_scale;
+    Base* base = &t->parent->base;
+    float dpi  = base->dpi_scale;
 
-    /* ---------- SAVE CLIP ---------- */
-    SDL_Rect saved_clip; SDL_RenderGetClipRect(ren, &saved_clip);
-    SDL_bool clip_was = SDL_RenderIsClipEnabled(ren);
+    /* ---------- DPI-SCALED VALUES ---------- */
+    int abs_x = t->x + t->parent->x;
+    int abs_y = t->y + t->parent->y + t->parent->title_height;
 
-    /* ---------- PARENT CLIP (if not a window) ---------- */
+    int sx = (int)roundf(abs_x * dpi);
+    int sy = (int)roundf(abs_y * dpi);
+
+    /* ---------- PARENT CLIPPING (for containers) ---------- */
     if (!t->parent->is_window) {
-        SDL_Rect pr = get_parent_rect(t->parent);
+        Rect pr = get_parent_rect(t->parent);           // our own Rect
         pr.x = (int)roundf(pr.x * dpi);
         pr.y = (int)roundf(pr.y * dpi);
         pr.w = (int)roundf(pr.w * dpi);
         pr.h = (int)roundf(pr.h * dpi);
-        SDL_RenderSetClipRect(ren, &pr);
+        clip_begin(base, &pr);
+    } else {
+        clip_begin(base, NULL);  // no clipping for root window
     }
 
-    /* ---------- DPI-SCALED VALUES ---------- */
-    int scaled_font = (int)roundf(t->font_size * dpi);
-    int sx          = (int)roundf((t->x + t->parent->x) * dpi);
-    int sy          = (int)roundf((t->y + t->parent->y + t->parent->title_height) * dpi);
-
     /* ---------- COLOR ---------- */
-    const Color* col = t->color ? t->color : &current_theme->text_primary;
+    Color col = t->color ? *t->color : current_theme->text_primary;
 
-    /* ---------- RENDER TEXT (uses the *global* font) ---------- */
-    /* NOTE: draw_text_from_font expects logical coordinates, but we already
-       scaled sx/sy to physical pixels – the wrapper will render at that size. */
-    draw_text_from_font(&t->parent->base,
+    /* ---------- RENDER TEXT (physical pixels, DPI-scaled font) ---------- */
+    draw_text_from_font(base,
                         global_font,
                         t->content,
                         sx, sy,
-                        *col,
+                        col,
                         t->align);
 
     /* ---------- RESTORE CLIP ---------- */
-    if (clip_was) SDL_RenderSetClipRect(ren, &saved_clip);
-    else          SDL_RenderSetClipRect(ren, NULL);
+    clip_end(base);
 }
 
 /* --------------------------------------------------------------------- */
@@ -99,7 +101,7 @@ void set_text_color(Text* t, Color c)
 /* --------------------------------------------------------------------- */
 void update_text(Text* t, Event* ev)
 {
-    (void)t; (void)ev;   /* static widget – no interaction */
+    (void)t; (void)ev;   // static widget – no interaction
 }
 
 /* --------------------------------------------------------------------- */
@@ -111,8 +113,7 @@ void free_text(Text* t)
 }
 
 /* --------------------------------------------------------------------- */
-/*  Global registration (unchanged)                                      */
-/* --------------------------------------------------------------------- */
+/* Global registration (unchanged) */
 Text* text_widgets[MAX_TEXTS];
 int   texts_count = 0;
 
@@ -133,7 +134,10 @@ void update_all_registered_texts(Event* ev)
 void free_all_registered_texts(void)
 {
     for (int i = 0; i < texts_count; ++i) {
-        if (text_widgets[i]) { free_text(text_widgets[i]); text_widgets[i] = NULL; }
+        if (text_widgets[i]) {
+            free_text(text_widgets[i]);
+            text_widgets[i] = NULL;
+        }
     }
     texts_count = 0;
 }

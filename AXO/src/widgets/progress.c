@@ -1,19 +1,22 @@
-
+/* progress.c --------------------------------------------------------------- */
 #include "../../include/widgets/progress.h"
 #include "../../include/core/theme.h"
 #include "../../include/core/graphics.h"
 #include "../../include/core/app.h"
+#include "../../include/core/parent.h"   // for Rect
+#include "../../include/core/backends/sdl2/clip.h"     // for clip_begin/end
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
 
 /* --------------------------------------------------------------------- */
-/*  ProgressBar definition (opaque)                                      */
+/* ProgressBar definition (opaque) */
 /* --------------------------------------------------------------------- */
 struct ProgressBar {
     Parent* parent;
-    int     x, y, w, h;           /* logical coordinates */
+    int     x, y, w, h;           // logical coordinates
     int     min, max, value;
     bool    show_percentage;
     Color*  custom_bg_color;
@@ -27,6 +30,8 @@ ProgressBar new_progress_bar(Parent* parent, int x, int y, int w, int h,
 {
     if (!parent || !parent->base.sdl_renderer) {
         printf("Invalid parent or renderer\n");
+        ProgressBar p = {0};
+        return p;
     }
     if (!current_theme) current_theme = (Theme*)&THEME_LIGHT;
 
@@ -72,33 +77,30 @@ void render_progress_bar(ProgressBar* p)
     if (!p || !p->parent || !p->parent->base.sdl_renderer || !p->parent->is_open) return;
     if (!global_font) return;
 
-    SDL_Renderer* ren = p->parent->base.sdl_renderer;
-    float dpi         = p->parent->base.dpi_scale;
-
-    /* ---------- SAVE CLIP ---------- */
-    SDL_Rect saved_clip; SDL_RenderGetClipRect(ren, &saved_clip);
-    SDL_bool clip_was = SDL_RenderIsClipEnabled(ren);
-
-    /* ---------- PARENT CLIP (if not window) ---------- */
-    if (!p->parent->is_window) {
-        SDL_Rect pr = get_parent_rect(p->parent);
-        pr.x = (int)roundf(pr.x * dpi);
-        pr.y = (int)roundf(pr.y * dpi);
-        pr.w = (int)roundf(pr.w * dpi);
-        pr.h = (int)roundf(pr.h * dpi);
-        SDL_RenderSetClipRect(ren, &pr);
-    }
+    Base* base = &p->parent->base;
+    float dpi  = base->dpi_scale;
 
     /* ---------- DPI-SCALED VALUES ---------- */
     int abs_x = p->x + p->parent->x;
     int abs_y = p->y + p->parent->y + p->parent->title_height;
+
     int sx = (int)roundf(abs_x * dpi);
     int sy = (int)roundf(abs_y * dpi);
     int sw = (int)roundf(p->w * dpi);
     int sh = (int)roundf(p->h * dpi);
     float roundness = current_theme->roundness;
 
-    Base* base = &p->parent->base;
+    /* ---------- PARENT CLIPPING (for containers) ---------- */
+    if (!p->parent->is_window) {
+        Rect pr = get_parent_rect(p->parent);           // our own Rect
+        pr.x = (int)roundf(pr.x * dpi);
+        pr.y = (int)roundf(pr.y * dpi);
+        pr.w = (int)roundf(pr.w * dpi);
+        pr.h = (int)roundf(pr.h * dpi);
+        clip_begin(base, &pr);
+    } else {
+        clip_begin(base, NULL);  // no clipping for root window
+    }
 
     /* ---------- COLORS ---------- */
     Color bg   = p->custom_bg_color   ? *p->custom_bg_color   : current_theme->bg_secondary;
@@ -122,7 +124,7 @@ void render_progress_bar(ProgressBar* p)
 
         int text_w = ttf_text_width(global_font, txt_buf);
         if (text_w < 0) text_w = 0;
-        int text_h = current_theme->default_font_size;  // already scaled
+        int text_h = current_theme->default_font_size;
 
         int tx = sx + (sw - text_w) / 2;
         int ty = sy + (sh - text_h) / 2;
@@ -131,8 +133,7 @@ void render_progress_bar(ProgressBar* p)
     }
 
     /* ---------- RESTORE CLIP ---------- */
-    if (clip_was) SDL_RenderSetClipRect(ren, &saved_clip);
-    else SDL_RenderSetClipRect(ren, NULL);
+    clip_end(base);
 }
 
 /* --------------------------------------------------------------------- */
@@ -152,8 +153,7 @@ void free_progress_bar(ProgressBar* p)
 }
 
 /* --------------------------------------------------------------------- */
-/*  Registration (unchanged)                                             */
-/* --------------------------------------------------------------------- */
+/* Registration (unchanged) */
 ProgressBar* progress_bar_widgets[MAX_PROGRESS_BARS];
 int          progress_bars_count = 0;
 
@@ -162,16 +162,19 @@ void register_progress_bar(ProgressBar* p)
     if (progress_bars_count < MAX_PROGRESS_BARS)
         progress_bar_widgets[progress_bars_count++] = p;
 }
+
 void render_all_registered_progress_bars(void)
 {
     for (int i = 0; i < progress_bars_count; ++i)
         if (progress_bar_widgets[i]) render_progress_bar(progress_bar_widgets[i]);
 }
+
 void update_all_registered_progress_bars(Event* ev)
 {
     for (int i = 0; i < progress_bars_count; ++i)
         if (progress_bar_widgets[i]) update_progress_bar(progress_bar_widgets[i], ev);
 }
+
 void free_all_registered_progress_bars(void)
 {
     for (int i = 0; i < progress_bars_count; ++i) {
