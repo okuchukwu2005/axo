@@ -76,8 +76,8 @@ int main(void) {
  
      register_progress_bar(&prox);
 
- //   Image  image = new_image(&app.window, 400, 0, "img.jpg", 0, 0 );
-//	register_image(&image);
+   Image  image = new_image(&app.window, 10, 0, "img.jpg", 0, 0 );
+register_image(&image);
     app_run_(&app.window);
 
 

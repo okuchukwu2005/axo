@@ -161,7 +161,7 @@ void update_slider(Slider* s, Event* ev)
 
     /* ---------- MOUSE STATE (physical pixels) ---------- */
     int mouse_x, mouse_y;
-    SDL_GetMouseState(&mouse_x, &mouse_y);
+    input_get_mouse(&mouse_x, &mouse_y);
 
     /* ---------- HOVER ---------- */
     bool over_thumb = (mouse_x >= thumb_left && mouse_x <= thumb_right &&

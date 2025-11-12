@@ -3,15 +3,15 @@
 
 #include "../core/parent.h"
 #include "../core/backends/sdl2/sdl2_events.h"
+#include "../core/backends/sdl2/sdl2_image.h"
 
-#include<SDL2/SDL.h>
+
 typedef struct{
-	Parent *parent;
-	int x, y, w, h;
-	const char * file_path;
-	SDL_Texture *texture;
+    Parent*      parent;
+    int          x, y, w, h;          /* logical coordinates */
+    const char*  file_path;
+    ImageHandle* handle;              /* opaque backend handle */
 }Image;
-
 
 Image new_image(Parent * parent, int x, int y, const char * file_path, int w, int h  );
 

@@ -3,10 +3,11 @@
 
 #include <SDL2/SDL.h>
 #include <string.h>
+#include <stdbool.h>
 
-// ======================
-// EVENT TYPES
-// ======================
+/* --------------------------------------------------------------------- */
+/* EVENT TYPES (unchanged)                                               */
+/* --------------------------------------------------------------------- */
 typedef enum {
     EVENT_KEYDOWN,
     EVENT_KEYUP,
@@ -20,9 +21,9 @@ typedef enum {
     EVENT_QUIT
 } EventType;
 
-// ======================
-// KEY & MOUSE BUTTONS
-// ======================
+/* --------------------------------------------------------------------- */
+/* KEY & MOUSE BUTTONS (unchanged)                                       */
+/* --------------------------------------------------------------------- */
 typedef enum {
     KEY_UNKNOWN = 0,
     KEY_A, KEY_B, KEY_C, KEY_D, KEY_E, KEY_F, KEY_G, KEY_H, KEY_I, KEY_J,
@@ -48,27 +49,27 @@ typedef enum {
     MOUSE_X2 = 5
 } MouseButton;
 
-// ======================
-// MOUSE BUTTON MASKS
-// ======================
+/* --------------------------------------------------------------------- */
+/* MOUSE BUTTON MASKS (unchanged)                                        */
+/* --------------------------------------------------------------------- */
 #define MOUSE_BUTTON_LEFT_MASK   (1u << (MOUSE_LEFT - 1))
 #define MOUSE_BUTTON_MIDDLE_MASK (1u << (MOUSE_MIDDLE - 1))
 #define MOUSE_BUTTON_RIGHT_MASK  (1u << (MOUSE_RIGHT - 1))
 #define MOUSE_BUTTON_X1_MASK     (1u << (MOUSE_X1 - 1))
 #define MOUSE_BUTTON_X2_MASK     (1u << (MOUSE_X2 - 1))
 
-// ======================
-// KEY MODIFIER MASKS (SDL-compatible)
-// ======================
+/* --------------------------------------------------------------------- */
+/* KEY MODIFIER MASKS (SDL-compatible)                                   */
+/* --------------------------------------------------------------------- */
 #define KEY_MOD_NONE  0x0000
 #define KEY_MOD_SHIFT 0x0003  // LSHIFT | RSHIFT
 #define KEY_MOD_CTRL  0x00C0  // LCTRL  | RCTRL
 #define KEY_MOD_ALT   0x0300  // LALT   | RALT
 #define KEY_MOD_GUI   0x0C00  // LGUI   | RGUI
 
-// ======================
-// EVENT STRUCT
-// ======================
+/* --------------------------------------------------------------------- */
+/* EVENT STRUCT (unchanged)                                              */
+/* --------------------------------------------------------------------- */
 #define EVENT_TEXT_MAX 32
 typedef struct {
     EventType type;
@@ -82,13 +83,30 @@ typedef struct {
     };
 } Event;
 
-// ======================
-// FUNCTION DECLARATIONS
-// ======================
+/* --------------------------------------------------------------------- */
+/* ORIGINAL EVENT FUNCTIONS (unchanged)                                  */
+/* --------------------------------------------------------------------- */
 Key translate_sdl_key(SDL_Scancode sc);
 int translate_sdl_event(const SDL_Event *s, Event *out);
 int poll_event(Event *out);
 void enable_text_input(void);
 void disable_text_input(void);
+
+/* --------------------------------------------------------------------- */
+/* NEW INPUT / CLIPBOARD HELPERS (exposed here)                         */
+/* --------------------------------------------------------------------- */
+
+/* ----- Mouse ---------------------------------------------------------- */
+void input_get_mouse(int *x, int *y);
+bool input_mouse_down(MouseButton btn);
+
+/* ----- Keyboard modifiers --------------------------------------------- */
+Uint16 input_get_mod_state(void);
+
+/* ----- Clipboard ------------------------------------------------------ */
+bool   clipboard_has_text(void);
+char*  clipboard_get_text(void);      /* caller must free with clipboard_free() */
+void   clipboard_set_text(const char *text);
+void   clipboard_free(char *text);    /* wraps SDL_free */
 
 #endif // SDL2_EVENTS_H

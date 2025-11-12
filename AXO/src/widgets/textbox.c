@@ -64,7 +64,6 @@ void render_textbox(TextBox* textbox) {
         return;
     }
 
-    SDL_Renderer* renderer = textbox->parent->base.sdl_renderer;
     float dpi = textbox->parent->base.dpi_scale;
 
     // Parent clip
@@ -268,7 +267,7 @@ void update_textbox(TextBox* textbox, Event* event) {
     if (!textbox || !textbox->parent || !textbox->parent->is_open || !global_font) return;
 
     float dpi = textbox->parent->base.dpi_scale;
-    Uint16 mod = SDL_GetModState();
+    Uint16 mod = input_get_mod_state();
     int abs_x = textbox->x + textbox->parent->x;
     int abs_y = textbox->y + textbox->parent->y + textbox->parent->title_height;
     int s_abs_x = (int)roundf(abs_x * dpi);
@@ -489,7 +488,7 @@ void update_textbox(TextBox* textbox, Event* event) {
                 if (sel_text) {
                     strncpy(sel_text, textbox->text + sel_start, sel_len);
                     sel_text[sel_len] = '\0';
-                    SDL_SetClipboardText(sel_text);
+                    clipboard_set_text(sel_text);
                     free(sel_text);
                 }
             }
@@ -502,7 +501,7 @@ void update_textbox(TextBox* textbox, Event* event) {
                 if (sel_text) {
                     strncpy(sel_text, textbox->text + sel_start, sel_len);
                     sel_text[sel_len] = '\0';
-                    SDL_SetClipboardText(sel_text);
+                    clipboard_set_text(sel_text);
                     free(sel_text);
                 }
                 memmove(textbox->text + sel_start, textbox->text + sel_start + sel_len, strlen(textbox->text) - (sel_start + sel_len) + 1);
@@ -512,8 +511,8 @@ void update_textbox(TextBox* textbox, Event* event) {
             }
         }
         else if (event->key.key == KEY_V && (event->key.mod & KEY_MOD_CTRL)) {
-            if (SDL_HasClipboardText()) {
-                char* paste_text = SDL_GetClipboardText();
+            if (clipboard_has_text()) {
+                char* paste_text = clipboard_get_text();
                 if (paste_text) {
                     int paste_len = strlen(paste_text);
                     int len = strlen(textbox->text);
@@ -531,7 +530,7 @@ void update_textbox(TextBox* textbox, Event* event) {
                         textbox->cursor_pos += paste_len;
                         update_visible_lines(textbox);
                     }
-                    SDL_free(paste_text);
+                    clipboard_free(paste_text);
                 }
             }
         }

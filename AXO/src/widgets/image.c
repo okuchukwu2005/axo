@@ -1,20 +1,14 @@
 /* image.c --------------------------------------------------------------- */
 #include "../../include/widgets/image.h"
 #include "../../include/core/graphics.h"
-#include "../../include/core/parent.h"   // for Rect
-#include "../../include/core/backends/sdl2/clip.h"     // for clip_begin/end
-#include <SDL2/SDL_image.h>
+#include "../../include/core/parent.h"
+#include "../../include/core/backends/sdl2/clip.h"
+#include "../../include/core/backends/sdl2/sdl2_image.h"
 #include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
 
 /* --------------------------------------------------------------------- */
-/* Image definition (opaque) */
-/* --------------------------------------------------------------------- */
-struct Image {
-    Parent*       parent;
-    int           x, y, w, h;     // logical coordinates
-    const char*   file_path;
-    SDL_Texture*  texture;
-};
 
 /* --------------------------------------------------------------------- */
 Image new_image(Parent *parent, int x, int y, const char *file_path, int w, int h)
@@ -33,101 +27,84 @@ Image new_image(Parent *parent, int x, int y, const char *file_path, int w, int 
     img.h         = h;
     img.file_path = file_path;
 
-    img.texture = IMG_LoadTexture(parent->base.sdl_renderer, file_path);
-    if (!img.texture) {
-        printf("Failed to load image %s: %s\n", file_path, IMG_GetError());
+    img.handle = image_backend_load(parent->base.sdl_renderer, file_path);
+    if (!img.handle) {
+        printf("Failed to load image %s\n", file_path);
     }
-
     return img;
 }
 
 /* --------------------------------------------------------------------- */
 void render_image(Image *image)
 {
-    if (!image || !image->parent || !image->parent->base.sdl_renderer || !image->parent->is_open) {
-        printf("Invalid image widget, renderer, or parent is not open\n");
+    if (!image || !image->parent || !image->parent->base.sdl_renderer ||
+        !image->parent->is_open || !image->handle) {
         return;
     }
-    if (!image->texture) return;
 
-    Base* base = &image->parent->base;
+    Base *base = &image->parent->base;
     float dpi  = base->dpi_scale;
 
-    /* ---------- DPI-SCALED POSITION & SIZE ---------- */
+    /* ----- DPI-scaled destination rectangle ----- */
     int abs_x = image->x + image->parent->x;
     int abs_y = image->y + image->parent->y + image->parent->title_height;
-
     int sx = (int)roundf(abs_x * dpi);
     int sy = (int)roundf(abs_y * dpi);
     int sw = (int)roundf(image->w * dpi);
     int sh = (int)roundf(image->h * dpi);
 
-    /* ---------- PARENT CLIPPING (for containers) ---------- */
+    /* ----- clipping (containers) ----- */
     if (!image->parent->is_window) {
-        Rect pr = get_parent_rect(image->parent);           // our own Rect
+        Rect pr = get_parent_rect(image->parent);
         pr.x = (int)roundf(pr.x * dpi);
         pr.y = (int)roundf(pr.y * dpi);
         pr.w = (int)roundf(pr.w * dpi);
         pr.h = (int)roundf(pr.h * dpi);
         clip_begin(base, &pr);
     } else {
-        clip_begin(base, NULL);  // no clipping for root window
+        clip_begin(base, NULL);
     }
 
-    /* ---------- DRAW IMAGE ---------- */
-    draw_image_from_texture(base, image->texture, sx, sy, sw, sh);
+    /* ----- delegate drawing to backend ----- */
+    image_backend_draw(base->sdl_renderer, image->handle, sx, sy, sw, sh);
 
-    /* ---------- RESTORE CLIP ---------- */
     clip_end(base);
 }
 
 /* --------------------------------------------------------------------- */
 void update_image(Image *image, Event *event)
 {
-    // Placeholder for future interactive features (resize, drag, etc.)
-    (void)image;
-    (void)event;
+    (void)image; (void)event;   /* placeholder */
 }
 
 /* --------------------------------------------------------------------- */
 void free_image(Image *image)
 {
-    if (image && image->texture) {
-        SDL_DestroyTexture(image->texture);
-        image->texture = NULL;
+    if (image && image->handle) {
+        image_backend_free(image->handle);
+        image->handle = NULL;
     }
 }
 
 /* --------------------------------------------------------------------- */
-/* Registration of widgets for rendering */
+/* Global registration (unchanged) */
 Image* image_widgets[MAX_IMAGES];
 int    images_count = 0;
 
-void register_image(Image* image)
+void register_image(Image* img)
 {
-    if (images_count < MAX_IMAGES) {
-        image_widgets[images_count++] = image;
-    }
+    if (images_count < MAX_IMAGES) image_widgets[images_count++] = img;
 }
-
 void render_all_registered_images(void)
 {
-    for (int i = 0; i < images_count; ++i) {
-        if (image_widgets[i]) {
-            render_image(image_widgets[i]);
-        }
-    }
+    for (int i = 0; i < images_count; ++i)
+        if (image_widgets[i]) render_image(image_widgets[i]);
 }
-
-void update_all_registered_images(Event* event)
+void update_all_registered_images(Event* ev)
 {
-    for (int i = 0; i < images_count; ++i) {
-        if (image_widgets[i]) {
-            update_image(image_widgets[i], event);
-        }
-    }
+    for (int i = 0; i < images_count; ++i)
+        if (image_widgets[i]) update_image(image_widgets[i], ev);
 }
-
 void free_all_registered_images(void)
 {
     for (int i = 0; i < images_count; ++i) {

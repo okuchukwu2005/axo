@@ -146,7 +146,7 @@ void update_radio_(Radio* r, Event* ev)
 
     /* ---------- HOVER (mouse position is in physical pixels) ---------- */
     int mouse_x, mouse_y;
-    SDL_GetMouseState(&mouse_x, &mouse_y);
+    input_get_mouse(&mouse_x, &mouse_y);
 
     int dx = mouse_x - sx;
     int dy = mouse_y - sy;

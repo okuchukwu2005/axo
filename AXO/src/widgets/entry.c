@@ -73,12 +73,11 @@ void render_entry(Entry* e)
 {
     if (!e || !e->parent || !e->parent->base.sdl_renderer || !e->parent->is_open) return;
 
-    SDL_Renderer* ren = e->parent->base.sdl_renderer;
     float dpi = e->parent->base.dpi_scale;
 
     /* ---------- PARENT CLIP (if any) ---------- */
     Rect parent_clip = {0,0,0,0};
-    SDL_bool has_parent_clip = SDL_FALSE;
+    bool has_parent_clip = false;
     if (!e->parent->is_window) {
         parent_clip = get_parent_rect(e->parent);
         parent_clip.x = (int)roundf(parent_clip.x * dpi);
@@ -423,7 +422,7 @@ void update_entry(Entry* e, Event* ev)
                 char* sel = malloc(len + 1);
                 if (sel) {
                     strncpy(sel, e->text + s, len); sel[len] = '\0';
-                    SDL_SetClipboardText(sel);
+                    clipboard_set_text(sel);
                     free(sel);
                 }
             }
@@ -435,7 +434,7 @@ void update_entry(Entry* e, Event* ev)
                 char* sel = malloc(len + 1);
                 if (sel) {
                     strncpy(sel, e->text + s, len); sel[len] = '\0';
-                    SDL_SetClipboardText(sel);
+                    clipboard_set_text(sel);
                     free(sel);
                 }
                 DEL_SEL();
@@ -443,8 +442,8 @@ void update_entry(Entry* e, Event* ev)
             }
         }
         else if (ev->key.key == KEY_V && (ev->key.mod & KEY_MOD_CTRL)) {
-            if (SDL_HasClipboardText()) {
-                char* paste = SDL_GetClipboardText();
+            if (clipboard_has_text()) {
+                char* paste = clipboard_get_text();
                 if (paste) {
                     int plen = strlen(paste);
                     int len  = strlen(e->text);
@@ -457,7 +456,7 @@ void update_entry(Entry* e, Event* ev)
                         e->cursor_pos += plen;
                         update_visible_text(e);
                     }
-                    SDL_free(paste);
+                    clipboard_free(paste);
                 }
             }
         }

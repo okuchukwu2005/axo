@@ -136,7 +136,7 @@ void update_button(Button* b, Event* ev)
     int sh = (int)roundf(b->h * dpi);
 
     int mouse_x, mouse_y;
-    SDL_GetMouseState(&mouse_x, &mouse_y);
+    input_get_mouse(&mouse_x, &mouse_y);
     bool over = (mouse_x >= sx && mouse_x < sx + sw &&
                  mouse_y >= sy && mouse_y < sy + sh);
 

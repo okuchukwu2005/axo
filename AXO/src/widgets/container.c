@@ -135,7 +135,7 @@ void update_container(Parent* container, Event* event) {
     int s_resize_zone = (int)roundf(container->resize_zone * dpi);
 
     int mouse_x, mouse_y;
-    SDL_GetMouseState(&mouse_x, &mouse_y);
+    input_get_mouse(&mouse_x, &mouse_y);
 
     bool in_title_bar = container->has_title_bar &&
         mouse_x >= s_x &&

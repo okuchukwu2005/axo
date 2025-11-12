@@ -192,7 +192,7 @@ void update_drop_down_(Drop* d, Event* ev)
 
     /* ---------- HOVER (mouse in physical pixels) ---------- */
     int mouse_x, mouse_y;
-    SDL_GetMouseState(&mouse_x, &mouse_y);
+    input_get_mouse(&mouse_x, &mouse_y);
     d->is_hovered = (mouse_x >= sx && mouse_x <= sx + sw &&
                      mouse_y >= sy && mouse_y <= sy + sh);
 
