@@ -3,7 +3,7 @@
 # Root and build directories
 ROOT_DIR=$(pwd)
 BUILD_DIR="$ROOT_DIR/build"
-SRC_DIR="$ROOT_DIR/forms/src"
+SRC_DIR="$ROOT_DIR/AXO/src"
 EXAMPLE_DIR="$ROOT_DIR"
 EXECUTABLE="AAA"
 

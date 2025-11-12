@@ -6,19 +6,9 @@
 #ifndef PARENT_H
 #define PARENT_H
 
-#include <SDL2/SDL.h>
+#include "backends/sdl2/sdl2.h"
 #include <stdbool.h>
 #include "color.h"
-
-
-/**
- * @brief Base struct that bundles SDL_Window and SDL_Renderer.
- */
-typedef struct {
-    SDL_Window* sdl_window;
-    SDL_Renderer* sdl_renderer;
-    float dpi_scale;  // DPI scale factor (e.g., 2.0 on Retina; computed after renderer creation)
-} Base;
 
 /**
  * @brief This struct represents both root windows and containers.
@@ -61,7 +51,7 @@ float get_display_dpi(int display_index);
  * @brief Destroys the Parent struct, cleaning up SDL resources if it's a root window.
  * @param parent Pointer to the Parent to destroy.
  */
-void destroy_parent(Parent* parent);
+void free_parent(Parent* parent);
 
 //=============== children helper func ====================
 SDL_Rect  get_parent_rect(Parent *p);

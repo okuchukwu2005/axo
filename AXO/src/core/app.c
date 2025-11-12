@@ -128,5 +128,5 @@ void app_run_(Parent *parent) {
     free_all_registered_textboxes();  // ← Match name above
 
     app_quit();
-    destroy_parent(parent);
+    free_parent(parent);
 }

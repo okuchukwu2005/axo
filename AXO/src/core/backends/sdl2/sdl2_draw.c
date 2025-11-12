@@ -197,7 +197,7 @@ void backend_draw_text_from_font(Base* base, void* font_ptr, const char* text,
         base->sdl_renderer,
         font,
         text,
-        TTF_RENDER_SOLID,   // or TTF_RENDER_BLENDED
+        TTF_RENDER_BLENDED,   // or TTF_RENDER_SOLID
         fg,
         bg
     );

@@ -228,7 +228,7 @@ void update_all_registered_containers(Event *event) {
 void free_con_(Parent* parent) {
     if (!parent) return;
     if (parent->is_window) {
-        destroy_parent(parent);
+        free_parent(parent);
     }
 }
 
