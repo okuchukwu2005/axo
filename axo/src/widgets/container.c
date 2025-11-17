@@ -1,6 +1,7 @@
 #include"../../include/widgets/container.h"
 #include"../../include/core/theme.h"
 #include"../../include/core/app.h"
+#include"../../asset/icons/iconunicode.h"
 
 #include<SDL2/SDL_ttf.h>
 
@@ -91,7 +92,7 @@ void draw_title_bar_(Parent* container) {
         int btn_y = sy + pad / 2;
         // Use slightly smaller font for "X" (90% of default for better fit)
         int close_font_size = (int)roundf(current_theme->default_font_size * 0.9f * dpi);
-        draw_text(&container->base, "X", close_font_size, btn_x + btn_size / 4, btn_y + btn_size / 4,
+        draw_icon(&container->base, CLOSE_ICON, close_font_size, btn_x + btn_size / 4, btn_y + btn_size / 4,
                    current_theme->text_primary);  // Use theme text color
     }
 }

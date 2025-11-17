@@ -188,3 +188,14 @@ void draw_text(Base* base, const char* text, int font_size, int x, int y, Color 
     draw_text_from_font(base, font, text, x, y, color, ALIGN_LEFT);
     free_font_ttf(font);
 }
+
+void draw_icon(Base* base, const char* icon, int font_size, int x, int y, Color color){
+    Font_ttf* font = load_font_ttf("../axo/asset/icons/MaterialSymbolsOutlined-Regular.ttf", font_size);
+    if (!font) {
+        printf("Failed to load font '%s': %s\n",current_theme->font_file , TTF_GetError());
+        return;
+    }
+
+    draw_text_from_font(base, font, icon, x, y, color, ALIGN_LEFT);
+    free_font_ttf(font);
+}

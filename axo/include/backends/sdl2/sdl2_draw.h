@@ -85,5 +85,6 @@ void draw_image(Base * base, const char * file, int x, int y, int w, int h);
 * @param h 
 */
 void draw_image_from_texture(Base *base, void * texture, int x, int y, int w, int h);
+void draw_icon(Base* base, const char* icon, int font_size, int x, int y, Color color);
 
 #endif // SDL2_DRAW_H
