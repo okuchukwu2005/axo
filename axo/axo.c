@@ -1,33 +1,12 @@
-#include "../../include/core/app.h"
-
-// core
-#include "../../include/core/theme.h"
-// widgets
-#include"../../include/widgets/container.h"
-#include"../../include/widgets/entry.h"
-#include"../../include/widgets/drop.h"
-#include"../../include/widgets/radio.h"
-#include"../../include/widgets/textbox.h"
-#include"../../include/widgets/slider.h"
-#include"../../include/widgets/button.h"
-#include"../../include/widgets/text.h"
-#include"../../include/widgets/progress.h"
-#include"../../include/widgets/image.h"
+#include "axo.h"
 
 Font_ttf* global_font = NULL;
 
-App init_app(void) {
-    App app = {0}; // Initialize struct members to zero
-
+void axInit(void) {
     // Set default theme (e.g., dark mode)
     set_theme(&THEME_DARK);
-
-    return app;
 }
 
-void app_quit(){
-	
-}
 int is_any_text_widget_active(void) {
     // Check entries
     for (int i = 0; i < entrys_count; i++) {
@@ -44,7 +23,7 @@ int is_any_text_widget_active(void) {
     return 0;
 }
 
-void app_run_(axParent *parent) {
+void axRun(axParent *parent) {
     axEvent event;
     int running = 1;
     while (running) {
@@ -116,6 +95,5 @@ void app_run_(axParent *parent) {
     axFreeAllRegisteredSliders();
     axFreeAllRegisteredTextBoxes();  // ← Match name above
 
-    app_quit();
     free_parent(parent);
 }

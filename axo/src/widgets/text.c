@@ -1,7 +1,7 @@
 /* text.c --------------------------------------------------------------- */
 #include "../../include/widgets/text.h"
 #include "../../include/core/theme.h"
-#include "../../include/core/app.h"
+#include "../../axo.h"
 #include "../../include/core/parent.h"   // for Rect
 
 #include <stdlib.h>

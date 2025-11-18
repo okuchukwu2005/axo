@@ -14,6 +14,17 @@
 #include"include/widgets/text.h"
 #include"include/widgets/progress.h"
 #include"include/widgets/image.h"
-#include"include/core/app.h"
+
+
+#define PRINT_THEME(name) printf("Switched to %s\n", name)
+
+extern Font_ttf* global_font;
+
+void axInit(void);
+
+int is_any_text_widget_active(void);
+
+void axRun(axParent *parent);
+
 
 #endif // AXO_H

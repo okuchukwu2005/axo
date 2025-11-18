@@ -4,11 +4,11 @@
 #include "../axo/axo.h"
 
 int main(void) {
-    App app = init_app();
+    axInit();
 
-    app.window = axCreateWindow("My Window", 1000, 700);
+    axParent win = axCreateWindow("My Window", 1000, 700);
     // Get DPI scaling for primary display
-     float dpi = app.window.base.dpi_scale = get_display_dpi(0);
+     float dpi = win.base.dpi_scale = get_display_dpi(0);
 
       // Scale font size based on DPI
       int scaled_font_size = (int)(current_theme->default_font_size * dpi); // round to nearest int
@@ -16,13 +16,13 @@ int main(void) {
 
     global_font = load_font_ttf("FiraCode-Regular.ttf", scaled_font_size);
 
-    axParent container = axCreateContainer(&app.window, 10, 10, 360, 500);
+    axParent container = axCreateContainer(&win, 10, 10, 360, 500);
 
     // Enable moving, title bar, close button,
     axSetContainerProperties(&container, true, "My Container", true, true);
      axRegisterContainer(&container);
  
-     axParent container2 = axCreateContainer(&app.window, 400, 10, 400, 650);
+     axParent container2 = axCreateContainer(&win, 400, 10, 400, 650);
 // 
 //     // Enable moving, title bar, close button,
      axSetContainerProperties(&container2, true, "My Second Container", true, true);
@@ -78,7 +78,7 @@ int main(void) {
 
 //    Image  image = new_image(&app.window, 10, 0, "img.jpg", 0, 0 );
 // register_image(&image);
-    app_run_(&app.window);
+    axRun(&win);
 
 
     return 0;

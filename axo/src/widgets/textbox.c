@@ -1,7 +1,7 @@
 #include "../../include/widgets/textbox.h"
 #include "../../include/core/theme.h"
 #include "../../include/core/color.h"
-#include "../../include/core/app.h"
+#include "../../axo.h"
 #include "../../include/core/parent.h"   // for Rect
 #include <stdio.h>
 #include <stdlib.h>
