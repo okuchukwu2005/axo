@@ -15,35 +15,35 @@
 
 
 typedef struct {
-    Parent* parent;            // Pointer to the parent window or container
+    axParent* parent;            // Pointer to the parent window or container
     int x, y;                  // Position of the text
     char* content;             // Text content
     int font_size;             // Font size in points
     Color* color;               // Text color
     TextAlign align;           // Alignment (LEFT, CENTER, RIGHT)
-} Text;
+} axText;
 
-Text new_text(Parent* parent, int x, int y, const char* content, int font_size, TextAlign align);
-void render_text(Text* text);
+axText axCreateText(axParent* parent, int x, int y, const char* content, int font_size, TextAlign align);
+void axRenderText(axText* text);
 // Setters for overrides
-void set_text_color(Text* text, Color color);
+void axSetTextColor(axText* text, Color color);
 
-void update_text(Text* text, Event *event);
+void axUpdateText(axText* text, axEvent *event);
 
-void free_text(Text *text);
+void axFreeText(axText *text);
 
 
 // Registration
 #define MAX_TEXTS 100
 
-extern Text* text_widgets[MAX_TEXTS];
+extern axText* text_widgets[MAX_TEXTS];
 extern int texts_count;
 
-void register_text(Text* text);
+void axRegisterText(axText* text);
 
-void render_all_registered_texts(void);
+void axRenderAllRegisteredTexts(void);
 
-void update_all_registered_texts(Event* event);
+void axUpdateAllRegisteredTexts(axEvent* event);
 
-void free_all_registered_texts(void);
+void axFreeAllRegisteredTexts(void);
 #endif // TEXT_H

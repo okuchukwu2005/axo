@@ -12,7 +12,7 @@
 // Forward declaration for line computation using wrapper
 Line* compute_visual_lines(const char* text, int max_width, Font_ttf* font, int* num_lines);
 
-TextBox new_textbox(Parent* parent, int x, int y, int w, int max_length) {
+axTextBox axCreateTextBox(axParent* parent, int x, int y, int w, int max_length) {
     if (!parent || !parent->base.sdl_renderer) {
         printf("Invalid parent or renderer\n");
     }
@@ -20,7 +20,7 @@ TextBox new_textbox(Parent* parent, int x, int y, int w, int max_length) {
         current_theme = (Theme*)&THEME_LIGHT;
     }
 
-    TextBox new_textbox;
+    axTextBox new_textbox;
     new_textbox.parent = parent;
     new_textbox.place_holder = strdup(" ");
     if (!new_textbox.place_holder) {
@@ -56,7 +56,7 @@ TextBox new_textbox(Parent* parent, int x, int y, int w, int max_length) {
     return new_textbox;
 }
 
-void render_textbox(TextBox* textbox) {
+void axRenderTextBox(axTextBox* textbox) {
     if (!textbox || !textbox->parent || !textbox->parent->base.sdl_renderer || !textbox->parent->is_open) {
         printf("Invalid textbox, renderer, or parent is not open\n");
         return;
@@ -226,7 +226,7 @@ void render_textbox(TextBox* textbox) {
     clip_end(&textbox->parent->base);
 }
 
-void update_visible_lines(TextBox* textbox) {
+void update_visible_lines(axTextBox* textbox) {
     if (!textbox || !textbox->parent || !global_font) return;
 
     float dpi = textbox->parent->base.dpi_scale;
@@ -261,7 +261,7 @@ void update_visible_lines(TextBox* textbox) {
     free(lines);
 }
 
-void update_textbox(TextBox* textbox, Event* event) {
+void axUpdateTextBox(axTextBox* textbox, axEvent* event) {
     if (!textbox || !textbox->parent || !textbox->parent->is_open || !global_font) return;
 
     float dpi = textbox->parent->base.dpi_scale;
@@ -599,33 +599,33 @@ Line* compute_visual_lines(const char* text, int max_width, Font_ttf* font, int*
 }
 
 // Registration functions unchanged
-TextBox* textbox_widgets[MAX_TEXTBOXS];
+axTextBox* textbox_widgets[MAX_TEXTBOXS];
 int textboxs_count = 0;
-void register_textbox(TextBox* textbox) {
+void axRegisterTextBox(axTextBox* textbox) {
     if (textboxs_count < MAX_TEXTBOXS) {
         textbox_widgets[textboxs_count++] = textbox;
     }
 }
-void render_all_registered_textboxs(void) {
+void axRenderAllRegisteredTextBoxes(void) {
     for (int i = 0; i < textboxs_count; i++) {
-        if (textbox_widgets[i]) render_textbox(textbox_widgets[i]);
+        if (textbox_widgets[i]) axRenderTextBox(textbox_widgets[i]);
     }
 }
-void update_all_registered_textboxs(Event *event) {
+void axUpdateAllRegisteredTextBoxes(axEvent *event) {
     for (int i = 0; i < textboxs_count; i++) {
-        if (textbox_widgets[i]) update_textbox(textbox_widgets[i], event);
+        if (textbox_widgets[i]) axUpdateTextBox(textbox_widgets[i], event);
     }
 }
-void free_all_registered_textboxes(void) {
+void axFreeAllRegisteredTextBoxes(void) {
     for (int i = 0; i < textboxs_count; i++) {
         if (textbox_widgets[i]) {
-            free_textbox(textbox_widgets[i]);
+            axFreeTextBox(textbox_widgets[i]);
             textbox_widgets[i] = NULL;
         }
     }
     textboxs_count = 0;
 }
-void free_textbox(TextBox* textbox) {
+void axFreeTextBox(axTextBox* textbox) {
     if (textbox) {
         free(textbox->text);
         free(textbox->place_holder);

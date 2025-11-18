@@ -9,7 +9,7 @@
 
 // Defines a struct for a text entry widget, representing an input field in a GUI
 typedef struct {
-    Parent* parent;            // Pointer to the parent window/container holding this entry
+    axParent* parent;            // Pointer to the parent window/container holding this entry
     int x, y;                  // Logical (unscaled) position of the entry relative to parent
     int w, h;                  // Logical width and height of the entry
     char* place_holder;        // Placeholder text shown when the entry is empty
@@ -20,7 +20,7 @@ typedef struct {
     int selection_start;       // Starting index of text selection (-1 if no selection)
     int visible_text_start;    // Index of the first visible character (for scrolling text)
     int is_mouse_selecting;    // Flag to track if mouse is being used to select text
-} Entry;
+} axEntry;
 
 
 // Creates a new text entry widget with specified properties
@@ -30,49 +30,49 @@ typedef struct {
 // - w: Logical width of the entry
 // - max_length: Maximum number of characters allowed
 // Returns: Pointer to the new Entry or NULL on failure
-Entry new_entry(Parent* parent, int x, int y, int w, int max_length);
+axEntry axCreateEntry(axParent* parent, int x, int y, int w, int max_length);
 
-void set_entry_placeholder(Entry* entry, const char* placeholder);
+void axSetEntryPlaceHolder(axEntry* entry, const char* placeholder);
 // Renders the text entry widget to the screen
 // Parameters:
 // - entry: The Entry widget to render
 // Renders the text entry widget to the screen
 // Parameters:
 // - entry: The Entry widget to render
-void render_entry(Entry* entry);
+void axRenderEntry(axEntry* entry);
 // Updates the visible portion of the text when the cursor moves or text changes
 // Parameters:
 // - entry: The Entry widget to update
-void update_visible_text(Entry* entry);
+void update_visible_text(axEntry* entry);
 // Updates the text entry widget based on SDL events (mouse, keyboard, text input)
 // Parameters:
 // - entry: The Entry widget to update
 // - event: The SDL event to process
-void update_entry(Entry* entry, Event* event);
+void axUpdateEntry(axEntry* entry, axEvent* event);
 // Frees the memory allocated for an Entry widget
 // Parameters:
 // - entry: The Entry widget to free
-void free_entry(Entry* entry);
+void axFreeEntry(axEntry* entry);
 
 // ___________________
 // Global array to store all registered entry widgets (up to MAX_ENTRYS)
 #define MAX_ENTRYS 100
-extern Entry* entry_widgets[MAX_ENTRYS];
+extern axEntry* entry_widgets[MAX_ENTRYS];
 extern int entrys_count; // Tracks the number of registered entries
 
 // Registers an entry widget in the global array
 // Parameters:
 // - entry: The Entry widget to register
-void register_entry(Entry* entry);
+void axRegisterEntry(axEntry* entry);
 
 // Renders all registered entry widgets
-void render_all_registered_entrys(void);
+void axRenderAllRegisteredEntries(void);
 
 // Updates all registered entry widgets based on an SDL event
 // Parameters:
 // - event: The SDL event to process
-void update_all_registered_entrys(Event* event);
+void axUpdateAllRegisteredEntries(axEvent* event);
 
-void free_all_registered_entrys(void);
+void axFreeAllRegisteredEntries(void);
 
 #endif // ENTRY_H

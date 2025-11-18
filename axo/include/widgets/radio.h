@@ -15,7 +15,7 @@
 #include <SDL2/SDL.h> // for SDL_Event, etc.
 
 typedef struct {
-    Parent* parent;      // Parent container or window
+    axParent* parent;      // Parent container or window
     int x, y;            // Position (relative to parent) (logical)
     int w, h;            // Size (logical)
     char* label;         // Label text
@@ -26,38 +26,38 @@ typedef struct {
     Color* custom_outer_color;   // Outer circle color
     Color* custom_inner_color;   // Inner circle color when selected
     Color* custom_label_color;   // Label text color
-} Radio;
+} axRadioButton;
 
 
 // -------- Create --------
-Radio new_radio_button(Parent* parent, int x, int y, int w, int h, const char* label, int group_id);
-void set_radio_outer_color(Radio* radio, Color color);
+axRadioButton axCreateRadioButton(axParent* parent, int x, int y, int w, int h, const char* label, int group_id);
+void axSetRadioButtonOuterColor(axRadioButton* radio, Color color);
 
-void set_radio_inner_color(Radio* radio, Color color);
+void axSetRadioButtonInnerColor(axRadioButton* radio, Color color);
 
-void set_radio_label_color(Radio* radio, Color color);
+void axSetRadioButtonLabelColor(axRadioButton* radio, Color color);
 
 // -------- Render --------
-void render_radio_(Radio* radio);
+void axRenderRadioButton(axRadioButton* radio);
 
 #define MAX_RADIOS 100
-extern Radio* radio_widgets[MAX_RADIOS];
+extern axRadioButton* radio_widgets[MAX_RADIOS];
 extern int radios_count;
 
 // -------- Update --------
-void update_radio_(Radio* radio, Event *event);
+void axUpdateRadioButton(axRadioButton* radio, axEvent *event);
 // -------- Free --------
-void free_radio_(Radio* radio);
+void axFreeRadioButton(axRadioButton* radio);
 
 // -------- Register --------
-void register_radio(Radio* radio);
+void axRegisterRadioButton(axRadioButton* radio);
 
 // -------- Helpers for all radios --------
-void render_all_registered_radios(void);
+void axRenderAllRegisteredRadioButtons(void);
 
-void update_all_registered_radios(Event* event);
+void axUpdateAllRegisteredRadioButtons(axEvent* event);
 
-void free_all_registered_radios(void);
+void axFreeAllRegisteredRadioButtons(void);
 
 #endif // RADIO_H
 

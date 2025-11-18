@@ -8,15 +8,15 @@
 /* --------------------------------------------------------------------- */
 
 /* --------------------------------------------------------------------- */
-Image new_image(Parent *parent, int x, int y, const char *file_path, int w, int h)
+axImage axCreateImage(axParent *parent, int x, int y, const char *file_path, int w, int h)
 {
     if (!parent || !parent->base.sdl_renderer) {
         printf("Invalid parent or renderer for image widget\n");
-        Image img = {0};
+        axImage img = {0};
         return img;
     }
 
-    Image img = {0};
+    axImage img = {0};
     img.parent    = parent;
     img.x         = x;
     img.y         = y;
@@ -32,7 +32,7 @@ Image new_image(Parent *parent, int x, int y, const char *file_path, int w, int 
 }
 
 /* --------------------------------------------------------------------- */
-void render_image(Image *image)
+void axRenderImage(axImage *image)
 {
     if (!image || !image->parent || !image->parent->base.sdl_renderer ||
         !image->parent->is_open || !image->handle) {
@@ -69,13 +69,13 @@ void render_image(Image *image)
 }
 
 /* --------------------------------------------------------------------- */
-void update_image(Image *image, Event *event)
+void axUpdateImage(axImage *image, axEvent *event)
 {
     (void)image; (void)event;   /* placeholder */
 }
 
 /* --------------------------------------------------------------------- */
-void free_image(Image *image)
+void axFreeImage(axImage *image)
 {
     if (image && image->handle) {
         image_backend_free(image->handle);
@@ -85,28 +85,28 @@ void free_image(Image *image)
 
 /* --------------------------------------------------------------------- */
 /* Global registration (unchanged) */
-Image* image_widgets[MAX_IMAGES];
+axImage* image_widgets[MAX_IMAGES];
 int    images_count = 0;
 
-void register_image(Image* img)
+void axRegisterImage(axImage* img)
 {
     if (images_count < MAX_IMAGES) image_widgets[images_count++] = img;
 }
-void render_all_registered_images(void)
+void axRenderAllRegisteredImages(void)
 {
     for (int i = 0; i < images_count; ++i)
-        if (image_widgets[i]) render_image(image_widgets[i]);
+        if (image_widgets[i]) axRenderImage(image_widgets[i]);
 }
-void update_all_registered_images(Event* ev)
+void axUpdateAllRegisteredImages(axEvent* ev)
 {
     for (int i = 0; i < images_count; ++i)
-        if (image_widgets[i]) update_image(image_widgets[i], ev);
+        if (image_widgets[i]) axUpdateImage(image_widgets[i], ev);
 }
-void free_all_registered_images(void)
+void axFreeAllRegisteredImages(void)
 {
     for (int i = 0; i < images_count; ++i) {
         if (image_widgets[i]) {
-            free_image(image_widgets[i]);
+            axFreeImage(image_widgets[i]);
             image_widgets[i] = NULL;
         }
     }

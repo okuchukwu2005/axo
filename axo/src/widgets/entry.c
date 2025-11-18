@@ -7,21 +7,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-/* --------------------------------------------------------------------- */
-/* Entry definition (opaque to the rest of the program) */
-/* --------------------------------------------------------------------- */
-struct Entry {
-    Parent* parent;
-    char*   place_holder;
-    int     x, y, w, h;
-    int     max_length;
-    char*   text;
-    int     is_active;
-    int     cursor_pos;
-    int     selection_start;
-    int     visible_text_start;
-    int     is_mouse_selecting;
-};
 
 /* --------------------------------------------------------------------- */
 /* Helper: measure a UTF-8 substring with the *global* font */
@@ -35,7 +20,7 @@ static int measure_utf8(const char* txt, int* w, int* h)
 /* --------------------------------------------------------------------- */
 /* new_entry – no font loading any more */
 /* --------------------------------------------------------------------- */
-Entry new_entry(Parent* parent, int x, int y, int w, int max_length)
+axEntry axCreateEntry(axParent* parent, int x, int y, int w, int max_length)
 {
     if (!parent || !parent->base.sdl_renderer) {
         printf("Invalid parent or renderer\n");
@@ -45,7 +30,7 @@ Entry new_entry(Parent* parent, int x, int y, int w, int max_length)
     int logical_font_size = current_theme->default_font_size;
     int logical_padding   = current_theme->padding;
 
-    Entry e = {0};
+    axEntry e = {0};
     e.parent       = parent;
     e.place_holder = strdup(" ");
     e.x = x;  e.y = y;  e.w = w;
@@ -57,7 +42,7 @@ Entry new_entry(Parent* parent, int x, int y, int w, int max_length)
 }
 
 /* --------------------------------------------------------------------- */
-void set_entry_placeholder(Entry* e, const char* placeholder)
+void axSetEntryPlaceHolder(axEntry* e, const char* placeholder)
 {
     if (!e) return;
     free(e->place_holder);
@@ -67,7 +52,7 @@ void set_entry_placeholder(Entry* e, const char* placeholder)
 /* --------------------------------------------------------------------- */
 /* render_entry – uses only wrapper functions, clipping fixed */
 /* --------------------------------------------------------------------- */
-void render_entry(Entry* e)
+void axRenderEntry(axEntry* e)
 {
     if (!e || !e->parent || !e->parent->base.sdl_renderer || !e->parent->is_open) return;
 
@@ -200,7 +185,7 @@ void render_entry(Entry* e)
 /* --------------------------------------------------------------------- */
 /* update_visible_text – uses wrapper size functions, fixed scrolling */
 /* --------------------------------------------------------------------- */
-void update_visible_text(Entry* e)
+void update_visible_text(axEntry* e)
 {
     if (!e || !e->parent || !global_font) return;
     if (!current_theme) current_theme = (Theme*)&THEME_LIGHT;
@@ -261,7 +246,7 @@ void update_visible_text(Entry* e)
 /* --------------------------------------------------------------------- */
 /* update_entry – same logic, only size calls go through the wrapper */
 /* --------------------------------------------------------------------- */
-void update_entry(Entry* e, Event* ev)
+void axUpdateEntry(axEntry* e, axEvent* ev)
 {
     if (!e || !e->parent || !e->parent->is_open || !global_font) return;
 
@@ -463,7 +448,7 @@ void update_entry(Entry* e, Event* ev)
 }
 
 /* --------------------------------------------------------------------- */
-void free_entry(Entry* e)
+void axFreeEntry(axEntry* e)
 {
     if (e) {
         free(e->text);
@@ -474,23 +459,23 @@ void free_entry(Entry* e)
 /* --------------------------------------------------------------------- */
 /* Global registration (unchanged) */
 /* --------------------------------------------------------------------- */
-Entry* entry_widgets[MAX_ENTRYS];
+axEntry* entry_widgets[MAX_ENTRYS];
 int entrys_count = 0;
 
-void register_entry(Entry* e) {
+void axRegisterEntry(axEntry* e) {
     if (entrys_count < MAX_ENTRYS) entry_widgets[entrys_count++] = e;
 }
-void render_all_registered_entrys(void) {
+void axRenderAllRegisteredEntries(void) {
     for (int i = 0; i < entrys_count; ++i)
-        if (entry_widgets[i]) render_entry(entry_widgets[i]);
+        if (entry_widgets[i]) axRenderEntry(entry_widgets[i]);
 }
-void update_all_registered_entrys(Event* ev) {
+void axUpdateAllRegisteredEntries(axEvent* ev) {
     for (int i = 0; i < entrys_count; ++i)
-        if (entry_widgets[i]) update_entry(entry_widgets[i], ev);
+        if (entry_widgets[i]) axUpdateEntry(entry_widgets[i], ev);
 }
-void free_all_registered_entrys(void) {
+void axFreeAllRegisteredEntries(void) {
     for (int i = 0; i < entrys_count; ++i) {
-        if (entry_widgets[i]) { free_entry(entry_widgets[i]); entry_widgets[i] = NULL; }
+        if (entry_widgets[i]) { axFreeEntry(entry_widgets[i]); entry_widgets[i] = NULL; }
     }
     entrys_count = 0;
 }

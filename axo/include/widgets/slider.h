@@ -6,11 +6,10 @@
 #include "../core/backend_interface.h"
 
 
-#include <SDL2/SDL.h>
 #include <stdbool.h>
 
 typedef struct {
-    Parent* parent;      // Parent container or window
+    axParent* parent;      // Parent container or window
     int x, y;            // Position (relative to parent) (logical)
     int w, h;            // Width and height (assume horizontal slider, w > h) (logical)
     int min, max;        // Range of values
@@ -21,38 +20,38 @@ typedef struct {
     Color* custom_track_color;   // Optional override for track color (NULL = use theme)
     Color* custom_thumb_color;   // Optional override for thumb color (NULL = use theme)
     Color* custom_label_color;   // Optional override for label color (NULL = use theme)
-} Slider;
+} axSlider;
 
 
 // -------- Create --------
-Slider new_slider(Parent* parent, int x, int y, int w, int h, int min, int max, int start_value, const char* label);
+axSlider axCreateSlider(axParent* parent, int x, int y, int w, int h, int min, int max, int start_value, const char* label);
 
 // Setters for overrides
-void set_slider_track_color(Slider* slider, Color color);
+void axSetSliderTrackColor(axSlider* slider, Color color);
 
-void set_slider_thumb_color(Slider* slider, Color color);
+void axSetSliderThumbColor(axSlider* slider, Color color);
 
-void set_slider_label_color(Slider* slider, Color color);
+void axSetSliderLabelColor(axSlider* slider, Color color);
 
 // -------- Render --------
-void render_slider(Slider* slider);
+void axRenderSlider(axSlider* slider);
 
 // -------- Update --------
-void update_slider(Slider* slider, Event *event);
+void axUpdateSlider(axSlider* slider, axEvent *event);
 // -------- Free --------
-void free_slider(Slider* slider);
+void axFreeSlider(axSlider* slider);
 
 
 #define MAX_SLIDERS 100
-extern Slider* sliders[MAX_SLIDERS];
+extern axSlider* sliders[MAX_SLIDERS];
 extern int sliders_count;
 
 // -------- Register --------
-void register_slider(Slider* slider);
+void axRegisterSlider(axSlider* slider);
 
 // -------- Helpers for all Sliders --------
-void render_all_registered_sliders(void);
+void axRenderAllRegisteredSliders(void);
 
-void update_all_registered_sliders(Event* event);
-void free_all_registered_sliders(void);
+void axUpdateAllRegisteredSliders(axEvent* event);
+void axFreeAllRegisteredSliders(void);
 #endif // SLIDER_H

@@ -8,13 +8,13 @@
 //------------------------- APP ___________
 extern Font_ttf* global_font;
 typedef struct {
-    Parent window; // Window struct from window.h
+    axParent window; // Window struct from window.h
 } App;
 
 App init_app(void);
 
 int is_any_text_widget_active(void);
 
-void app_run_(Parent *parent);
+void app_run_(axParent *parent);
 
 #endif // APP_H

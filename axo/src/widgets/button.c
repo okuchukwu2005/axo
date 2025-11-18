@@ -12,32 +12,19 @@ void function_callback_override (){
     DEBUG_PRINT("Button was clicked!\n");
     // Add custom logic, e.g., open a dialog, submit a form, etc.
 }
-/* --------------------------------------------------------------------- */
-/* Button definition (opaque) */
-/* --------------------------------------------------------------------- */
-struct Button {
-    Parent* parent;
-    int x, y, w, h;           // logical coordinates
-    char* label;
-    void (*callback)(void);
-    bool is_hovered;
-    bool is_pressed;
-    Color* custom_bg_color;
-    Color* custom_text_color;
-};
 
 /* --------------------------------------------------------------------- */
-Button new_button(Parent* parent, int x, int y, int w, int h,
+axButton axCreateButton(axParent* parent, int x, int y, int w, int h,
                   const char* label, void (*callback)(void))
 {
     if (!parent || !parent->base.sdl_renderer) {
         DEBUG_PRINT("Error: Invalid parent or renderer\n");
-        Button b = {0};
+        axButton b = {0};
         return b;
     }
     if (!current_theme) current_theme = (Theme*)&THEME_LIGHT;
 
-    Button b = {0};
+    axButton b = {0};
     b.parent = parent;
     b.x = x; b.y = y; b.w = w; b.h = h;
     b.label = label ? strdup(label) : NULL;
@@ -46,20 +33,20 @@ Button new_button(Parent* parent, int x, int y, int w, int h,
 }
 
 /* --------------------------------------------------------------------- */
-void set_button_bg_color(Button* b, Color c) {
+void axSetButtonBgColor(axButton* b, Color c) {
     if (!b) return;
     if (!b->custom_bg_color) b->custom_bg_color = malloc(sizeof(Color));
     if (b->custom_bg_color) *b->custom_bg_color = c;
 }
 
-void set_button_text_color(Button* b, Color c) {
+void axSetButtonTextColor(axButton* b, Color c) {
     if (!b) return;
     if (!b->custom_text_color) b->custom_text_color = malloc(sizeof(Color));
     if (b->custom_text_color) *b->custom_text_color = c;
 }
 
 /* --------------------------------------------------------------------- */
-void render_button(Button* b)
+void axRenderButton(axButton* b)
 {
     if (!b || !b->parent || !b->parent->base.sdl_renderer || !b->parent->is_open) return;
     if (!global_font) return;
@@ -119,7 +106,7 @@ void render_button(Button* b)
 }
 
 /* --------------------------------------------------------------------- */
-void update_button(Button* b, Event* ev)
+void axUpdateButton(axButton* b, axEvent* ev)
 {
     if (!b || !b->parent || !b->parent->is_open) return;
 
@@ -153,7 +140,7 @@ void update_button(Button* b, Event* ev)
 }
 
 /* --------------------------------------------------------------------- */
-void free_button(Button* b)
+void axFreeButton(axButton* b)
 {
     if (!b) return;
     free(b->label);
@@ -164,32 +151,32 @@ void free_button(Button* b)
 /* --------------------------------------------------------------------- */
 /* Registration (unchanged) */
 /* --------------------------------------------------------------------- */
-Button* button_widgets[MAX_BUTTONS];
+axButton* button_widgets[MAX_BUTTONS];
 int buttons_count = 0;
 
-void register_button(Button* b)
+void axRegisterButton(axButton* b)
 {
     if (buttons_count < MAX_BUTTONS)
         button_widgets[buttons_count++] = b;
 }
 
-void render_all_registered_buttons(void)
+void axRenderAllRegisteredButtons(void)
 {
     for (int i = 0; i < buttons_count; ++i)
-        if (button_widgets[i]) render_button(button_widgets[i]);
+        if (button_widgets[i]) axRenderButton(button_widgets[i]);
 }
 
-void update_all_registered_buttons(Event* ev)
+void axUpdateAllRegisteredButtons(axEvent* ev)
 {
     for (int i = 0; i < buttons_count; ++i)
-        if (button_widgets[i]) update_button(button_widgets[i], ev);
+        if (button_widgets[i]) axUpdateButton(button_widgets[i], ev);
 }
 
-void free_all_registered_buttons(void)
+void axFreeAllRegisteredButtons(void)
 {
     for (int i = 0; i < buttons_count; ++i) {
         if (button_widgets[i]) {
-            free_button(button_widgets[i]);
+            axFreeButton(button_widgets[i]);
             button_widgets[i] = NULL;
         }
     }

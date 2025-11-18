@@ -8,34 +8,19 @@
 #include <string.h>
 #include <math.h>
 
-/* --------------------------------------------------------------------- */
-/* Radio definition (opaque) */
-/* --------------------------------------------------------------------- */
-struct Radio {
-    Parent* parent;
-    int     x, y, w, h;           // logical coordinates
-    char*   label;
-    int     group_id;
-    bool    selected;
-    bool    is_hovered;
-
-    Color*  custom_outer_color;
-    Color*  custom_inner_color;
-    Color*  custom_label_color;
-};
 
 /* --------------------------------------------------------------------- */
-Radio new_radio_button(Parent* parent, int x, int y, int w, int h,
+axRadioButton axCreateRadioButton(axParent* parent, int x, int y, int w, int h,
                        const char* label, int group_id)
 {
     if (!parent || !parent->base.sdl_renderer) {
         printf("Invalid parent or renderer\n");
-        Radio r = {0};
+        axRadioButton r = {0};
         return r;
     }
     if (!current_theme) current_theme = (Theme*)&THEME_LIGHT;
 
-    Radio r = {0};
+    axRadioButton r = {0};
     r.parent     = parent;
     r.x          = x;
     r.y          = y;
@@ -48,24 +33,24 @@ Radio new_radio_button(Parent* parent, int x, int y, int w, int h,
 
 /* --------------------------------------------------------------------- */
 /* Setters – unchanged */
-void set_radio_outer_color(Radio* r, Color c) {
+void axSetRadioButtonOuterColor(axRadioButton* r, Color c) {
     if (!r) return;
     if (!r->custom_outer_color) r->custom_outer_color = malloc(sizeof(Color));
     if (r->custom_outer_color) *r->custom_outer_color = c;
 }
-void set_radio_inner_color(Radio* r, Color c) {
+void axSetRadioButtonInnerColor(axRadioButton* r, Color c) {
     if (!r) return;
     if (!r->custom_inner_color) r->custom_inner_color = malloc(sizeof(Color));
     if (r->custom_inner_color) *r->custom_inner_color = c;
 }
-void set_radio_label_color(Radio* r, Color c) {
+void axSetRadioButtonLabelColor(axRadioButton* r, Color c) {
     if (!r) return;
     if (!r->custom_label_color) r->custom_label_color = malloc(sizeof(Color));
     if (r->custom_label_color) *r->custom_label_color = c;
 }
 
 /* --------------------------------------------------------------------- */
-void render_radio_(Radio* r)
+void axRenderRadioButton(axRadioButton* r)
 {
     if (!r || !r->parent || !r->parent->base.sdl_renderer || !r->parent->is_open) return;
     if (!global_font) { printf("global_font missing\n"); return; }
@@ -128,7 +113,7 @@ void render_radio_(Radio* r)
 }
 
 /* --------------------------------------------------------------------- */
-void update_radio_(Radio* r, Event* ev)
+void axUpdateRadioButton(axRadioButton* r, axEvent* ev)
 {
     if (!r || !r->parent || !r->parent->is_open) return;
 
@@ -169,7 +154,7 @@ void update_radio_(Radio* r, Event* ev)
 }
 
 /* --------------------------------------------------------------------- */
-void free_radio_(Radio* r)
+void axFreeRadioButton(axRadioButton* r)
 {
     if (!r) return;
     free(r->label);
@@ -180,28 +165,28 @@ void free_radio_(Radio* r)
 
 /* --------------------------------------------------------------------- */
 /* Global registration (unchanged) */
-Radio* radio_widgets[MAX_RADIOS];
+axRadioButton* radio_widgets[MAX_RADIOS];
 int    radios_count = 0;
 
-void register_radio(Radio* r)
+void axRegisterRadioButton(axRadioButton* r)
 {
     if (radios_count < MAX_RADIOS) radio_widgets[radios_count++] = r;
 }
-void render_all_registered_radios(void)
+void axRenderAllRegisteredRadioButtons(void)
 {
     for (int i = 0; i < radios_count; ++i)
-        if (radio_widgets[i]) render_radio_(radio_widgets[i]);
+        if (radio_widgets[i]) axRenderRadioButton(radio_widgets[i]);
 }
-void update_all_registered_radios(Event* ev)
+void axUpdateAllRegisteredRadioButtons(axEvent* ev)
 {
     for (int i = 0; i < radios_count; ++i)
-        if (radio_widgets[i]) update_radio_(radio_widgets[i], ev);
+        if (radio_widgets[i]) axUpdateRadioButton(radio_widgets[i], ev);
 }
-void free_all_registered_radios(void)
+void axFreeAllRegisteredRadioButtons(void)
 {
     for (int i = 0; i < radios_count; ++i) {
         if (radio_widgets[i]) {
-            free_radio_(radio_widgets[i]);
+            axFreeRadioButton(radio_widgets[i]);
             radio_widgets[i] = NULL;
         }
     }

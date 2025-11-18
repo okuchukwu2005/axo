@@ -13,10 +13,9 @@
 
 
 #include<stdbool.h>
-#include <SDL2/SDL.h> // for SDL_Event, etc.
 
 typedef struct {
-    Parent* parent;         // Parent window or container
+    axParent* parent;         // Parent window or container
     int x, y;               // Position relative to parent (logical)
     int w, h;               // Width and height of the dropdown button (logical)
     char** options;         // Array of option strings (caller-managed)
@@ -31,36 +30,36 @@ typedef struct {
     Color* custom_button_color;   // Background for dropdown button
     Color* custom_text_color;     // Text color
     Color* custom_highlight_color; // Highlight for selected/hovered option
-} Drop;
+} axDropDown;
 
 #define MAX_DROPS 100
-extern Drop* drop_widgets[MAX_DROPS];
+extern axDropDown* drop_widgets[MAX_DROPS];
 extern int drops_count;
 
 
-Drop new_drop_down(Parent* parent, int x, int y, int w, int h, char** options, int option_count);
+axDropDown axCreateDropDown(axParent* parent, int x, int y, int w, int h, char** options, int option_count);
 
 // Setters for overrides
-void set_drop_bg_color(Drop* drop, Color color);
-void set_drop_button_color(Drop* drop, Color color);
+void axSetDropDownBgColor(axDropDown* drop, Color color);
+void axSetDropDownButtonColor(axDropDown* drop, Color color);
 
-void set_drop_text_color(Drop* drop, Color color);
+void axSetDropDownTextColor(axDropDown* drop, Color color);
 
-void set_drop_highlight_color(Drop* drop, Color color);
+void axSetDropDownHighlightColor(axDropDown* drop, Color color);
 
-void set_drop_font_size(Drop* drop, int size);
+void axSetDropDownFontSize(axDropDown* drop, int size);
 
 void draw_upside_down_triangle_(Base* base, int x1, int y1, int x2, int y2, int x3, int y3, Color color);
 
-void render_drop_down_(Drop* drop);
-void update_drop_down_(Drop* drop, Event *event);
-void free_drop_(Drop* drop);
+void axRenderDropDown(axDropDown* drop);
+void axUpdateDropDown(axDropDown* drop, axEvent *event);
+void axFreeDropDown(axDropDown* drop);
 
-void register_drop(Drop* drop);
+void axRegisterDropDown(axDropDown* drop);
 
-void render_all_registered_drops(void);
+void axRenderAllRegisteredDropDown(void);
 
-void update_all_registered_drops(Event *event);
+void axUpdateAllRegisteredDropDown(axEvent *event);
 
-void free_all_registered_drops(void);
+void axFreeAllRegisteredDropDown(void);
 #endif // DROP_H

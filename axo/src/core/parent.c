@@ -1,6 +1,4 @@
 #include "../../include/core/parent.h"
-#include <SDL2/SDL_ttf.h>
-#include <SDL2/SDL_image.h>
 #include <stdio.h>
 
 
@@ -9,8 +7,8 @@ float get_display_dpi(int display_index) {
 	return return_display_dpi(display_index);
 }
 
-Parent new_window(char* title, int w, int h) {
-	Parent parent;
+axParent axCreateWindow(char* title, int w, int h) {
+	axParent parent;
     // Compute DPI scale using the same helper
     parent.base.dpi_scale = get_display_dpi(0);
     parent.is_window = 1;
@@ -26,7 +24,7 @@ Parent new_window(char* title, int w, int h) {
 }
 
 
-void free_parent(Parent* parent) {
+void free_parent(axParent* parent) {
     if (!parent) return;
 
     if (parent->is_window) {
@@ -35,7 +33,7 @@ void free_parent(Parent* parent) {
 
 }
 
-Rect get_parent_rect(const Parent *p)
+Rect get_parent_rect(const axParent *p)
 {
     return (Rect){ .x = p->x, .y = p->y, .w = p->w, .h = p->h };
 }

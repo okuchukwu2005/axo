@@ -44,8 +44,8 @@ int is_any_text_widget_active(void) {
     return 0;
 }
 
-void app_run_(Parent *parent) {
-    Event event;
+void app_run_(axParent *parent) {
+    axEvent event;
     int running = 1;
     while (running) {
         while (poll_event(&event)) {
@@ -69,16 +69,16 @@ void app_run_(Parent *parent) {
                 }
 
                 // === UPDATE ALL WIDGETS ===
-                update_all_registered_containers(&event);
-                update_all_registered_radios(&event);
-                update_all_registered_entrys(&event);
-            	update_all_registered_textboxs(&event);
-                update_all_registered_sliders(&event);
-                update_all_registered_buttons(&event);
-                update_all_registered_texts(&event);     // ← Added
-                update_all_registered_drops(&event);
-                update_all_registered_progress_bars(&event);
-                update_all_registered_images(&event);
+                axUpdateAllRegisteredContainers(&event);
+                axUpdateAllRegisteredRadioButtons(&event);
+                axUpdateAllRegisteredEntries(&event);
+            	axUpdateAllRegisteredTextBoxes(&event);
+                axUpdateAllRegisteredSliders(&event);
+                axUpdateAllRegisteredButtons(&event);
+                axUpdateAllRegisteredTexts(&event);     // ← Added
+                axUpdateAllRegisteredDropDown(&event);
+                axUpdateAllRegisteredProgressBars(&event);
+                axUpdateAllRegisteredImages(&event);
 
                 // Text input management
                 if (is_any_text_widget_active()) {
@@ -91,30 +91,30 @@ void app_run_(Parent *parent) {
 
         // === RENDER ===
         clear_screen(&parent->base, parent->color);
-        render_all_registered_containers();
-        render_all_registered_drops();
-        render_all_registered_radios();
-        render_all_registered_entrys();
-        render_all_registered_textboxs();
-        render_all_registered_sliders();
-        render_all_registered_buttons();
-        render_all_registered_texts();
-        render_all_registered_progress_bars();
-        render_all_registered_images();
+        axRenderAllRegisteredContainers();
+        axRenderAllRegisteredDropDown();
+        axRenderAllRegisteredRadioButtons();
+        axRenderAllRegisteredEntries();
+        axRenderAllRegisteredTextBoxes();
+        axRenderAllRegisteredSliders();
+        axRenderAllRegisteredButtons();
+        axRenderAllRegisteredTexts();
+        axRenderAllRegisteredProgressBars();
+        axRenderAllRegisteredImages();
         present_screen(&parent->base);
     }
 
     // === CLEANUP ===
-    free_all_registered_images();
-    free_all_registered_buttons();
-    free_all_registered_drops();
-    free_all_registered_radios();
-    free_all_registered_texts();
-    free_all_registered_containers();
-    free_all_registered_entrys();
-    free_all_registered_progress_bars();
-    free_all_registered_sliders();
-    free_all_registered_textboxes();  // ← Match name above
+    axFreeAllRegisteredImages();
+    axFreeAllRegisteredButtons();
+    axFreeAllRegisteredDropDown();
+    axFreeAllRegisteredRadioButtons();
+    axFreeAllRegisteredTexts();
+    axFreeAllRegisteredContainers();
+    axFreeAllRegisteredEntries();
+    axFreeAllRegisteredProgressBars();
+    axFreeAllRegisteredSliders();
+    axFreeAllRegisteredTextBoxes();  // ← Match name above
 
     app_quit();
     free_parent(parent);

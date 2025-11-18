@@ -9,29 +9,17 @@
 #include <math.h>
 
 /* --------------------------------------------------------------------- */
-/* Text definition (opaque) */
-/* --------------------------------------------------------------------- */
-struct Text {
-    Parent*    parent;
-    int        x, y;               // logical coordinates
-    char*      content;
-    int        font_size;          // logical font size
-    Color*     color;              // NULL → use theme
-    TextAlign  align;
-};
-
-/* --------------------------------------------------------------------- */
-Text new_text(Parent* parent, int x, int y, const char* content,
+axText axCreateText(axParent* parent, int x, int y, const char* content,
               int font_size, TextAlign align)
 {
     if (!parent || !parent->base.sdl_renderer) {
         printf("Invalid parent or renderer\n");
-        Text t = {0};
+        axText t = {0};
         return t;
     }
     if (!current_theme) current_theme = (Theme*)&THEME_LIGHT;
 
-    Text t = {0};
+    axText t = {0};
     t.parent     = parent;
     t.x          = x;
     t.y          = y;
@@ -42,7 +30,7 @@ Text new_text(Parent* parent, int x, int y, const char* content,
 }
 
 /* --------------------------------------------------------------------- */
-void render_text(Text* t)
+void axRenderText(axText* t)
 {
     if (!t || !t->parent || !t->parent->base.sdl_renderer || !t->parent->is_open) return;
     if (!t->content) return;
@@ -86,7 +74,7 @@ void render_text(Text* t)
 }
 
 /* --------------------------------------------------------------------- */
-void set_text_color(Text* t, Color c)
+void axSetTextColor(axText* t, Color c)
 {
     if (!t) return;
     if (!t->color) {
@@ -97,13 +85,13 @@ void set_text_color(Text* t, Color c)
 }
 
 /* --------------------------------------------------------------------- */
-void update_text(Text* t, Event* ev)
+void axUpdateText(axText* t, axEvent* ev)
 {
     (void)t; (void)ev;   // static widget – no interaction
 }
 
 /* --------------------------------------------------------------------- */
-void free_text(Text* t)
+void axFreeText(axText* t)
 {
     if (!t) return;
     free(t->content);
@@ -112,28 +100,28 @@ void free_text(Text* t)
 
 /* --------------------------------------------------------------------- */
 /* Global registration (unchanged) */
-Text* text_widgets[MAX_TEXTS];
+axText* text_widgets[MAX_TEXTS];
 int   texts_count = 0;
 
-void register_text(Text* t)
+void axRegisterText(axText* t)
 {
     if (texts_count < MAX_TEXTS) text_widgets[texts_count++] = t;
 }
-void render_all_registered_texts(void)
+void axRenderAllRegisteredTexts(void)
 {
     for (int i = 0; i < texts_count; ++i)
-        if (text_widgets[i]) render_text(text_widgets[i]);
+        if (text_widgets[i]) axRenderText(text_widgets[i]);
 }
-void update_all_registered_texts(Event* ev)
+void axUpdateAllRegisteredTexts(axEvent* ev)
 {
     for (int i = 0; i < texts_count; ++i)
-        if (text_widgets[i]) update_text(text_widgets[i], ev);
+        if (text_widgets[i]) axUpdateText(text_widgets[i], ev);
 }
-void free_all_registered_texts(void)
+void axFreeAllRegisteredTexts(void)
 {
     for (int i = 0; i < texts_count; ++i) {
         if (text_widgets[i]) {
-            free_text(text_widgets[i]);
+            axFreeText(text_widgets[i]);
             text_widgets[i] = NULL;
         }
     }

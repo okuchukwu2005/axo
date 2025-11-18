@@ -17,7 +17,7 @@
 #define MAX_BUTTONS 100
 
 typedef struct {
-    Parent* parent;            // Pointer to the parent window or container
+    axParent* parent;            // Pointer to the parent window or container
     int x, y;                  // Position of the button (logical)
     int w, h;                  // Width and height of the button (logical)
     char* label;               // Button label text
@@ -26,32 +26,32 @@ typedef struct {
     int is_pressed;            // Is the button pressed?
     Color* custom_bg_color;    // Optional override for bg color (NULL = use theme)
     Color* custom_text_color;  // Optional override for text color (NULL = use theme)
-} Button;
+}axButton;
 
 
-Button new_button(Parent* parent, int x, int y, int w, int h, const char* label, void (*callback)(void));
+axButton axCreateButton(axParent* parent, int x, int y, int w, int h, const char* label, void (*callback)(void));
 // Setter for bg color override
-void set_button_bg_color(Button* button, Color color);
-void set_button_text_color(Button* button, Color color);
+void axSetButtonBgColor(axButton* button, Color color);
+void axSetButtonTextColor(axButton* button, Color color);
 
-void render_button(Button* button);
+void axRenderButton(axButton* button);
 void function_callback_override ();
-void update_button(Button* button, Event* event);
-void free_button(Button* button);
+void axUpdateButton(axButton* button, axEvent* event);
+void axFreeButton(axButton* button);
 
 #define OVERRIDE function_callback_override
 
 
 // Registration
 
-extern Button* button_widgets[MAX_BUTTONS];
+extern axButton* button_widgets[MAX_BUTTONS];
 extern int buttons_count;
 
-void register_button(Button* button);
+void axRegisterButton(axButton* button);
 
-void render_all_registered_buttons(void);
+void axRenderAllRegisteredButtons(void);
 
-void update_all_registered_buttons(Event* event);
-void free_all_registered_buttons(void);
+void axUpdateAllRegisteredButtons(axEvent* event);
+void axFreeAllRegisteredButtons(void);
 
 #endif // BUTTON_H

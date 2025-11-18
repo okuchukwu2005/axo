@@ -81,14 +81,14 @@ typedef struct {
         struct { int dx, dy; } mouseWheel;
         struct { int width, height; } windowResized;
     };
-} Event;
+} axEvent;
 
 /* --------------------------------------------------------------------- */
 /* ORIGINAL EVENT FUNCTIONS (unchanged)                                  */
 /* --------------------------------------------------------------------- */
 Key translate_sdl_key(SDL_Scancode sc);
-int translate_sdl_event(const SDL_Event *s, Event *out);
-int poll_event(Event *out);
+int translate_sdl_event(const SDL_Event *s, axEvent *out);
+int poll_event(axEvent *out);
 void enable_text_input(void);
 void disable_text_input(void);
 

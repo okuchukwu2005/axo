@@ -10,30 +10,17 @@
 #include <math.h>
 
 /* --------------------------------------------------------------------- */
-/* ProgressBar definition (opaque) */
-/* --------------------------------------------------------------------- */
-struct ProgressBar {
-    Parent* parent;
-    int     x, y, w, h;           // logical coordinates
-    int     min, max, value;
-    bool    show_percentage;
-    Color*  custom_bg_color;
-    Color*  custom_fill_color;
-    Color*  custom_text_color;
-};
-
-/* --------------------------------------------------------------------- */
-ProgressBar new_progress_bar(Parent* parent, int x, int y, int w, int h,
+axProgressBar axCreateProgressBar(axParent* parent, int x, int y, int w, int h,
                              int min, int max, int start_value, bool show_percentage)
 {
     if (!parent || !parent->base.sdl_renderer) {
         printf("Invalid parent or renderer\n");
-        ProgressBar p = {0};
+        axProgressBar p = {0};
         return p;
     }
     if (!current_theme) current_theme = (Theme*)&THEME_LIGHT;
 
-    ProgressBar p = {0};
+    axProgressBar p = {0};
     p.parent           = parent;
     p.x                = x;
     p.y                = y;
@@ -47,22 +34,22 @@ ProgressBar new_progress_bar(Parent* parent, int x, int y, int w, int h,
 }
 
 /* --------------------------------------------------------------------- */
-void set_progress_bar_bg_color(ProgressBar* p, Color c) {
+void axSetProgressBarBgColor(axProgressBar* p, Color c) {
     if (!p) return;
     if (!p->custom_bg_color) p->custom_bg_color = malloc(sizeof(Color));
     if (p->custom_bg_color) *p->custom_bg_color = c;
 }
-void set_progress_bar_fill_color(ProgressBar* p, Color c) {
+void axSetProgressBarFillColor(axProgressBar* p, Color c) {
     if (!p) return;
     if (!p->custom_fill_color) p->custom_fill_color = malloc(sizeof(Color));
     if (p->custom_fill_color) *p->custom_fill_color = c;
 }
-void set_progress_bar_text_color(ProgressBar* p, Color c) {
+void axSetProgressBarTextColor(axProgressBar* p, Color c) {
     if (!p) return;
     if (!p->custom_text_color) p->custom_text_color = malloc(sizeof(Color));
     if (p->custom_text_color) *p->custom_text_color = c;
 }
-void set_progress_bar_value(ProgressBar* p, int value) {
+void axSetProgressBarValue(axProgressBar* p, int value) {
     if (!p) return;
     if (value < p->min) value = p->min;
     if (value > p->max) value = p->max;
@@ -70,7 +57,7 @@ void set_progress_bar_value(ProgressBar* p, int value) {
 }
 
 /* --------------------------------------------------------------------- */
-void render_progress_bar(ProgressBar* p)
+void axRenderProgressBar(axProgressBar* p)
 {
     if (!p || !p->parent || !p->parent->base.sdl_renderer || !p->parent->is_open) return;
     if (!global_font) return;
@@ -135,14 +122,14 @@ void render_progress_bar(ProgressBar* p)
 }
 
 /* --------------------------------------------------------------------- */
-void update_progress_bar(ProgressBar* p, Event* ev)
+void axUpdateProgressBar(axProgressBar* p, axEvent* ev)
 {
     /* Non-interactive – nothing to do */
     (void)p; (void)ev;
 }
 
 /* --------------------------------------------------------------------- */
-void free_progress_bar(ProgressBar* p)
+void axFreeProgressBar(axProgressBar* p)
 {
     if (!p) return;
     free(p->custom_bg_color);
@@ -152,32 +139,32 @@ void free_progress_bar(ProgressBar* p)
 
 /* --------------------------------------------------------------------- */
 /* Registration (unchanged) */
-ProgressBar* progress_bar_widgets[MAX_PROGRESS_BARS];
+axProgressBar* progress_bar_widgets[MAX_PROGRESS_BARS];
 int          progress_bars_count = 0;
 
-void register_progress_bar(ProgressBar* p)
+void axRegisterProgressBar(axProgressBar* p)
 {
     if (progress_bars_count < MAX_PROGRESS_BARS)
         progress_bar_widgets[progress_bars_count++] = p;
 }
 
-void render_all_registered_progress_bars(void)
+void axRenderAllRegisteredProgressBars(void)
 {
     for (int i = 0; i < progress_bars_count; ++i)
-        if (progress_bar_widgets[i]) render_progress_bar(progress_bar_widgets[i]);
+        if (progress_bar_widgets[i]) axRenderProgressBar(progress_bar_widgets[i]);
 }
 
-void update_all_registered_progress_bars(Event* ev)
+void axUpdateAllRegisteredProgressBars(axEvent* ev)
 {
     for (int i = 0; i < progress_bars_count; ++i)
-        if (progress_bar_widgets[i]) update_progress_bar(progress_bar_widgets[i], ev);
+        if (progress_bar_widgets[i]) axUpdateProgressBar(progress_bar_widgets[i], ev);
 }
 
-void free_all_registered_progress_bars(void)
+void axFreeAllRegisteredProgressBars(void)
 {
     for (int i = 0; i < progress_bars_count; ++i) {
         if (progress_bar_widgets[i]) {
-            free_progress_bar(progress_bar_widgets[i]);
+            axFreeProgressBar(progress_bar_widgets[i]);
             progress_bar_widgets[i] = NULL;
         }
     }

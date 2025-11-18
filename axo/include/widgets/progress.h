@@ -12,10 +12,9 @@
 
 
 #include <stdbool.h>
-#include <SDL2/SDL.h> // for SDL_Event, etc.
 
 typedef struct {
-    Parent* parent;            // Pointer to the parent window or container
+    axParent* parent;            // Pointer to the parent window or container
     int x, y;                  // Position of the progress bar (logical)
     int w, h;                  // Width and height of the progress bar (logical)
     int min, max;              // Range (default 0-100)
@@ -24,41 +23,41 @@ typedef struct {
     Color* custom_bg_color;    // Optional override for background color (NULL = use theme)
     Color* custom_fill_color;  // Optional override for fill color (NULL = use theme)
     Color* custom_text_color;  // Optional override for text color (NULL = use theme)
-} ProgressBar;
+} axProgressBar;
 
 
 
 // -------- Create --------
-ProgressBar new_progress_bar(Parent* parent, int x, int y, int w, int h, int min, int max, int start_value, bool show_percentage);
+axProgressBar axCreateProgressBar(axParent* parent, int x, int y, int w, int h, int min, int max, int start_value, bool show_percentage);
 
-void set_progress_bar_bg_color(ProgressBar* progress_bar, Color color);
+void axSetProgressBarBgColor(axProgressBar* progress_bar, Color color);
 
-void set_progress_bar_fill_color(ProgressBar* progress_bar, Color color);
+void axSetProgressBarFillColor(axProgressBar* progress_bar, Color color);
 
-void set_progress_bar_text_color(ProgressBar* progress_bar, Color color);
+void axSetProgressBarTextColor(axProgressBar* progress_bar, Color color);
 // Setter for value
-void set_progress_bar_value(ProgressBar* progress_bar, int value);
+void axSetProgressBarValue(axProgressBar* progress_bar, int value);
 
 // -------- Render --------
-void render_progress_bar(ProgressBar* progress_bar);
+void axRenderProgressBar(axProgressBar* progress_bar);
 // -------- Update --------
-void update_progress_bar(ProgressBar* progress_bar, Event* event);
+void axUpdateProgressBar(axProgressBar* progress_bar, axEvent* event);
 
 // -------- Free --------
-void free_progress_bar(ProgressBar* progress_bar);
+void axFreeProgressBar(axProgressBar* progress_bar);
 
 
 #define MAX_PROGRESS_BARS 100
-extern ProgressBar* progress_bar_widgets[MAX_PROGRESS_BARS];
+extern axProgressBar* progress_bar_widgets[MAX_PROGRESS_BARS];
 extern int progress_bars_count;
 
 // -------- Helpers for all Progress Bars --------
-void register_progress_bar(ProgressBar* progress_bar);
+void axRegisterProgressBar(axProgressBar* progress_bar);
 
-void render_all_registered_progress_bars(void);
+void axRenderAllRegisteredProgressBars(void);
 
-void update_all_registered_progress_bars(Event* event);
+void axUpdateAllRegisteredProgressBars(axEvent* event);
 
-void free_all_registered_progress_bars(void);
+void axFreeAllRegisteredProgressBars(void);
 
 #endif // PROGRESS_H

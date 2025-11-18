@@ -3,16 +3,15 @@
 #include"../../include/core/app.h"
 #include"../../asset/icons/iconunicode.h"
 
-#include<SDL2/SDL_ttf.h>
 
 #include <math.h>  // For roundf in scaling
 
-Parent new_container(Parent* root, int x, int y, int w, int h) {
+axParent axCreateContainer(axParent* root, int x, int y, int w, int h) {
     if (!root || !root->is_window) {
         printf("invalid parent passed on container!\n");
     }
 
-    Parent parent;
+    axParent parent;
     // Containers don’t own SDL_Window; just reuse renderer from root
     parent.base.sdl_window   = NULL;
     parent.base.sdl_renderer = root->base.sdl_renderer;
@@ -42,7 +41,7 @@ Parent new_container(Parent* root, int x, int y, int w, int h) {
     return parent;
 }
 
-void set_container_properties(Parent* container, bool moveable, const char* title, bool has_title_bar, bool closeable/*,bool resizeable*/){
+void axSetContainerProperties(axParent* container, bool moveable, const char* title, bool has_title_bar, bool closeable/*,bool resizeable*/){
     if (!container) return;
     container->moveable = moveable;
     container->title_bar = title;
@@ -52,7 +51,7 @@ void set_container_properties(Parent* container, bool moveable, const char* titl
     container->title_height = has_title_bar ? 30 : 0;
 }
 
-void draw_title_bar_(Parent* container) {
+void draw_title_bar_(axParent* container) {
     if (!container || !container->has_title_bar) return;
 
     // Fallback if no theme set
@@ -66,7 +65,6 @@ void draw_title_bar_(Parent* container) {
     int sw = (int)roundf(container->w * dpi);
     int sth = (int)roundf(container->title_height * dpi);
     int pad = (int)roundf(current_theme->padding * dpi);
-    int font_size = (int)roundf(current_theme->default_font_size * dpi);
 
     draw_rect(&container->base,
                sx, sy,
@@ -97,7 +95,7 @@ void draw_title_bar_(Parent* container) {
     }
 }
 
-void render_container(Parent* container) {
+void axRenderContainer(axParent* container) {
     if (!container || !container->is_open) return;
 
     // Fallback if no theme set
@@ -122,7 +120,7 @@ void render_container(Parent* container) {
                current_theme->container_bg);
 }
 
-void update_container(Parent* container, Event* event) {
+void axUpdateContainer(axParent* container, axEvent* event) {
     if (!container || !container->is_open) return;
 
     float dpi = container->base.dpi_scale;
@@ -203,39 +201,39 @@ void update_container(Parent* container, Event* event) {
 
 // registering stuffs
 
-Parent* container_widgets[MAX_CONTAINERS];
+axParent* container_widgets[MAX_CONTAINERS];
 int containers_count = 0;
 
-void register_container(Parent* container) {
+void axRegisterContainer(axParent* container) {
     if (containers_count < MAX_CONTAINERS) {
         container_widgets[containers_count] = container;
         containers_count++;
     }
 }
 
-void render_all_registered_containers(void) {
+void axRenderAllRegisteredContainers(void) {
     for (int i = 0; i < containers_count; i++) {
-        render_container(container_widgets[i]);
+        axRenderContainer(container_widgets[i]);
     }
 }
 
-void update_all_registered_containers(Event *event) {
+void axUpdateAllRegisteredContainers(axEvent *event) {
     for (int i = 0; i < containers_count; i++) {
-        update_container(container_widgets[i], event);
+        axUpdateContainer(container_widgets[i], event);
     }
 }
 
-void free_con_(Parent* parent) {
+void axFreeContainer(axParent* parent) {
     if (!parent) return;
     if (parent->is_window) {
         free_parent(parent);
     }
 }
 
-void free_all_registered_containers(void) {
+void axFreeAllRegisteredContainers(void) {
     for (int i = 0; i < containers_count; i++) {
         if (container_widgets[i]) {
-            free_con_(container_widgets[i]);
+            axFreeContainer(container_widgets[i]);
             container_widgets[i] = NULL;
         }
     }

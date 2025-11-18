@@ -82,7 +82,7 @@ Key translate_sdl_key(SDL_Scancode sc) {
 /* --------------------------------------------------------------------- */
 /* ORIGINAL EVENT TRANSLATION (unchanged)                                */
 /* --------------------------------------------------------------------- */
-int translate_sdl_event(const SDL_Event *s, Event *out) {
+int translate_sdl_event(const SDL_Event *s, axEvent *out) {
     if (!s || !out) return 0;
 
     switch (s->type) {
@@ -163,7 +163,7 @@ int translate_sdl_event(const SDL_Event *s, Event *out) {
 /* --------------------------------------------------------------------- */
 /* ORIGINAL POLLING (unchanged)                                          */
 /* --------------------------------------------------------------------- */
-int poll_event(Event *out) {
+int poll_event(axEvent *out) {
     SDL_Event s;
     while (SDL_PollEvent(&s)) {
         if (translate_sdl_event(&s, out)) {

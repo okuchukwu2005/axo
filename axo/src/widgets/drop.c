@@ -8,38 +8,19 @@
 #include <string.h>
 #include <math.h>
 
-/* --------------------------------------------------------------------- */
-/* Drop definition (opaque) */
-/* --------------------------------------------------------------------- */
-struct Drop {
-    Parent* parent;
-    int     x, y, w, h;           // logical coordinates
-    char**  options;
-    int     option_count;
-    int     selected_index;
-    bool    is_expanded;
-    bool    is_hovered;
-    int     font_size;            // 0 = use theme default
-    char*   place_holder;
-
-    Color*  custom_bg_color;
-    Color*  custom_button_color;
-    Color*  custom_text_color;
-    Color*  custom_highlight_color;
-};
 
 /* --------------------------------------------------------------------- */
-Drop new_drop_down(Parent* parent, int x, int y, int w, int h,
+axDropDown axCreateDropDown(axParent* parent, int x, int y, int w, int h,
                    char** options, int option_count)
 {
     if (!parent || !parent->base.sdl_renderer) {
         printf("Invalid parent or renderer\n");
-        Drop d = {0};
+        axDropDown d = {0};
         return d;
     }
     if (!current_theme) current_theme = (Theme*)&THEME_LIGHT;
 
-    Drop d = {0};
+    axDropDown d = {0};
     d.parent         = parent;
     d.x = x; d.y = y; d.w = w; d.h = h;
     d.options        = options;
@@ -51,27 +32,27 @@ Drop new_drop_down(Parent* parent, int x, int y, int w, int h,
 
 /* --------------------------------------------------------------------- */
 /* Setters – unchanged (just copy) */
-void set_drop_bg_color(Drop* d, Color c) {
+void axSetDropDownBgColor(axDropDown* d, Color c) {
     if (!d) return;
     if (!d->custom_bg_color) d->custom_bg_color = malloc(sizeof(Color));
     if (d->custom_bg_color) *d->custom_bg_color = c;
 }
-void set_drop_button_color(Drop* d, Color c) {
+void axSetDropDownButtonColor(axDropDown* d, Color c) {
     if (!d) return;
     if (!d->custom_button_color) d->custom_button_color = malloc(sizeof(Color));
     if (d->custom_button_color) *d->custom_button_color = c;
 }
-void set_drop_text_color(Drop* d, Color c) {
+void axSetDropDownTextColor(axDropDown* d, Color c) {
     if (!d) return;
     if (!d->custom_text_color) d->custom_text_color = malloc(sizeof(Color));
     if (d->custom_text_color) *d->custom_text_color = c;
 }
-void set_drop_highlight_color(Drop* d, Color c) {
+void axSetDropDownHighLightColor(axDropDown* d, Color c) {
     if (!d) return;
     if (!d->custom_highlight_color) d->custom_highlight_color = malloc(sizeof(Color));
     if (d->custom_highlight_color) *d->custom_highlight_color = c;
 }
-void set_drop_font_size(Drop* d, int size) {
+void axSetDropFontSize(axDropDown* d, int size) {
     if (d) d->font_size = size;
 }
 
@@ -87,7 +68,7 @@ static void draw_upside_down_triangle(Base* base, int x, int y, int size, Color 
 }
 
 /* --------------------------------------------------------------------- */
-void render_drop_down_(Drop* d)
+void axRenderDropDown(axDropDown* d)
 {
     if (!d || !d->parent || !d->parent->base.sdl_renderer || !d->parent->is_open) return;
     if (!global_font) { printf("global_font missing\n"); return; }
@@ -174,7 +155,7 @@ void render_drop_down_(Drop* d)
 }
 
 /* --------------------------------------------------------------------- */
-void update_drop_down_(Drop* d, Event* ev)
+void axUpdateDropDown(axDropDown* d, axEvent* ev)
 {
     if (!d || !d->parent || !d->parent->is_open) return;
 
@@ -226,7 +207,7 @@ void update_drop_down_(Drop* d, Event* ev)
 }
 
 /* --------------------------------------------------------------------- */
-void free_drop_(Drop* d)
+void axFreeDropDown(axDropDown* d)
 {
     if (!d) return;
     free(d->place_holder);
@@ -238,28 +219,28 @@ void free_drop_(Drop* d)
 
 /* --------------------------------------------------------------------- */
 /* Global registration (unchanged) */
-Drop* drop_widgets[MAX_DROPS];
+axDropDown* drop_widgets[MAX_DROPS];
 int   drops_count = 0;
 
-void register_drop(Drop* d)
+void axRegisterDropDown(axDropDown* d)
 {
     if (drops_count < MAX_DROPS) drop_widgets[drops_count++] = d;
 }
-void render_all_registered_drops(void)
+void axRenderAllRegisteredDropDown(void)
 {
     for (int i = 0; i < drops_count; ++i)
-        if (drop_widgets[i]) render_drop_down_(drop_widgets[i]);
+        if (drop_widgets[i]) axRenderDropDown(drop_widgets[i]);
 }
-void update_all_registered_drops(Event* ev)
+void axUpdateAllRegisteredDropDown(axEvent* ev)
 {
     for (int i = 0; i < drops_count; ++i)
-        if (drop_widgets[i]) update_drop_down_(drop_widgets[i], ev);
+        if (drop_widgets[i]) axUpdateDropDown(drop_widgets[i], ev);
 }
-void free_all_registered_drops(void)
+void axFreeAllRegisteredDropDown(void)
 {
     for (int i = 0; i < drops_count; ++i) {
         if (drop_widgets[i]) {
-            free_drop_(drop_widgets[i]);
+            axFreeDropDown(drop_widgets[i]);
             drop_widgets[i] = NULL;
         }
     }

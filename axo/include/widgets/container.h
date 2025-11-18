@@ -8,27 +8,27 @@
 #include<SDL2/SDL.h>
 #include<stdbool.h>
 
-Parent new_container(Parent* root, int x, int y, int w, int h);
-void set_container_properties(Parent* container, bool moveable, const char* title, bool has_title_bar, bool closeable/*,bool resizeable*/);
+axParent axCreateContainer(axParent* root, int x, int y, int w, int h);
+void axSetContainerProperties(axParent* container, bool moveable, const char* title, bool has_title_bar, bool closeable/*,bool resizeable*/);
 
-void draw_title_bar_(Parent* container);
-void render_container(Parent* container);
+void draw_title_bar_(axParent* container);
+void axRenderContainer(axParent* container);
 
-void update_container(Parent* container, Event* event);
+void axUpdateContainer(axParent* container, axEvent* event);
 // registering stuffs
 
 #define MAX_CONTAINERS 100
 
-extern Parent* container_widgets[MAX_CONTAINERS];
+extern axParent* container_widgets[MAX_CONTAINERS];
 extern int containers_count;
 
-void register_container(Parent* container);
+void axRegisterContainer(axParent* container);
 
-void render_all_registered_containers(void);
-void update_all_registered_containers(Event* event);
+void axRenderAllRegisteredContainers(void);
+void axUpdateAllRegisteredContainers(axEvent* event);
 
-void free_con_(Parent* parent);
+void axFreeContainer(axParent* parent);
 
-void free_all_registered_containers(void);
+void axFreeAllRegisteredContainers(void);
 
 #endif /* CONTAINER_H */

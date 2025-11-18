@@ -9,33 +9,17 @@
 #include <math.h>
 
 /* --------------------------------------------------------------------- */
-/* Slider definition (opaque) */
-/* --------------------------------------------------------------------- */
-struct Slider {
-    Parent* parent;
-    int     x, y, w, h;           // logical coordinates
-    int     min, max, value;
-    char*   label;
-    bool    dragging;
-    bool    is_hovered;
-
-    Color*  custom_track_color;
-    Color*  custom_thumb_color;
-    Color*  custom_label_color;
-};
-
-/* --------------------------------------------------------------------- */
-Slider new_slider(Parent* parent, int x, int y, int w, int h,
+axSlider axCreateSlider(axParent* parent, int x, int y, int w, int h,
                   int min, int max, int start_value, const char* label)
 {
     if (!parent || !parent->base.sdl_renderer) {
         printf("Invalid parent or renderer\n");
-        Slider s = {0};
+        axSlider s = {0};
         return s;
     }
     if (!current_theme) current_theme = (Theme*)&THEME_LIGHT;
 
-    Slider s = {0};
+    axSlider s = {0};
     s.parent     = parent;
     s.x          = x;
     s.y          = y;
@@ -50,24 +34,24 @@ Slider new_slider(Parent* parent, int x, int y, int w, int h,
 
 /* --------------------------------------------------------------------- */
 /* Setters – unchanged */
-void set_slider_track_color(Slider* s, Color c) {
+void axSetSliderTrackColor(axSlider* s, Color c) {
     if (!s) return;
     if (!s->custom_track_color) s->custom_track_color = malloc(sizeof(Color));
     if (s->custom_track_color) *s->custom_track_color = c;
 }
-void set_slider_thumb_color(Slider* s, Color c) {
+void axSetSliderThumbColor(axSlider* s, Color c) {
     if (!s) return;
     if (!s->custom_thumb_color) s->custom_thumb_color = malloc(sizeof(Color));
     if (s->custom_thumb_color) *s->custom_thumb_color = c;
 }
-void set_slider_label_color(Slider* s, Color c) {
+void axSetSliderLabelColor(axSlider* s, Color c) {
     if (!s) return;
     if (!s->custom_label_color) s->custom_label_color = malloc(sizeof(Color));
     if (s->custom_label_color) *s->custom_label_color = c;
 }
 
 /* --------------------------------------------------------------------- */
-void render_slider(Slider* s)
+void axRenderSlider(axSlider* s)
 {
     if (!s || !s->parent || !s->parent->base.sdl_renderer || !s->parent->is_open) return;
     if (!global_font) { printf("global_font missing\n"); return; }
@@ -135,7 +119,7 @@ void render_slider(Slider* s)
 }
 
 /* --------------------------------------------------------------------- */
-void update_slider(Slider* s, Event* ev)
+void axUpdateSlider(axSlider* s, axEvent* ev)
 {
     if (!s || !s->parent || !s->parent->is_open) return;
 
@@ -188,7 +172,7 @@ void update_slider(Slider* s, Event* ev)
 }
 
 /* --------------------------------------------------------------------- */
-void free_slider(Slider* s)
+void axFreeSlider(axSlider* s)
 {
     if (!s) return;
     free(s->label);
@@ -199,28 +183,28 @@ void free_slider(Slider* s)
 
 /* --------------------------------------------------------------------- */
 /* Global registration (unchanged) */
-Slider* sliders[MAX_SLIDERS];
+axSlider* sliders[MAX_SLIDERS];
 int     sliders_count = 0;
 
-void register_slider(Slider* s)
+void axRegisterSlider(axSlider* s)
 {
     if (sliders_count < MAX_SLIDERS) sliders[sliders_count++] = s;
 }
-void render_all_registered_sliders(void)
+void axRenderAllRegisteredSliders(void)
 {
     for (int i = 0; i < sliders_count; ++i)
-        if (sliders[i]) render_slider(sliders[i]);
+        if (sliders[i]) axRenderSlider(sliders[i]);
 }
-void update_all_registered_sliders(Event* ev)
+void axUpdateAllRegisteredSliders(axEvent* ev)
 {
     for (int i = 0; i < sliders_count; ++i)
-        if (sliders[i]) update_slider(sliders[i], ev);
+        if (sliders[i]) axUpdateSlider(sliders[i], ev);
 }
-void free_all_registered_sliders(void)
+void axFreeAllRegisteredSliders(void)
 {
     for (int i = 0; i < sliders_count; ++i) {
         if (sliders[i]) {
-            free_slider(sliders[i]);
+            axFreeSlider(sliders[i]);
             sliders[i] = NULL;
         }
     }

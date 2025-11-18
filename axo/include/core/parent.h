@@ -32,7 +32,7 @@ typedef struct {
     int resize_zone;           // Size of edge zone for resizing
     bool is_open;              // Is open (true for root window)
     int title_height;          // Height of title bar (0 for root window)
-} Parent;
+}axParent;
 
 /**
  * @brief Creates a new root window as a Parent struct.
@@ -45,12 +45,12 @@ typedef struct {
 // Returns DPI scale relative to standard 96 DPI
 float get_display_dpi(int display_index);
 
-Parent new_window(char* title, int w, int h);
+axParent axCreateWindow(char* title, int w, int h);
 
 /**
  * @brief Destroys the Parent struct, cleaning up SDL resources if it's a root window.
  * @param parent Pointer to the Parent to destroy.
  */
-void free_parent(Parent* parent);
-Rect get_parent_rect(const Parent *p);
+void free_parent(axParent* parent);
+Rect get_parent_rect(const axParent *p);
 #endif /* PARENT_H */
