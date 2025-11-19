@@ -2,12 +2,12 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "../axo/axo.h"
-#include "../axo/asset/bin/fira_code.h"
+#include "../axo/asset/fonts/bin/fira_code.h"
 
 int main(void) {
     axInit();
 
-    axParent win = axCreateWindow("My Window", 1000, 700);
+    axParent win = axCreateWindow("My Window", 1000, 700, WIN_RESIZABLE);
     // Get DPI scaling for primary display
      float dpi = win.base.dpi_scale = get_display_dpi(0);
 
