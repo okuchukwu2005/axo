@@ -7,7 +7,7 @@ float get_display_dpi(int display_index) {
 	return return_display_dpi(display_index);
 }
 
-axParent axCreateWindow(char* title, int w, int h) {
+axParent axCreateWindow(char* title, int w, int h, Uint32 flags) {
 	axParent parent;
     // Compute DPI scale using the same helper
     parent.base.dpi_scale = get_display_dpi(0);
@@ -18,7 +18,7 @@ axParent axCreateWindow(char* title, int w, int h) {
     parent.is_open = true;
     parent.title_height=0;
 
-	create_window(&parent.base,title, w,h);
+	create_window(&parent.base,title, w,h,flags);
 	
     return parent;
 }

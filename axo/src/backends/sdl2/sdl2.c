@@ -24,7 +24,7 @@ float return_display_dpi(int display_index) {
     return dpi_scale;
 }
 
-void create_window(Base *base, char* title, int w, int h) {
+void create_window(Base *base, char* title, int w, int h, Uint32 flags) {
     // Enable DPI scaling hint for Windows (set before any SDL_Init calls if possible)
     SDL_SetHint(SDL_HINT_WINDOWS_DPI_SCALING, "1");
 
@@ -50,7 +50,7 @@ void create_window(Base *base, char* title, int w, int h) {
                                          SDL_WINDOWPOS_CENTERED,
                                          SDL_WINDOWPOS_CENTERED,
                                          w, h,
-                                         SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI);  // Enable high DPI
+                                         flags | SDL_WINDOW_ALLOW_HIGHDPI);  // Enable high DPI
     if (!base->sdl_window) {
         printf("Window creation failed: %s\n", SDL_GetError());
         IMG_Quit();

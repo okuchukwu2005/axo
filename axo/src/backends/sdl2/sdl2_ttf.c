@@ -1,6 +1,8 @@
 /* sdl2_ttf.c – only this file includes the real SDL_ttf.h */
 #include "../../../include/backends/sdl2/sdl2_ttf.h"
 #include "../../../include/core/theme.h"
+#include "../../../asset/icons/bin/material_symbols.h"
+
 #include <SDL2/SDL_ttf.h>
 #include <stdlib.h>
 #include <string.h>
@@ -190,9 +192,11 @@ void draw_text(Base* base, const char* text, int font_size, int x, int y, Color 
 }
 
 void draw_icon(Base* base, const char* icon, int font_size, int x, int y, Color color){
-    Font_ttf* font = load_font_ttf("../axo/asset/icons/MaterialSymbolsOutlined-Regular.ttf", font_size);
+	RWops* bin = open_font_rw(material_symbols_ttf, material_symbols_ttf_len);
+	Font_ttf *font = load_font_rw(bin, font_size);
+
     if (!font) {
-        printf("Failed to load font '%s': %s\n",current_theme->font_file , TTF_GetError());
+        printf("Failed to load material symbol for icons\n");
         return;
     }
 
