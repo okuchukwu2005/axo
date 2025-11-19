@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "../axo/axo.h"
+#include "../axo/asset/bin/fira_code.h"
 
 int main(void) {
     axInit();
@@ -13,8 +14,9 @@ int main(void) {
       // Scale font size based on DPI
       int scaled_font_size = (int)(current_theme->default_font_size * dpi); // round to nearest int
 
-
-    global_font = load_font_ttf("FiraCode-Regular.ttf", scaled_font_size);
+	RWops* bin = open_font_rw(fira_code_ttf,fira_code_ttf_len);
+    // global_font = load_font_ttf("FiraCode-Regular.ttf", scaled_font_size);
+    global_font = load_font_rw(bin, scaled_font_size);
 
     axParent container = axCreateContainer(&win, 10, 10, 360, 500);
 

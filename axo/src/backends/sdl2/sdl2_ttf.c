@@ -199,3 +199,32 @@ void draw_icon(Base* base, const char* icon, int font_size, int x, int y, Color 
     draw_text_from_font(base, font, icon, x, y, color, ALIGN_LEFT);
     free_font_ttf(font);
 }
+
+
+//----------------------------------------
+RWops* open_font_rw(const void *mem, int size) {
+    // Allocate the RWops struct
+    RWops* rw = (RWops*)malloc(sizeof(RWops));
+    if (!rw) {
+        printf("Memory allocation failed\n");
+        return NULL;
+    }
+
+    // Create SDL_RWops from memory
+    rw->handle = SDL_RWFromConstMem(mem, size);
+    if (!rw->handle) {
+        printf("SDL_RWFromConstMem failed\n");
+        free(rw);
+        return NULL;
+    }
+
+    return rw;
+}
+Font_ttf* load_font_rw(RWops * rw, int font_size){
+	TTF_Font* raw = TTF_OpenFontRW(rw->handle, 1, font_size);
+	if(!raw) return NULL;
+    Font_ttf* f = malloc(sizeof *f);
+    if (!f) { TTF_CloseFont(raw); return NULL; }
+    f->font = raw;
+    return f;
+}

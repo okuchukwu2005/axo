@@ -111,6 +111,13 @@ void draw_text(Base* base, const char* text, int font_size, int x, int y, Color 
  * @param h    Height (0 to use texture height).
  */
 
+//----------------------------------------------------------
+// to open compiled c binary font
+typedef struct {
+    SDL_RWops* handle;
+} RWops;
+RWops* open_font_rw(const void *mem, int size);
+Font_ttf* load_font_rw(RWops * rw, int font_size);
 #endif /* SDL2_TTF_H */
 
 /* EXAMPLE USAGE
