@@ -4,6 +4,8 @@
  */
 
 #include "../../include/core/theme.h"
+#include <stddef.h>
+
 
 const Theme* current_theme = NULL;
 

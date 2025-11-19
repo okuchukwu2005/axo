@@ -4,17 +4,16 @@
  */
 #ifndef COLOR_H
 #define COLOR_H
-
-#include <SDL2/SDL_stdinc.h> // this defines Uint8
+#include<stdint.h>
 /**
  * @struct Color
  * @brief Represents an RGBA color with 8-bit components
  */
 typedef struct {
-    Uint8 r;  // Red component (0-255)
-    Uint8 g;  // Green component (0-255)
-    Uint8 b;  // Blue component (0-255)
-    Uint8 a;  // Alpha component (0-255)
+    uint8_t r;  // Red component (0-255)
+    uint8_t g;  // Green component (0-255)
+    uint8_t b;  // Blue component (0-255)
+    uint8_t a;  // Alpha component (0-255)
 } Color;
 
 // Color manipulation helpers
