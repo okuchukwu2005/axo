@@ -10,44 +10,31 @@
 
 
 /* --------------------------------------------------------------------- */
-axRadioButton axCreateRadioButton(axParent* parent, int x, int y, int w, int h,
+axRadioButton *axCreateRadioButton(axParent* parent, int x, int y, int w, int h,
                        const char* label, int group_id)
 {
     if (!parent || !parent->base.sdl_renderer) {
         printf("Invalid parent or renderer\n");
-        axRadioButton r = {0};
-        return r;
+        return NULL;
     }
     if (!current_theme) current_theme = (Theme*)&THEME_LIGHT;
 
-    axRadioButton r = {0};
-    r.parent     = parent;
-    r.x          = x;
-    r.y          = y;
-    r.w          = w;
-    r.h          = h;
-    r.label      = label ? strdup(label) : NULL;
-    r.group_id   = group_id;
+    axRadioButton* r = (axRadioButton*)calloc(1,sizeof(axRadioButton));
+    
+        if(!r){
+        	DEBUG_PRINT("failed to allocate memory for radio button\n");
+        	return NULL;
+        }
+    r->parent     = parent;
+    r->x          = x;
+    r->y          = y;
+    r->w          = w;
+    r->h          = h;
+    r->label      = label ? strdup(label) : NULL;
+    r->group_id   = group_id;
     return r;
 }
 
-/* --------------------------------------------------------------------- */
-/* Setters – unchanged */
-void axSetRadioButtonOuterColor(axRadioButton* r, Color c) {
-    if (!r) return;
-    if (!r->custom_outer_color) r->custom_outer_color = malloc(sizeof(Color));
-    if (r->custom_outer_color) *r->custom_outer_color = c;
-}
-void axSetRadioButtonInnerColor(axRadioButton* r, Color c) {
-    if (!r) return;
-    if (!r->custom_inner_color) r->custom_inner_color = malloc(sizeof(Color));
-    if (r->custom_inner_color) *r->custom_inner_color = c;
-}
-void axSetRadioButtonLabelColor(axRadioButton* r, Color c) {
-    if (!r) return;
-    if (!r->custom_label_color) r->custom_label_color = malloc(sizeof(Color));
-    if (r->custom_label_color) *r->custom_label_color = c;
-}
 
 /* --------------------------------------------------------------------- */
 void axRenderRadioButton(axRadioButton* r)
@@ -83,13 +70,13 @@ void axRenderRadioButton(axRadioButton* r)
     }
 
     /* ---------- COLORS ---------- */
-    Color outer = r->custom_outer_color ? *r->custom_outer_color : current_theme->bg_secondary;
+    Color outer = r->has_custom_outer_color ? r->custom_outer_color : current_theme->bg_secondary;
     if (r->is_hovered) {
-        outer = r->custom_outer_color ? lighten_color(*r->custom_outer_color, 0.1f)
+        outer = r->has_custom_outer_color ? lighten_color(r->custom_outer_color, 0.1f)
                                       : current_theme->button_hovered;
     }
-    Color inner = r->custom_inner_color ? *r->custom_inner_color : current_theme->accent;
-    Color label = r->custom_label_color ? *r->custom_label_color : current_theme->text_primary;
+    Color inner = r->has_custom_inner_color ? r->custom_inner_color : current_theme->accent;
+    Color label = r->has_custom_label_color ? r->custom_label_color : current_theme->text_primary;
 
     /* ---------- DRAW CIRCLE (outer) ---------- */
     draw_circle(base, sx, sy, radius, outer);
@@ -158,9 +145,7 @@ void axFreeRadioButton(axRadioButton* r)
 {
     if (!r) return;
     free(r->label);
-    free(r->custom_outer_color);
-    free(r->custom_inner_color);
-    free(r->custom_label_color);
+    free(r);
 }
 
 /* --------------------------------------------------------------------- */

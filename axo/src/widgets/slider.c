@@ -9,46 +9,33 @@
 #include <math.h>
 
 /* --------------------------------------------------------------------- */
-axSlider axCreateSlider(axParent* parent, int x, int y, int w, int h,
+axSlider *axCreateSlider(axParent* parent, int x, int y, int w, int h,
                   int min, int max, int start_value, const char* label)
 {
     if (!parent || !parent->base.sdl_renderer) {
         printf("Invalid parent or renderer\n");
-        axSlider s = {0};
-        return s;
+        return NULL;
     }
     if (!current_theme) current_theme = (Theme*)&THEME_LIGHT;
 
-    axSlider s = {0};
-    s.parent     = parent;
-    s.x          = x;
-    s.y          = y;
-    s.w          = w;
-    s.h          = h;
-    s.min        = min;
-    s.max        = max;
-    s.value      = start_value;
-    s.label      = label ? strdup(label) : NULL;
+    axSlider *s = (axSlider*)calloc(1,sizeof(axSlider));
+    
+        if(!s){
+        	DEBUG_PRINT("failed to allocate memory for slider\n");
+        	return NULL;
+        }
+    s->parent     = parent;
+    s->x          = x;
+    s->y          = y;
+    s->w          = w;
+    s->h          = h;
+    s->min        = min;
+    s->max        = max;
+    s->value      = start_value;
+    s->label      = label ? strdup(label) : NULL;
     return s;
 }
 
-/* --------------------------------------------------------------------- */
-/* Setters – unchanged */
-void axSetSliderTrackColor(axSlider* s, Color c) {
-    if (!s) return;
-    if (!s->custom_track_color) s->custom_track_color = malloc(sizeof(Color));
-    if (s->custom_track_color) *s->custom_track_color = c;
-}
-void axSetSliderThumbColor(axSlider* s, Color c) {
-    if (!s) return;
-    if (!s->custom_thumb_color) s->custom_thumb_color = malloc(sizeof(Color));
-    if (s->custom_thumb_color) *s->custom_thumb_color = c;
-}
-void axSetSliderLabelColor(axSlider* s, Color c) {
-    if (!s) return;
-    if (!s->custom_label_color) s->custom_label_color = malloc(sizeof(Color));
-    if (s->custom_label_color) *s->custom_label_color = c;
-}
 
 /* --------------------------------------------------------------------- */
 void axRenderSlider(axSlider* s)
@@ -87,10 +74,10 @@ void axRenderSlider(axSlider* s)
     }
 
     /* ---------- COLORS ---------- */
-    Color track = s->custom_track_color ? *s->custom_track_color : current_theme->bg_secondary;
-    Color thumb = s->custom_thumb_color ? *s->custom_thumb_color : current_theme->accent;
+    Color track = s->has_custom_track_color ? s->custom_track_color : current_theme->bg_secondary;
+    Color thumb = s->has_custom_thumb_color ? s->custom_thumb_color : current_theme->accent;
     if (s->is_hovered || s->dragging) {
-        thumb = s->custom_thumb_color ? lighten_color(*s->custom_thumb_color, 0.1f)
+        thumb = s->has_custom_thumb_color ? lighten_color(s->custom_thumb_color, 0.1f)
                                       : current_theme->button_hovered;
     }
 
@@ -108,7 +95,7 @@ void axRenderSlider(axSlider* s)
 
     /* ---------- LABEL (if any) ---------- */
     if (s->label) {
-        Color label_col = s->custom_label_color ? *s->custom_label_color : current_theme->text_secondary;
+        Color label_col = s->has_custom_label_color ? s->custom_label_color : current_theme->text_secondary;
         int label_x = sx + sw + label_pad;
         int label_y = sy + (sh / 2) - label_v_offset;
         draw_text_from_font(base, global_font, s->label, label_x, label_y, label_col, ALIGN_LEFT);
@@ -176,9 +163,7 @@ void axFreeSlider(axSlider* s)
 {
     if (!s) return;
     free(s->label);
-    free(s->custom_track_color);
-    free(s->custom_thumb_color);
-    free(s->custom_label_color);
+    free(s);
 }
 
 /* --------------------------------------------------------------------- */

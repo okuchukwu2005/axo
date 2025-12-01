@@ -6,37 +6,42 @@
 
 #include <math.h>  // For roundf in scaling
 
-axParent axCreateContainer(axParent* root, int x, int y, int w, int h) {
+axParent* axCreateContainer(axParent* root, int x, int y, int w, int h) {
     if (!root || !root->is_window) {
         printf("invalid parent passed on container!\n");
+        return NULL;
     }
 
-    axParent parent;
+    axParent* parent = (axParent*)malloc(sizeof(axParent));
+    if(!parent){
+        	DEBUG_PRINT("failed to allocate memory for container\n");
+        	return NULL;
+     }
     // Containers don’t own SDL_Window; just reuse renderer from root
-    parent.base.sdl_window   = NULL;
-    parent.base.sdl_renderer = root->base.sdl_renderer;
-    parent.base.dpi_scale    = root->base.dpi_scale;  // Propagate DPI scale from root
+    parent->base.sdl_window   = NULL;
+    parent->base.sdl_renderer = root->base.sdl_renderer;
+    parent->base.dpi_scale    = root->base.dpi_scale;  // Propagate DPI scale from root
 
-    parent.is_window = 0;
-    parent.x = x;
-    parent.y = y;
-    parent.w = w;
-    parent.h = h;
-    parent.color = (Color){0, 0, 0, 0}; // Default transparent, since color is now from theme
+    parent->is_window = 0;
+    parent->x = x;
+    parent->y = y;
+    parent->w = w;
+    parent->h = h;
+    parent->color = (Color){0, 0, 0, 0}; // Default transparent, since color is now from theme
 
     // Defaults
-    parent.moveable = 0;
-    parent.title_bar = NULL;
-    parent.has_title_bar = false;
-    parent.is_dragging = false;
-    parent.drag_offset_x = 0;
-    parent.drag_offset_y = 0;
-    parent.closeable = false;
-    parent.resizeable = false;
-    parent.is_resizing = false;
-    parent.resize_zone = 5;
-    parent.is_open = true;
-    parent.title_height = 0;
+    parent->moveable = 0;
+    parent->title_bar = NULL;
+    parent->has_title_bar = false;
+    parent->is_dragging = false;
+    parent->drag_offset_x = 0;
+    parent->drag_offset_y = 0;
+    parent->closeable = false;
+    parent->resizeable = false;
+    parent->is_resizing = false;
+    parent->resize_zone = 5;
+    parent->is_open = true;
+    parent->title_height = 0;
 
     return parent;
 }
@@ -228,6 +233,7 @@ void axFreeContainer(axParent* parent) {
     if (parent->is_window) {
         free_parent(parent);
     }
+    free(parent);
 }
 
 void axFreeAllRegisteredContainers(void) {

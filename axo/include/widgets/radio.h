@@ -23,20 +23,18 @@ typedef struct {
     int group_id;        // Group ID (1 group → only 1 selected)
     bool is_hovered;     // For potential hover effects
     // Theme overrides (NULL = use theme)
-    Color* custom_outer_color;   // Outer circle color
-    Color* custom_inner_color;   // Inner circle color when selected
-    Color* custom_label_color;   // Label text color
+    Color custom_outer_color;   // Outer circle color
+    Color custom_inner_color;   // Inner circle color when selected
+    Color custom_label_color;   // Label text color
+    
+    bool has_custom_outer_color;   // Outer circle color
+    bool has_custom_inner_color;   // Inner circle color when selected
+    bool has_custom_label_color;   // Label text color
 } axRadioButton;
 
 
 // -------- Create --------
-axRadioButton axCreateRadioButton(axParent* parent, int x, int y, int w, int h, const char* label, int group_id);
-void axSetRadioButtonOuterColor(axRadioButton* radio, Color color);
-
-void axSetRadioButtonInnerColor(axRadioButton* radio, Color color);
-
-void axSetRadioButtonLabelColor(axRadioButton* radio, Color color);
-
+axRadioButton* axCreateRadioButton(axParent* parent, int x, int y, int w, int h, const char* label, int group_id);
 // -------- Render --------
 void axRenderRadioButton(axRadioButton* radio);
 

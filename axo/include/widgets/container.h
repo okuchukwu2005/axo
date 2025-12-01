@@ -8,7 +8,7 @@
 #include<SDL2/SDL.h>
 #include<stdbool.h>
 
-axParent axCreateContainer(axParent* root, int x, int y, int w, int h);
+axParent* axCreateContainer(axParent* root, int x, int y, int w, int h);
 void axSetContainerProperties(axParent* container, bool moveable, const char* title, bool has_title_bar, bool closeable/*,bool resizeable*/);
 
 void draw_title_bar_(axParent* container);

@@ -19,14 +19,14 @@ typedef struct {
     int x, y;                  // Position of the text
     char* content;             // Text content
     int font_size;             // Font size in points
-    Color* color;               // Text color
+    Color color;               // Text color
+    bool has_color;
     TextAlign align;           // Alignment (LEFT, CENTER, RIGHT)
 } axText;
 
-axText axCreateText(axParent* parent, int x, int y, const char* content, int font_size, TextAlign align);
+axText *axCreateText(axParent* parent, int x, int y, const char* content, int font_size, TextAlign align);
 void axRenderText(axText* text);
-// Setters for overrides
-void axSetTextColor(axText* text, Color color);
+
 
 void axUpdateText(axText* text, axEvent *event);
 

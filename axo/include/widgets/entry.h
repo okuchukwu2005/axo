@@ -30,7 +30,7 @@ typedef struct {
 // - w: Logical width of the entry
 // - max_length: Maximum number of characters allowed
 // Returns: Pointer to the new Entry or NULL on failure
-axEntry axCreateEntry(axParent* parent, int x, int y, int w, int max_length);
+axEntry* axCreateEntry(axParent* parent, int x, int y, int w, int max_length);
 
 void axSetEntryPlaceHolder(axEntry* entry, const char* placeholder);
 // Renders the text entry widget to the screen

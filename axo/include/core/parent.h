@@ -45,7 +45,7 @@ typedef struct {
 // Returns DPI scale relative to standard 96 DPI
 float get_display_dpi(int display_index);
 
-axParent axCreateWindow(char* title, int w, int h, Uint32 flags);
+axParent* axCreateWindow(char* title, int w, int h, Uint32 flags);
 
 /**
  * @brief Destroys the Parent struct, cleaning up SDL resources if it's a root window.

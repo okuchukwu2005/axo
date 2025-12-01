@@ -28,7 +28,7 @@ typedef struct {
 } axTextBox;
 
 
-axTextBox axCreateTextBox(axParent* parent, int x, int y, int w, int max_length);
+axTextBox *axCreateTextBox(axParent* parent, int x, int y, int w, int max_length);
 
 // Renders the textbox widget to the screen
 // Parameters:

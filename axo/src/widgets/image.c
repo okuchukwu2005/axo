@@ -8,24 +8,28 @@
 /* --------------------------------------------------------------------- */
 
 /* --------------------------------------------------------------------- */
-axImage axCreateImage(axParent *parent, int x, int y, const char *file_path, int w, int h)
+axImage* axCreateImage(axParent *parent, int x, int y, const char *file_path, int w, int h)
 {
     if (!parent || !parent->base.sdl_renderer) {
         printf("Invalid parent or renderer for image widget\n");
-        axImage img = {0};
-        return img;
+        return NULL;
     }
 
-    axImage img = {0};
-    img.parent    = parent;
-    img.x         = x;
-    img.y         = y;
-    img.w         = w;
-    img.h         = h;
-    img.file_path = file_path;
+    axImage *img = (axImage*)malloc(sizeof(axImage));
+    
+        if(!img){
+        	DEBUG_PRINT("failed to allocate memory for image\n");
+        	return NULL;
+        }
+    img->parent    = parent;
+    img->x         = x;
+    img->y         = y;
+    img->w         = w;
+    img->h         = h;
+    img->file_path = file_path;
 
-    img.handle = image_backend_load(parent->base.sdl_renderer, file_path);
-    if (!img.handle) {
+    img->handle = image_backend_load(parent->base.sdl_renderer, file_path);
+    if (!img->handle) {
         printf("Failed to load image %s\n", file_path);
     }
     return img;
@@ -81,6 +85,7 @@ void axFreeImage(axImage *image)
         image_backend_free(image->handle);
         image->handle = NULL;
     }
+    free(image);
 }
 
 /* --------------------------------------------------------------------- */

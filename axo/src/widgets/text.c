@@ -9,23 +9,27 @@
 #include <math.h>
 
 /* --------------------------------------------------------------------- */
-axText axCreateText(axParent* parent, int x, int y, const char* content,
+axText *axCreateText(axParent* parent, int x, int y, const char* content,
               int font_size, TextAlign align)
 {
     if (!parent || !parent->base.sdl_renderer) {
         printf("Invalid parent or renderer\n");
-        axText t = {0};
-        return t;
+        return NULL;
     }
     if (!current_theme) current_theme = (Theme*)&THEME_LIGHT;
 
-    axText t = {0};
-    t.parent     = parent;
-    t.x          = x;
-    t.y          = y;
-    t.content    = content ? strdup(content) : NULL;
-    t.font_size  = font_size;
-    t.align      = align;
+    axText *t = (axText*)malloc(sizeof(axText));
+    
+        if(!t){
+        	DEBUG_PRINT("failed to allocate memory for text\n");
+        	return NULL;
+        }
+    t->parent     = parent;
+    t->x          = x;
+    t->y          = y;
+    t->content    = content ? strdup(content) : NULL;
+    t->font_size  = font_size;
+    t->align      = align;
     return t;
 }
 
@@ -59,7 +63,7 @@ void axRenderText(axText* t)
     }
 
     /* ---------- COLOR ---------- */
-    Color col = t->color ? *t->color : current_theme->text_primary;
+    Color col = t->has_color ? t->color : current_theme->text_primary;
 
     /* ---------- RENDER TEXT (physical pixels, DPI-scaled font) ---------- */
     draw_text_from_font(base,
@@ -73,16 +77,6 @@ void axRenderText(axText* t)
     clip_end(base);
 }
 
-/* --------------------------------------------------------------------- */
-void axSetTextColor(axText* t, Color c)
-{
-    if (!t) return;
-    if (!t->color) {
-        t->color = malloc(sizeof(Color));
-        if (!t->color) { printf("malloc failed for text color\n"); return; }
-    }
-    *t->color = c;
-}
 
 /* --------------------------------------------------------------------- */
 void axUpdateText(axText* t, axEvent* ev)
@@ -95,7 +89,7 @@ void axFreeText(axText* t)
 {
     if (!t) return;
     free(t->content);
-    free(t->color);
+    free(t);
 }
 
 /* --------------------------------------------------------------------- */

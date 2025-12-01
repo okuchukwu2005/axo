@@ -20,7 +20,7 @@ static int measure_utf8(const char* txt, int* w, int* h)
 /* --------------------------------------------------------------------- */
 /* new_entry – no font loading any more */
 /* --------------------------------------------------------------------- */
-axEntry axCreateEntry(axParent* parent, int x, int y, int w, int max_length)
+axEntry *axCreateEntry(axParent* parent, int x, int y, int w, int max_length)
 {
     if (!parent || !parent->base.sdl_renderer) {
         printf("Invalid parent or renderer\n");
@@ -30,23 +30,29 @@ axEntry axCreateEntry(axParent* parent, int x, int y, int w, int max_length)
     int logical_font_size = current_theme->default_font_size;
     int logical_padding   = current_theme->padding;
 
-    axEntry e = {0};
-    e.parent       = parent;
-    e.place_holder = strdup(" ");
-    e.x = x;  e.y = y;  e.w = w;
-    e.h = logical_font_size + 2 * logical_padding;
-    e.max_length = max_length;
-    e.text = malloc(max_length + 1);
-    if (e.text) e.text[0] = '\0';
+    axEntry* e = (axEntry*)malloc(sizeof(axEntry));
+    
+        if(!e){
+        	DEBUG_PRINT("failed to allocate memory for entry\n");
+        	return NULL;
+        }
+    e->parent       = parent;
+    e->place_holder = strdup(" ");
+    e->x = x;  e->y = y;  e->w = w;
+    e->h = logical_font_size + 2 * logical_padding;
+    e->max_length = max_length;
+    e->text = malloc(max_length + 1);
+    if (e->text) e->text[0] = '\0';
     return e;
 }
 
 /* --------------------------------------------------------------------- */
+
 void axSetEntryPlaceHolder(axEntry* e, const char* placeholder)
 {
     if (!e) return;
     free(e->place_holder);
-    e->place_holder = placeholder ? strdup(placeholder) : strdup(" ");
+    e->place_holder = (placeholder && placeholder[0]) ? strdup(placeholder) : strdup(" ");
 }
 
 /* --------------------------------------------------------------------- */
@@ -454,6 +460,9 @@ void axFreeEntry(axEntry* e)
         free(e->text);
         free(e->place_holder);
     }
+
+	free(e);
+
 }
 
 /* --------------------------------------------------------------------- */

@@ -13,7 +13,7 @@ typedef struct{
     ImageHandle* handle;              /* opaque backend handle */
 }axImage;
 
-axImage axCreateImage(axParent * parent, int x, int y, const char * file_path, int w, int h  );
+axImage* axCreateImage(axParent * parent, int x, int y, const char * file_path, int w, int h  );
 
 void axRenderImage(axImage * image);
 

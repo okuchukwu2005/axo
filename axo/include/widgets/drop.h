@@ -1,6 +1,6 @@
 /**
  * @file drop.h
- * @brief Contains logic for dropdown widgets using SDL2
+ * @brief Dropdown widget - safe, no malloc'd colors
  */
 
 #ifndef DROP_H
@@ -9,57 +9,50 @@
 #include "../core/parent.h"
 #include "../core/color.h"
 #include "../core/backend_interface.h"
-
-
-
-#include<stdbool.h>
-
-typedef struct {
-    axParent* parent;         // Parent window or container
-    int x, y;               // Position relative to parent (logical)
-    int w, h;               // Width and height of the dropdown button (logical)
-    char** options;         // Array of option strings (caller-managed)
-    int option_count;       // Number of options
-    int selected_index;     // Index of currently selected option (-1 = none)
-    bool is_expanded;       // Whether the dropdown is open
-    bool is_hovered;        // Whether mouse is over the dropdown button
-    int font_size;          // Font size (overridable, defaults to theme) (logical)
-    char* place_holder;     // Placeholder text when no option is selected
-    // Theme overrides (NULL = use theme)
-    Color* custom_bg_color;       // Background for options
-    Color* custom_button_color;   // Background for dropdown button
-    Color* custom_text_color;     // Text color
-    Color* custom_highlight_color; // Highlight for selected/hovered option
-} axDropDown;
+#include <stdbool.h>
 
 #define MAX_DROPS 100
+
+typedef struct {
+    axParent* parent;
+    int x, y;
+    int w, h;
+    char** options;
+    int option_count;
+    int selected_index;
+    bool is_expanded;
+    bool is_hovered;
+    int font_size;                    // logical, defaults to theme
+    char* place_holder;
+
+    // Custom colors — user sets directly, no malloc!
+    bool has_custom_bg_color;
+    bool has_custom_button_color;
+    bool has_custom_text_color;
+    bool has_custom_highlight_color;
+
+    Color custom_bg_color;
+    Color custom_button_color;
+    Color custom_text_color;
+    Color custom_highlight_color;
+} axDropDown;
+
+// Public API
+axDropDown* axCreateDropDown(axParent* parent, int x, int y, int w, int h,
+                             char** options, int option_count);
+
+
+void axRenderDropDown(axDropDown* drop);
+void axUpdateDropDown(axDropDown* drop, axEvent* event);
+void axFreeDropDown(axDropDown* drop);
+
+// Registration
 extern axDropDown* drop_widgets[MAX_DROPS];
 extern int drops_count;
 
-
-axDropDown axCreateDropDown(axParent* parent, int x, int y, int w, int h, char** options, int option_count);
-
-// Setters for overrides
-void axSetDropDownBgColor(axDropDown* drop, Color color);
-void axSetDropDownButtonColor(axDropDown* drop, Color color);
-
-void axSetDropDownTextColor(axDropDown* drop, Color color);
-
-void axSetDropDownHighlightColor(axDropDown* drop, Color color);
-
-void axSetDropDownFontSize(axDropDown* drop, int size);
-
-void draw_upside_down_triangle_(Base* base, int x1, int y1, int x2, int y2, int x3, int y3, Color color);
-
-void axRenderDropDown(axDropDown* drop);
-void axUpdateDropDown(axDropDown* drop, axEvent *event);
-void axFreeDropDown(axDropDown* drop);
-
 void axRegisterDropDown(axDropDown* drop);
-
 void axRenderAllRegisteredDropDown(void);
-
-void axUpdateAllRegisteredDropDown(axEvent *event);
-
+void axUpdateAllRegisteredDropDown(axEvent* event);
 void axFreeAllRegisteredDropDown(void);
+
 #endif // DROP_H

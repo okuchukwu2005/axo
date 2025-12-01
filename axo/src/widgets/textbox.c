@@ -12,7 +12,7 @@
 // Forward declaration for line computation using wrapper
 Line* compute_visual_lines(const char* text, int max_width, Font_ttf* font, int* num_lines);
 
-axTextBox axCreateTextBox(axParent* parent, int x, int y, int w, int max_length) {
+axTextBox *axCreateTextBox(axParent* parent, int x, int y, int w, int max_length) {
     if (!parent || !parent->base.sdl_renderer) {
         printf("Invalid parent or renderer\n");
     }
@@ -20,37 +20,42 @@ axTextBox axCreateTextBox(axParent* parent, int x, int y, int w, int max_length)
         current_theme = (Theme*)&THEME_LIGHT;
     }
 
-    axTextBox new_textbox;
-    new_textbox.parent = parent;
-    new_textbox.place_holder = strdup(" ");
-    if (!new_textbox.place_holder) {
+    axTextBox* new_textbox = (axTextBox*)malloc(sizeof(axTextBox));
+    
+        if(!new_textbox){
+        	DEBUG_PRINT("failed to allocate memory for textbox\n");
+        	return NULL;
+        }
+    new_textbox->parent = parent;
+    new_textbox->place_holder = strdup(" ");
+    if (!new_textbox->place_holder) {
         printf("Failed to allocate memory for placeholder\n");
     }
-    new_textbox.x = x;
-    new_textbox.y = y;
-    new_textbox.w = w;
-    new_textbox.h = 10 * (current_theme->default_font_size + current_theme->padding / 2);
-    new_textbox.max_length = max_length;
-    new_textbox.text = (char*)malloc(max_length + 1);
-    if (!new_textbox.text) {
+    new_textbox->x = x;
+    new_textbox->y = y;
+    new_textbox->w = w;
+    new_textbox->h = 10 * (current_theme->default_font_size + current_theme->padding / 2);
+    new_textbox->max_length = max_length;
+    new_textbox->text = (char*)malloc(max_length + 1);
+    if (!new_textbox->text) {
         printf("Failed to allocate memory for textbox text\n");
-        free(new_textbox.place_holder);
+        free(new_textbox->place_holder);
     }
-    new_textbox.text[0] = '\0';
-    new_textbox.is_active = 0;
-    new_textbox.cursor_pos = 0;
-    new_textbox.selection_start = -1;
-    new_textbox.visible_line_start = 0;
-    new_textbox.is_mouse_selecting = 0;
+    new_textbox->text[0] = '\0';
+    new_textbox->is_active = 0;
+    new_textbox->cursor_pos = 0;
+    new_textbox->selection_start = -1;
+    new_textbox->visible_line_start = 0;
+    new_textbox->is_mouse_selecting = 0;
 
     // Use global_font (already DPI-scaled)
     if (global_font) {
-        new_textbox.line_height = ttf_line_skip(global_font);
-        if (new_textbox.line_height <= 0) {
-            new_textbox.line_height = (int)roundf(current_theme->default_font_size * parent->base.dpi_scale) + current_theme->padding / 2;
+        new_textbox->line_height = ttf_line_skip(global_font);
+        if (new_textbox->line_height <= 0) {
+            new_textbox->line_height = (int)roundf(current_theme->default_font_size * parent->base.dpi_scale) + current_theme->padding / 2;
         }
     } else {
-        new_textbox.line_height = (int)roundf(current_theme->default_font_size * parent->base.dpi_scale) + current_theme->padding / 2;
+        new_textbox->line_height = (int)roundf(current_theme->default_font_size * parent->base.dpi_scale) + current_theme->padding / 2;
     }
 
     return new_textbox;
@@ -630,4 +635,6 @@ void axFreeTextBox(axTextBox* textbox) {
         free(textbox->text);
         free(textbox->place_holder);
     }
+    free(textbox);
+    
 }

@@ -10,51 +10,30 @@
 
 
 /* --------------------------------------------------------------------- */
-axDropDown axCreateDropDown(axParent* parent, int x, int y, int w, int h,
+axDropDown *axCreateDropDown(axParent* parent, int x, int y, int w, int h,
                    char** options, int option_count)
 {
     if (!parent || !parent->base.sdl_renderer) {
         printf("Invalid parent or renderer\n");
-        axDropDown d = {0};
-        return d;
+        return NULL;
     }
     if (!current_theme) current_theme = (Theme*)&THEME_LIGHT;
 
-    axDropDown d = {0};
-    d.parent         = parent;
-    d.x = x; d.y = y; d.w = w; d.h = h;
-    d.options        = options;
-    d.option_count   = option_count;
-    d.selected_index = -1;
-    d.place_holder   = strdup("select option");
+    axDropDown* d = (axDropDown*)calloc(1,sizeof(axDropDown));
+    
+     if(!d){
+        	DEBUG_PRINT("failed to allocate memory for dropdown\n");
+        	return NULL;
+     }
+    d->parent         = parent;
+    d->x = x; d->y = y; d->w = w; d->h = h;
+    d->options        = options;
+    d->option_count   = option_count;
+    d->selected_index = -1;
+    d->place_holder   = strdup("select option");
     return d;
 }
 
-/* --------------------------------------------------------------------- */
-/* Setters – unchanged (just copy) */
-void axSetDropDownBgColor(axDropDown* d, Color c) {
-    if (!d) return;
-    if (!d->custom_bg_color) d->custom_bg_color = malloc(sizeof(Color));
-    if (d->custom_bg_color) *d->custom_bg_color = c;
-}
-void axSetDropDownButtonColor(axDropDown* d, Color c) {
-    if (!d) return;
-    if (!d->custom_button_color) d->custom_button_color = malloc(sizeof(Color));
-    if (d->custom_button_color) *d->custom_button_color = c;
-}
-void axSetDropDownTextColor(axDropDown* d, Color c) {
-    if (!d) return;
-    if (!d->custom_text_color) d->custom_text_color = malloc(sizeof(Color));
-    if (d->custom_text_color) *d->custom_text_color = c;
-}
-void axSetDropDownHighLightColor(axDropDown* d, Color c) {
-    if (!d) return;
-    if (!d->custom_highlight_color) d->custom_highlight_color = malloc(sizeof(Color));
-    if (d->custom_highlight_color) *d->custom_highlight_color = c;
-}
-void axSetDropFontSize(axDropDown* d, int size) {
-    if (d) d->font_size = size;
-}
 
 /* --------------------------------------------------------------------- */
 static void draw_upside_down_triangle(Base* base, int x, int y, int size, Color col)
@@ -100,14 +79,14 @@ void axRenderDropDown(axDropDown* d)
     }
 
     /* ---------- COLORS ---------- */
-    Color button = d->custom_button_color ? *d->custom_button_color : current_theme->button_normal;
+    Color button = d->has_custom_button_color ? d->custom_button_color : current_theme->button_normal;
     if (d->is_hovered) {
-        button = d->custom_button_color ? lighten_color(*d->custom_button_color, 0.1f)
+        button = d->has_custom_button_color ? lighten_color(d->custom_button_color, 0.1f)
                                         : current_theme->button_hovered;
     }
-    Color bg        = d->custom_bg_color        ? *d->custom_bg_color        : current_theme->bg_secondary;
-    Color text      = d->custom_text_color      ? *d->custom_text_color      : current_theme->text_primary;
-    Color highlight = d->custom_highlight_color ? *d->custom_highlight_color : current_theme->accent;
+    Color bg        = d->has_custom_bg_color        ? d->custom_bg_color        : current_theme->bg_secondary;
+    Color text      = d->has_custom_text_color      ? d->custom_text_color      : current_theme->text_primary;
+    Color highlight = d->has_custom_highlight_color ? d->custom_highlight_color : current_theme->accent;
 
     /* ---------- MAIN BUTTON ---------- */
     draw_rect(base, sx, sy, sw, sh, button);
@@ -211,10 +190,8 @@ void axFreeDropDown(axDropDown* d)
 {
     if (!d) return;
     free(d->place_holder);
-    free(d->custom_bg_color);
-    free(d->custom_button_color);
-    free(d->custom_text_color);
-    free(d->custom_highlight_color);
+    free(d);
+
 }
 
 /* --------------------------------------------------------------------- */

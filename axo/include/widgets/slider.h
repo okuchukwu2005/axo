@@ -17,21 +17,18 @@ typedef struct {
     char* label;         // Optional label text
     bool dragging;       // Flag to track if thumb is being dragged
     bool is_hovered;     // Flag for hover state (for color variants)
-    Color* custom_track_color;   // Optional override for track color (NULL = use theme)
-    Color* custom_thumb_color;   // Optional override for thumb color (NULL = use theme)
-    Color* custom_label_color;   // Optional override for label color (NULL = use theme)
+    Color custom_track_color;   // Optional override for track color (NULL = use theme)
+    Color custom_thumb_color;   // Optional override for thumb color (NULL = use theme)
+    Color custom_label_color;   // Optional override for label color (NULL = use theme)
+	bool has_custom_track_color;   // Optional override for track color (NULL = use theme)
+    bool has_custom_thumb_color;   // Optional override for thumb color (NULL = use theme)
+    bool has_custom_label_color;   // Optional override for label color (NULL = use theme)
+
 } axSlider;
 
 
 // -------- Create --------
-axSlider axCreateSlider(axParent* parent, int x, int y, int w, int h, int min, int max, int start_value, const char* label);
-
-// Setters for overrides
-void axSetSliderTrackColor(axSlider* slider, Color color);
-
-void axSetSliderThumbColor(axSlider* slider, Color color);
-
-void axSetSliderLabelColor(axSlider* slider, Color color);
+axSlider* axCreateSlider(axParent* parent, int x, int y, int w, int h, int min, int max, int start_value, const char* label);
 
 // -------- Render --------
 void axRenderSlider(axSlider* slider);

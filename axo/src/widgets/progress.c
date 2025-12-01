@@ -10,50 +10,31 @@
 #include <math.h>
 
 /* --------------------------------------------------------------------- */
-axProgressBar axCreateProgressBar(axParent* parent, int x, int y, int w, int h,
+axProgressBar *axCreateProgressBar(axParent* parent, int x, int y, int w, int h,
                              int min, int max, int start_value, bool show_percentage)
 {
     if (!parent || !parent->base.sdl_renderer) {
         printf("Invalid parent or renderer\n");
-        axProgressBar p = {0};
-        return p;
+        return NULL;
     }
     if (!current_theme) current_theme = (Theme*)&THEME_LIGHT;
 
-    axProgressBar p = {0};
-    p.parent           = parent;
-    p.x                = x;
-    p.y                = y;
-    p.w                = w;
-    p.h                = h;
-    p.min              = min;
-    p.max              = max;
-    p.value            = start_value;
-    p.show_percentage  = show_percentage;
+    axProgressBar *p = (axProgressBar*)calloc(1,sizeof(axProgressBar));
+    
+        if(!p){
+        	DEBUG_PRINT("failed to allocate memory for progress bar\n");
+        	return NULL;
+        }
+    p->parent           = parent;
+    p->x                = x;
+    p->y                = y;
+    p->w                = w;
+    p->h                = h;
+    p->min              = min;
+    p->max              = max;
+    p->value            = start_value;
+    p->show_percentage  = show_percentage;
     return p;
-}
-
-/* --------------------------------------------------------------------- */
-void axSetProgressBarBgColor(axProgressBar* p, Color c) {
-    if (!p) return;
-    if (!p->custom_bg_color) p->custom_bg_color = malloc(sizeof(Color));
-    if (p->custom_bg_color) *p->custom_bg_color = c;
-}
-void axSetProgressBarFillColor(axProgressBar* p, Color c) {
-    if (!p) return;
-    if (!p->custom_fill_color) p->custom_fill_color = malloc(sizeof(Color));
-    if (p->custom_fill_color) *p->custom_fill_color = c;
-}
-void axSetProgressBarTextColor(axProgressBar* p, Color c) {
-    if (!p) return;
-    if (!p->custom_text_color) p->custom_text_color = malloc(sizeof(Color));
-    if (p->custom_text_color) *p->custom_text_color = c;
-}
-void axSetProgressBarValue(axProgressBar* p, int value) {
-    if (!p) return;
-    if (value < p->min) value = p->min;
-    if (value > p->max) value = p->max;
-    p->value = value;
 }
 
 /* --------------------------------------------------------------------- */
@@ -88,9 +69,9 @@ void axRenderProgressBar(axProgressBar* p)
     }
 
     /* ---------- COLORS ---------- */
-    Color bg   = p->custom_bg_color   ? *p->custom_bg_color   : current_theme->bg_secondary;
-    Color fill = p->custom_fill_color ? *p->custom_fill_color : current_theme->accent;
-    Color txt  = p->custom_text_color ? *p->custom_text_color : current_theme->text_primary;
+    Color bg   = p->has_custom_bg_color   ? p->custom_bg_color   : current_theme->bg_secondary;
+    Color fill = p->has_custom_fill_color ? p->custom_fill_color : current_theme->accent;
+    Color txt  = p->has_custom_text_color ? p->custom_text_color : current_theme->text_primary;
 
     /* ---------- DRAW BACKGROUND ---------- */
     draw_rounded_rect(base, sx, sy, sw, sh, roundness, bg);
@@ -132,9 +113,7 @@ void axUpdateProgressBar(axProgressBar* p, axEvent* ev)
 void axFreeProgressBar(axProgressBar* p)
 {
     if (!p) return;
-    free(p->custom_bg_color);
-    free(p->custom_fill_color);
-    free(p->custom_text_color);
+    free(p);
 }
 
 /* --------------------------------------------------------------------- */
