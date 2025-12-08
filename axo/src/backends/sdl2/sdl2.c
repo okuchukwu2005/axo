@@ -26,7 +26,7 @@ float return_display_dpi(int display_index) {
 
 void create_window(Base *base, char* title, int w, int h, Uint32 flags) {
     // Enable DPI scaling hint for Windows (set before any SDL_Init calls if possible)
-    SDL_SetHint(SDL_HINT_WINDOWS_DPI_SCALING, "1");
+  //  SDL_SetHint(SDL_HINT_WINDOWS_DPI_SCALING, "1");
 
     if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
         printf("SDL initialization failed: %s\n", SDL_GetError());

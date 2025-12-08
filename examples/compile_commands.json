@@ -1,0 +1,102 @@
+[
+{
+  "directory": "/storage/emulated/0/Documents/axo/examples",
+  "command": "clang  -I/storage/emulated/0/Documents/axo/examples/../axo/include -I/storage/emulated/0/Documents/axo/examples/../axo -I/data/user/0/ru.iiec.cxxdroid/files/sysroot/include/SDL2 -Wall -std=c99 -fallow-void-main -o CMakeFiles/example.dir/main.c.o -c /storage/emulated/0/Documents/axo/examples/main.c",
+  "file": "/storage/emulated/0/Documents/axo/examples/main.c"
+},
+{
+  "directory": "/storage/emulated/0/Documents/axo/examples",
+  "command": "clang  -I/storage/emulated/0/Documents/axo/examples/../axo/include -I/storage/emulated/0/Documents/axo/examples/../axo -I/data/user/0/ru.iiec.cxxdroid/files/sysroot/include/SDL2 -Wall -std=c99 -fallow-void-main -o CMakeFiles/example.dir/storage/emulated/0/Documents/axo/axo/axo.c.o -c /storage/emulated/0/Documents/axo/axo/axo.c",
+  "file": "/storage/emulated/0/Documents/axo/axo/axo.c"
+},
+{
+  "directory": "/storage/emulated/0/Documents/axo/examples",
+  "command": "clang  -I/storage/emulated/0/Documents/axo/examples/../axo/include -I/storage/emulated/0/Documents/axo/examples/../axo -I/data/user/0/ru.iiec.cxxdroid/files/sysroot/include/SDL2 -Wall -std=c99 -fallow-void-main -o CMakeFiles/example.dir/storage/emulated/0/Documents/axo/axo/src/backends/sdl2/sdl2.c.o -c /storage/emulated/0/Documents/axo/axo/src/backends/sdl2/sdl2.c",
+  "file": "/storage/emulated/0/Documents/axo/axo/src/backends/sdl2/sdl2.c"
+},
+{
+  "directory": "/storage/emulated/0/Documents/axo/examples",
+  "command": "clang  -I/storage/emulated/0/Documents/axo/examples/../axo/include -I/storage/emulated/0/Documents/axo/examples/../axo -I/data/user/0/ru.iiec.cxxdroid/files/sysroot/include/SDL2 -Wall -std=c99 -fallow-void-main -o CMakeFiles/example.dir/storage/emulated/0/Documents/axo/axo/src/backends/sdl2/sdl2_draw.c.o -c /storage/emulated/0/Documents/axo/axo/src/backends/sdl2/sdl2_draw.c",
+  "file": "/storage/emulated/0/Documents/axo/axo/src/backends/sdl2/sdl2_draw.c"
+},
+{
+  "directory": "/storage/emulated/0/Documents/axo/examples",
+  "command": "clang  -I/storage/emulated/0/Documents/axo/examples/../axo/include -I/storage/emulated/0/Documents/axo/examples/../axo -I/data/user/0/ru.iiec.cxxdroid/files/sysroot/include/SDL2 -Wall -std=c99 -fallow-void-main -o CMakeFiles/example.dir/storage/emulated/0/Documents/axo/axo/src/backends/sdl2/sdl2_events.c.o -c /storage/emulated/0/Documents/axo/axo/src/backends/sdl2/sdl2_events.c",
+  "file": "/storage/emulated/0/Documents/axo/axo/src/backends/sdl2/sdl2_events.c"
+},
+{
+  "directory": "/storage/emulated/0/Documents/axo/examples",
+  "command": "clang  -I/storage/emulated/0/Documents/axo/examples/../axo/include -I/storage/emulated/0/Documents/axo/examples/../axo -I/data/user/0/ru.iiec.cxxdroid/files/sysroot/include/SDL2 -Wall -std=c99 -fallow-void-main -o CMakeFiles/example.dir/storage/emulated/0/Documents/axo/axo/src/backends/sdl2/sdl2_image.c.o -c /storage/emulated/0/Documents/axo/axo/src/backends/sdl2/sdl2_image.c",
+  "file": "/storage/emulated/0/Documents/axo/axo/src/backends/sdl2/sdl2_image.c"
+},
+{
+  "directory": "/storage/emulated/0/Documents/axo/examples",
+  "command": "clang  -I/storage/emulated/0/Documents/axo/examples/../axo/include -I/storage/emulated/0/Documents/axo/examples/../axo -I/data/user/0/ru.iiec.cxxdroid/files/sysroot/include/SDL2 -Wall -std=c99 -fallow-void-main -o CMakeFiles/example.dir/storage/emulated/0/Documents/axo/axo/src/backends/sdl2/sdl2_ttf.c.o -c /storage/emulated/0/Documents/axo/axo/src/backends/sdl2/sdl2_ttf.c",
+  "file": "/storage/emulated/0/Documents/axo/axo/src/backends/sdl2/sdl2_ttf.c"
+},
+{
+  "directory": "/storage/emulated/0/Documents/axo/examples",
+  "command": "clang  -I/storage/emulated/0/Documents/axo/examples/../axo/include -I/storage/emulated/0/Documents/axo/examples/../axo -I/data/user/0/ru.iiec.cxxdroid/files/sysroot/include/SDL2 -Wall -std=c99 -fallow-void-main -o CMakeFiles/example.dir/storage/emulated/0/Documents/axo/axo/src/core/color.c.o -c /storage/emulated/0/Documents/axo/axo/src/core/color.c",
+  "file": "/storage/emulated/0/Documents/axo/axo/src/core/color.c"
+},
+{
+  "directory": "/storage/emulated/0/Documents/axo/examples",
+  "command": "clang  -I/storage/emulated/0/Documents/axo/examples/../axo/include -I/storage/emulated/0/Documents/axo/examples/../axo -I/data/user/0/ru.iiec.cxxdroid/files/sysroot/include/SDL2 -Wall -std=c99 -fallow-void-main -o CMakeFiles/example.dir/storage/emulated/0/Documents/axo/axo/src/core/parent.c.o -c /storage/emulated/0/Documents/axo/axo/src/core/parent.c",
+  "file": "/storage/emulated/0/Documents/axo/axo/src/core/parent.c"
+},
+{
+  "directory": "/storage/emulated/0/Documents/axo/examples",
+  "command": "clang  -I/storage/emulated/0/Documents/axo/examples/../axo/include -I/storage/emulated/0/Documents/axo/examples/../axo -I/data/user/0/ru.iiec.cxxdroid/files/sysroot/include/SDL2 -Wall -std=c99 -fallow-void-main -o CMakeFiles/example.dir/storage/emulated/0/Documents/axo/axo/src/core/theme.c.o -c /storage/emulated/0/Documents/axo/axo/src/core/theme.c",
+  "file": "/storage/emulated/0/Documents/axo/axo/src/core/theme.c"
+},
+{
+  "directory": "/storage/emulated/0/Documents/axo/examples",
+  "command": "clang  -I/storage/emulated/0/Documents/axo/examples/../axo/include -I/storage/emulated/0/Documents/axo/examples/../axo -I/data/user/0/ru.iiec.cxxdroid/files/sysroot/include/SDL2 -Wall -std=c99 -fallow-void-main -o CMakeFiles/example.dir/storage/emulated/0/Documents/axo/axo/src/widgets/button.c.o -c /storage/emulated/0/Documents/axo/axo/src/widgets/button.c",
+  "file": "/storage/emulated/0/Documents/axo/axo/src/widgets/button.c"
+},
+{
+  "directory": "/storage/emulated/0/Documents/axo/examples",
+  "command": "clang  -I/storage/emulated/0/Documents/axo/examples/../axo/include -I/storage/emulated/0/Documents/axo/examples/../axo -I/data/user/0/ru.iiec.cxxdroid/files/sysroot/include/SDL2 -Wall -std=c99 -fallow-void-main -o CMakeFiles/example.dir/storage/emulated/0/Documents/axo/axo/src/widgets/container.c.o -c /storage/emulated/0/Documents/axo/axo/src/widgets/container.c",
+  "file": "/storage/emulated/0/Documents/axo/axo/src/widgets/container.c"
+},
+{
+  "directory": "/storage/emulated/0/Documents/axo/examples",
+  "command": "clang  -I/storage/emulated/0/Documents/axo/examples/../axo/include -I/storage/emulated/0/Documents/axo/examples/../axo -I/data/user/0/ru.iiec.cxxdroid/files/sysroot/include/SDL2 -Wall -std=c99 -fallow-void-main -o CMakeFiles/example.dir/storage/emulated/0/Documents/axo/axo/src/widgets/drop.c.o -c /storage/emulated/0/Documents/axo/axo/src/widgets/drop.c",
+  "file": "/storage/emulated/0/Documents/axo/axo/src/widgets/drop.c"
+},
+{
+  "directory": "/storage/emulated/0/Documents/axo/examples",
+  "command": "clang  -I/storage/emulated/0/Documents/axo/examples/../axo/include -I/storage/emulated/0/Documents/axo/examples/../axo -I/data/user/0/ru.iiec.cxxdroid/files/sysroot/include/SDL2 -Wall -std=c99 -fallow-void-main -o CMakeFiles/example.dir/storage/emulated/0/Documents/axo/axo/src/widgets/entry.c.o -c /storage/emulated/0/Documents/axo/axo/src/widgets/entry.c",
+  "file": "/storage/emulated/0/Documents/axo/axo/src/widgets/entry.c"
+},
+{
+  "directory": "/storage/emulated/0/Documents/axo/examples",
+  "command": "clang  -I/storage/emulated/0/Documents/axo/examples/../axo/include -I/storage/emulated/0/Documents/axo/examples/../axo -I/data/user/0/ru.iiec.cxxdroid/files/sysroot/include/SDL2 -Wall -std=c99 -fallow-void-main -o CMakeFiles/example.dir/storage/emulated/0/Documents/axo/axo/src/widgets/image.c.o -c /storage/emulated/0/Documents/axo/axo/src/widgets/image.c",
+  "file": "/storage/emulated/0/Documents/axo/axo/src/widgets/image.c"
+},
+{
+  "directory": "/storage/emulated/0/Documents/axo/examples",
+  "command": "clang  -I/storage/emulated/0/Documents/axo/examples/../axo/include -I/storage/emulated/0/Documents/axo/examples/../axo -I/data/user/0/ru.iiec.cxxdroid/files/sysroot/include/SDL2 -Wall -std=c99 -fallow-void-main -o CMakeFiles/example.dir/storage/emulated/0/Documents/axo/axo/src/widgets/radio.c.o -c /storage/emulated/0/Documents/axo/axo/src/widgets/radio.c",
+  "file": "/storage/emulated/0/Documents/axo/axo/src/widgets/radio.c"
+},
+{
+  "directory": "/storage/emulated/0/Documents/axo/examples",
+  "command": "clang  -I/storage/emulated/0/Documents/axo/examples/../axo/include -I/storage/emulated/0/Documents/axo/examples/../axo -I/data/user/0/ru.iiec.cxxdroid/files/sysroot/include/SDL2 -Wall -std=c99 -fallow-void-main -o CMakeFiles/example.dir/storage/emulated/0/Documents/axo/axo/src/widgets/slider.c.o -c /storage/emulated/0/Documents/axo/axo/src/widgets/slider.c",
+  "file": "/storage/emulated/0/Documents/axo/axo/src/widgets/slider.c"
+},
+{
+  "directory": "/storage/emulated/0/Documents/axo/examples",
+  "command": "clang  -I/storage/emulated/0/Documents/axo/examples/../axo/include -I/storage/emulated/0/Documents/axo/examples/../axo -I/data/user/0/ru.iiec.cxxdroid/files/sysroot/include/SDL2 -Wall -std=c99 -fallow-void-main -o CMakeFiles/example.dir/storage/emulated/0/Documents/axo/axo/src/widgets/status.c.o -c /storage/emulated/0/Documents/axo/axo/src/widgets/status.c",
+  "file": "/storage/emulated/0/Documents/axo/axo/src/widgets/status.c"
+},
+{
+  "directory": "/storage/emulated/0/Documents/axo/examples",
+  "command": "clang  -I/storage/emulated/0/Documents/axo/examples/../axo/include -I/storage/emulated/0/Documents/axo/examples/../axo -I/data/user/0/ru.iiec.cxxdroid/files/sysroot/include/SDL2 -Wall -std=c99 -fallow-void-main -o CMakeFiles/example.dir/storage/emulated/0/Documents/axo/axo/src/widgets/text.c.o -c /storage/emulated/0/Documents/axo/axo/src/widgets/text.c",
+  "file": "/storage/emulated/0/Documents/axo/axo/src/widgets/text.c"
+},
+{
+  "directory": "/storage/emulated/0/Documents/axo/examples",
+  "command": "clang  -I/storage/emulated/0/Documents/axo/examples/../axo/include -I/storage/emulated/0/Documents/axo/examples/../axo -I/data/user/0/ru.iiec.cxxdroid/files/sysroot/include/SDL2 -Wall -std=c99 -fallow-void-main -o CMakeFiles/example.dir/storage/emulated/0/Documents/axo/axo/src/widgets/textbox.c.o -c /storage/emulated/0/Documents/axo/axo/src/widgets/textbox.c",
+  "file": "/storage/emulated/0/Documents/axo/axo/src/widgets/textbox.c"
+}
+]

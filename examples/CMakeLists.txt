@@ -1,35 +1,83 @@
 cmake_minimum_required(VERSION 3.10)
+project(axo_example C)
 
-# Project name
-project(example C)
+# ------------------------------------------------------
+# Use Clang
+# ------------------------------------------------------
+set(CMAKE_C_COMPILER clang)
 
-# Output directory for object files + executable
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/build)
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/build)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/build)
-set(CMAKE_OBJECT_PATH_MAX 2000)
+# Output binaries in cmake_build/
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
-# Collect all source files from the axo engine
+# ------------------------------------------------------
+# Project structure
+# ------------------------------------------------------
+set(EXAMPLES_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+set(AXO_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/..)
+
+# ------------------------------------------------------
+# Collect all source files
+# ------------------------------------------------------
 file(GLOB_RECURSE AXO_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/../axo/src/*.c
+    ${AXO_ROOT}/axo/*.c
+    ${AXO_ROOT}/axo/src/**/*.c
 )
 
-# Collect source files in this examples/ directory
 file(GLOB_RECURSE EXAMPLE_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/*.c
+    ${EXAMPLES_DIR}/*.c
 )
 
-# Merge both sets of sources
+#  Fix: remove CMake internal compiler test files (they contain a main!)
+list(FILTER EXAMPLE_SOURCES EXCLUDE REGEX ".*CMakeFiles/.*")
+
 set(ALL_SOURCES
-    ${AXO_SOURCES}
     ${EXAMPLE_SOURCES}
+    ${AXO_SOURCES}
 )
 
-# Include directories
+# ------------------------------------------------------
+# Include paths
+# ------------------------------------------------------
 include_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR}/../axo/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/../axo
+    ${AXO_ROOT}/axo/include
+    ${AXO_ROOT}/axo
 )
 
-# Create the executable
+# ------------------------------------------------------
+# Create executable
+# ------------------------------------------------------
 add_executable(example ${ALL_SOURCES})
+
+# ------------------------------------------------------
+# SDL Linking (robust fallback system)
+# ------------------------------------------------------
+find_package(SDL2 QUIET)
+find_package(SDL2_ttf QUIET)
+find_package(SDL2_image QUIET)
+
+if (SDL2_FOUND AND SDL2_TTF_FOUND AND SDL2_IMAGE_FOUND)
+    message(STATUS "Using CMake SDL2 packages")
+
+    target_include_directories(example PRIVATE
+        ${SDL2_INCLUDE_DIRS}
+        ${SDL2_TTF_INCLUDE_DIRS}
+        ${SDL2_IMAGE_INCLUDE_DIRS}
+    )
+
+    target_link_libraries(example
+        ${SDL2_LIBRARIES}
+        ${SDL2_TTF_LIBRARIES}
+        ${SDL2_IMAGE_LIBRARIES}
+        m
+    )
+
+else()
+    message(WARNING "CMake SDL2 packages NOT found -> using manual linker flags!")
+
+    target_link_libraries(example
+        -lSDL2
+        -lSDL2_ttf
+        -lSDL2_image
+        -lm
+    )
+endif()
