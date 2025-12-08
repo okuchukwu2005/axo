@@ -3,8 +3,8 @@
  * @brief Contains logic for progress bar widgets using SDL2
  */
 
-#ifndef PROGRESS_H
-#define PROGRESS_H
+#ifndef STATUS_H
+#define STATUS_H
 
 #include "../core/parent.h"
 #include "../core/color.h"
@@ -26,33 +26,33 @@ typedef struct {
     Color custom_bg_color;    // Optional override for background color (NULL = use theme)
     Color custom_fill_color;  // Optional override for fill color (NULL = use theme)
     Color custom_text_color;  // Optional override for text color (NULL = use theme)
-} axProgressBar;
+} axStatusBar;
 
 
 
 // -------- Create --------
-axProgressBar* axCreateProgressBar(axParent* parent, int x, int y, int w, int h, int min, int max, int start_value, bool show_percentage);
+axStatusBar* axCreateStatusBar(axParent* parent, int x, int y, int w, int h, int min, int max, int start_value, bool show_percentage);
 
 // -------- Render --------
-void axRenderProgressBar(axProgressBar* progress_bar);
+void axRenderStatusBar(axStatusBar* progress_bar);
 // -------- Update --------
-void axUpdateProgressBar(axProgressBar* progress_bar, axEvent* event);
+void axUpdateStatusBar(axStatusBar* progress_bar, axEvent* event);
 
 // -------- Free --------
-void axFreeProgressBar(axProgressBar* progress_bar);
+void axFreeStatusBar(axStatusBar* progress_bar);
 
 
-#define MAX_PROGRESS_BARS 100
-extern axProgressBar* progress_bar_widgets[MAX_PROGRESS_BARS];
-extern int progress_bars_count;
+#define MAX_STATUS_BARS 100
+extern axStatusBar* status_bar_widgets[MAX_STATUS_BARS];
+extern int status_bars_count;
 
 // -------- Helpers for all Progress Bars --------
-void axRegisterProgressBar(axProgressBar* progress_bar);
+void axRegisterStatusBar(axStatusBar* progress_bar);
 
-void axRenderAllRegisteredProgressBars(void);
+void axRenderAllRegisteredStatusBar(void);
 
-void axUpdateAllRegisteredProgressBars(axEvent* event);
+void axUpdateAllRegisteredStatusBar(axEvent* event);
 
-void axFreeAllRegisteredProgressBars(void);
+void axFreeAllRegisteredStatusBar(void);
 
-#endif // PROGRESS_H
+#endif // STATUS_H

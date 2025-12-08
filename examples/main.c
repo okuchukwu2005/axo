@@ -63,7 +63,7 @@ int main(void) {
      axRegisterSlider(slider);
 // 
   	 axEntry* entry =  axCreateEntry(container2, 20, 70, 300, 2048);
- 	 axSetEntryPlaceHolder(entry, "enter text");
+ 	// axSetEntryPlaceHolder(entry, "enter text"); //TODO mem !
  	 axRegisterEntry(entry);
 
 
@@ -74,9 +74,9 @@ int main(void) {
     	axButton* button = axCreateButton(container2, 100, 400, 120, 40, "Click Me", OVERRIDE);
  	axRegisterButton(button);
 // 
- 	axProgressBar *prox = axCreateProgressBar(container2, 20, 500, 250, 15, 0, 100, 50, true);
+ 	axStatusBar *prox = axCreateStatusBar(container2, 20, 500, 250, 15, 0, 100, 50, true);
  
-    axRegisterProgressBar(prox);
+    axRegisterStatusBar(prox);
 
 //    Image  image = new_image(&app.window, 10, 0, "img.jpg", 0, 0 );
 // register_image(&image);

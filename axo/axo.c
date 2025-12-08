@@ -56,7 +56,7 @@ void axRun(axParent *parent) {
                 axUpdateAllRegisteredButtons(&event);
                 axUpdateAllRegisteredTexts(&event);     // ← Added
                 axUpdateAllRegisteredDropDown(&event);
-                axUpdateAllRegisteredProgressBars(&event);
+                axUpdateAllRegisteredStatusBar(&event);
                 axUpdateAllRegisteredImages(&event);
 
                 // Text input management
@@ -78,7 +78,7 @@ void axRun(axParent *parent) {
         axRenderAllRegisteredSliders();
         axRenderAllRegisteredButtons();
         axRenderAllRegisteredTexts();
-        axRenderAllRegisteredProgressBars();
+        axRenderAllRegisteredStatusBar();
         axRenderAllRegisteredImages();
         present_screen(&parent->base);
     }
@@ -91,7 +91,7 @@ void axRun(axParent *parent) {
     axFreeAllRegisteredTexts();
     axFreeAllRegisteredContainers();
     axFreeAllRegisteredEntries();
-    axFreeAllRegisteredProgressBars();
+    axFreeAllRegisteredStatusBar();
     axFreeAllRegisteredSliders();
     axFreeAllRegisteredTextBoxes();  // ← Match name above
 

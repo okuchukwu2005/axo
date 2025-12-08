@@ -12,7 +12,7 @@
 #include"include/widgets/slider.h"
 #include"include/widgets/button.h"
 #include"include/widgets/text.h"
-#include"include/widgets/progress.h"
+#include"include/widgets/status.h"
 #include"include/widgets/image.h"
 
 

@@ -1,5 +1,5 @@
 /* progress.c --------------------------------------------------------------- */
-#include "../../include/widgets/progress.h"
+#include "../../include/widgets/status.h"
 #include "../../include/core/theme.h"
 #include "../../axo.h"
 #include "../../include/core/parent.h"   // for Rect
@@ -10,7 +10,7 @@
 #include <math.h>
 
 /* --------------------------------------------------------------------- */
-axProgressBar *axCreateProgressBar(axParent* parent, int x, int y, int w, int h,
+axStatusBar *axCreateStatusBar(axParent* parent, int x, int y, int w, int h,
                              int min, int max, int start_value, bool show_percentage)
 {
     if (!parent || !parent->base.sdl_renderer) {
@@ -19,7 +19,7 @@ axProgressBar *axCreateProgressBar(axParent* parent, int x, int y, int w, int h,
     }
     if (!current_theme) current_theme = (Theme*)&THEME_LIGHT;
 
-    axProgressBar *p = (axProgressBar*)calloc(1,sizeof(axProgressBar));
+    axStatusBar *p = (axStatusBar*)calloc(1,sizeof(axStatusBar));
     
         if(!p){
         	DEBUG_PRINT("failed to allocate memory for progress bar\n");
@@ -38,7 +38,7 @@ axProgressBar *axCreateProgressBar(axParent* parent, int x, int y, int w, int h,
 }
 
 /* --------------------------------------------------------------------- */
-void axRenderProgressBar(axProgressBar* p)
+void axRenderStatusBar(axStatusBar* p)
 {
     if (!p || !p->parent || !p->parent->base.sdl_renderer || !p->parent->is_open) return;
     if (!global_font) return;
@@ -103,14 +103,14 @@ void axRenderProgressBar(axProgressBar* p)
 }
 
 /* --------------------------------------------------------------------- */
-void axUpdateProgressBar(axProgressBar* p, axEvent* ev)
+void axUpdateStatusBar(axStatusBar* p, axEvent* ev)
 {
     /* Non-interactive – nothing to do */
     (void)p; (void)ev;
 }
 
 /* --------------------------------------------------------------------- */
-void axFreeProgressBar(axProgressBar* p)
+void axFreeStatusBar(axStatusBar* p)
 {
     if (!p) return;
     free(p);
@@ -118,34 +118,34 @@ void axFreeProgressBar(axProgressBar* p)
 
 /* --------------------------------------------------------------------- */
 /* Registration (unchanged) */
-axProgressBar* progress_bar_widgets[MAX_PROGRESS_BARS];
-int          progress_bars_count = 0;
+axStatusBar* status_bar_widgets[MAX_STATUS_BARS];
+int status_bars_count = 0;
 
-void axRegisterProgressBar(axProgressBar* p)
+void axRegisterStatusBar(axStatusBar* p)
 {
-    if (progress_bars_count < MAX_PROGRESS_BARS)
-        progress_bar_widgets[progress_bars_count++] = p;
+    if (status_bars_count < MAX_STATUS_BARS)
+        status_bar_widgets[status_bars_count++] = p;
 }
 
-void axRenderAllRegisteredProgressBars(void)
+void axRenderAllRegisteredStatusBar(void)
 {
-    for (int i = 0; i < progress_bars_count; ++i)
-        if (progress_bar_widgets[i]) axRenderProgressBar(progress_bar_widgets[i]);
+    for (int i = 0; i < status_bars_count; ++i)
+        if (status_bar_widgets[i]) axRenderStatusBar(status_bar_widgets[i]);
 }
 
-void axUpdateAllRegisteredProgressBars(axEvent* ev)
+void axUpdateAllRegisteredStatusBar(axEvent* ev)
 {
-    for (int i = 0; i < progress_bars_count; ++i)
-        if (progress_bar_widgets[i]) axUpdateProgressBar(progress_bar_widgets[i], ev);
+    for (int i = 0; i < status_bars_count; ++i)
+        if (status_bar_widgets[i]) axUpdateStatusBar(status_bar_widgets[i], ev);
 }
 
-void axFreeAllRegisteredProgressBars(void)
+void axFreeAllRegisteredStatusBar(void)
 {
-    for (int i = 0; i < progress_bars_count; ++i) {
-        if (progress_bar_widgets[i]) {
-            axFreeProgressBar(progress_bar_widgets[i]);
-            progress_bar_widgets[i] = NULL;
+    for (int i = 0; i < status_bars_count; ++i) {
+        if (status_bar_widgets[i]) {
+            axFreeStatusBar(status_bar_widgets[i]);
+            status_bar_widgets[i] = NULL;
         }
     }
-    progress_bars_count = 0;
+    status_bars_count = 0;
 }
