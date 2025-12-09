@@ -1,118 +1,60 @@
 #=====================================================================
 # Axo GUI Framework – Doxyfile (2025)
-# Place this file in axo/docs/ and run:  doxygen Doxyfile
 #=====================================================================
 
-PROJECT_NAME           = "Axo GUI Framework"
-PROJECT_NUMBER         = 
-PROJECT_BRIEF          = "Lightweight modular C GUI library"
-PROJECT_LOGO           = # (optional: put logo.png next to Doxyfile and uncomment)
+PROJECT_NAME            = "Axo GUI Framework"
+PROJECT_BRIEF           = "Lightweight modular C GUI library"
 
-OUTPUT_DIRECTORY       = .
+# --- C Language Enforcement ---
+OPTIMIZE_OUTPUT_FOR_C   = YES
+EXTENSION_MAPPING       = h=C
+TYPEDEF_HIDES_STRUCT    = NO
+HIDE_SCOPE_NAMES        = YES
+VERBATIM_HEADERS        = NO
 
-#---------------------------------------------------------------------
-# Build formats
-#---------------------------------------------------------------------
-GENERATE_HTML          = YES
-GENERATE_LATEX         = NO
-GENERATE_XML           = NO
-GENERATE_TREEVIEW      = YES
-GENERATE_MAN           = NO
 
 #---------------------------------------------------------------------
-# Input & Main Page (this was the source of your problem!)
+# Input
 #---------------------------------------------------------------------
-INPUT                  = ../axo ./mainpage.md
-USE_MDFILE_AS_MAINPAGE = ./mainpage.md
-
-FILE_PATTERNS          = *.c *.h *.md
-RECURSIVE              = YES
-EXCLUDE                = 
-EXAMPLE_PATH           = ../examples
-EXAMPLE_RECURSIVE      = NO
-
-MARKDOWN_SUPPORT       = YES
-AUTOLINK_SUPPORT       = YES
-TOC_INCLUDE_HEADINGS   = 5
+INPUT                   = ../axo ./mainpage.md
+USE_MDFILE_AS_MAINPAGE  = ./mainpage.md
+FILE_PATTERNS           = *.c *.h *.md
+RECURSIVE               = YES
 
 #---------------------------------------------------------------------
-# Extraction settings
+# Output
 #---------------------------------------------------------------------
-EXTRACT_ALL            = YES
-EXTRACT_PRIVATE        = NO
-EXTRACT_STATIC         = NO
-EXTRACT_ANON_NSPACES   = YES
-HIDE_UNDOC_MEMBERS     = NO
-HIDE_UNDOC_CLASSES     = NO
-HIDE_FRIEND_COMPOUNDS  = YES
-SOURCE_BROWSER         = YES
-INLINE_SOURCES         = NO
+GENERATE_HTML           = YES
+GENERATE_XML            = NO
+GENERATE_LATEX          = NO
+
+HTML_OUTPUT             = html
+GENERATE_TREEVIEW       = YES
+
+MARKDOWN_SUPPORT        = YES
 
 #---------------------------------------------------------------------
-# Comment style
+# Extraction & Speed Optimizations
 #---------------------------------------------------------------------
-JAVADOC_AUTOBRIEF      = YES
-QT_AUTOBRIEF           = NO
-MULTILINE_CPP_IS_BRIEF = YES
-INHERIT_DOCS           = YES
-SEPARATE_MEMBER_PAGES  = NO
+EXTRACT_ALL             = NO
+EXTRACT_PRIVATE         = NO
+EXTRACT_STATIC          = NO
+SOURCE_BROWSER          = NO
+INLINE_SOURCES          = NO
+REFERENCED_BY_RELATION  = NO
+REFERENCES_RELATION     = NO
 
 #---------------------------------------------------------------------
-# Grouping / Modules
+# Diagrams (dot)
 #---------------------------------------------------------------------
-ENABLE_GROUPING        = YES
-GROUP_GRAPHS           = YES
-DISTRIBUTE_GROUP_DOC   = YES
-
+HAVE_DOT = NO
+CALL_GRAPH = NO
+CALLER_GRAPH = NO
+CLASS_DIAGRAMS = NO
+COLLABORATION_GRAPH = NO
 #---------------------------------------------------------------------
-# Diagrams (requires Graphviz/dot)
+# Warnings
 #---------------------------------------------------------------------
-HAVE_DOT               = YES
-DOT_NUM_THREADS        = 0        # 0 = use all cores
-DOT_FONTSIZE           = 11
-DOT_TRANSPARENT        = YES
-CLASS_DIAGRAMS         = YES
-CLASS_GRAPH            = YES
-COLLABORATION_GRAPH    = YES
-INCLUDE_GRAPH          = YES
-INCLUDED_BY_GRAPH      = YES
-CALL_GRAPH             = NO
-CALLER_GRAPH           = NO
-GRAPHICAL_HIERARCHY    = YES
-DIRECTORY_GRAPH        = YES
-
-#---------------------------------------------------------------------
-# HTML output – modern & beautiful
-#---------------------------------------------------------------------
-HTML_OUTPUT            = html
-HTML_TIMESTAMP         = NO
-HTML_DYNAMIC_SECTIONS  = YES
-HTML_INDEX_NUM_ENTRIES = 0
-HTML_EXTRA_STYLESHEET  = doxygen-awesome.css \
-                         doxygen-awesome-sidebar-only.css
-DISABLE_INDEX          = NO
-GENERATE_TREEVIEW      = YES     # sidebar
-HTML_COLORSTYLE        = AUTO     # works with doxygen-awesome dark mode
-
-# Optional: copy doxygen-awesome.css into the docs/ folder
-# https://github.com/jothepro/doxygen-awesome-css
-# Then uncomment the two lines above for an instant gorgeous dark theme.
-
-#---------------------------------------------------------------------
-# Warnings & messages
-#---------------------------------------------------------------------
-QUIET                  = NO
-WARNINGS               = YES
-WARN_IF_UNDOCUMENTED   = YES
-WARN_IF_DOC_ERROR      = YES
-WARN_NO_PARAMDOC       = NO
-WARN_AS_ERROR          = NO
-
-#---------------------------------------------------------------------
-# Miscellaneous
-# Misc
-#---------------------------------------------------------------------
-ALIASES               += "license=\ref license_page"
-LAYOUT_FILE           = 
-SEARCHENGINE           = YES
-SERVER_BASED_SEARCH    = NO
+QUIET                   = NO
+WARNINGS                = YES
+WARN_IF_UNDOCUMENTED    = YES
