@@ -10,7 +10,7 @@ float get_display_dpi(int display_index) {
 axParent* axCreateWindow(char* title, int w, int h, Uint32 flags) {
 	axParent *parent = (axParent*) malloc(sizeof(axParent));
     // Compute DPI scale using the same helper
-    parent->base.dpi_scale = get_display_dpi(0);
+    parent->base.dpi_scale = 2.0;//get_display_dpi(0);
     parent->is_window = 1;
     parent->w = w;
     parent->h = h;

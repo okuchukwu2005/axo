@@ -17,20 +17,21 @@ axRadioButton *axCreateRadioButton(axParent* parent, int x, int y, int w, int h,
         printf("Invalid parent or renderer\n");
         return NULL;
     }
-    if (!current_theme) current_theme = (Theme*)&THEME_LIGHT;
+    if (!current_theme) current_theme = (Theme*)&THEME_LIGHT; // if no default theme set; use light
 
-    axRadioButton* r = (axRadioButton*)calloc(1,sizeof(axRadioButton));
+    axRadioButton* r = (axRadioButton*)calloc(1,sizeof(axRadioButton)); // allocate memory using calloc
     
         if(!r){
         	DEBUG_PRINT("failed to allocate memory for radio button\n");
         	return NULL;
         }
+        //--------- initialize radio obj --------
     r->parent     = parent;
     r->x          = x;
     r->y          = y;
     r->w          = w;
     r->h          = h;
-    r->label      = label ? strdup(label) : NULL;
+    r->label      = label ? strdup(label) : NULL; // ternary operator to store text label or set to null
     r->group_id   = group_id;
     return r;
 }
@@ -45,10 +46,13 @@ void axRenderRadioButton(axRadioButton* r)
     Base* base = &r->parent->base;
     float dpi  = base->dpi_scale;
 
-    /* ---------- DPI-SCALED VALUES ---------- */
+    /* ---------- abs x and y,  ---------- */
+    /*
+    adding parent x and y to child x and y, so if for example a child is rendered in a container, if the container moves in real time it's child will move in relation to it 
+    */
     int abs_x = r->x + r->parent->x;
-    int abs_y = r->y + r->parent->y + r->parent->title_height;
-
+    int abs_y = r->y + r->parent->y + r->parent->title_height; /* sometimes if parent (window, container) does not have a title bar then title bar height will be zero when the window is created, so adding zero to the abs_y does nothing. but if it has title bar then it must be accounted for, for precise rendering*/
+ /* ---------- DPI-SCALED VALUES ---------- */
     int sx     = (int)roundf(abs_x * dpi);
     int sy     = (int)roundf(abs_y * dpi);
     int sh     = (int)roundf(r->h * dpi);           // use height as size
@@ -59,8 +63,8 @@ void axRenderRadioButton(axRadioButton* r)
 
     /* ---------- PARENT CLIPPING (for containers) ---------- */
     if (!r->parent->is_window) {
-        Rect pr = get_parent_rect(r->parent);       // our own Rect
-        pr.x = (int)roundf(pr.x * dpi);
+        Rect pr = get_parent_rect(r->parent);       // our own Rect: like use a new rect pr (parent rect), to get the rect properties from r->parent
+        pr.x = (int)roundf(pr.x * dpi); // x of rect 
         pr.y = (int)roundf(pr.y * dpi);
         pr.w = (int)roundf(pr.w * dpi);
         pr.h = (int)roundf(pr.h * dpi);
@@ -88,8 +92,10 @@ void axRenderRadioButton(axRadioButton* r)
 
     /* ---------- LABEL (to the right, vertically centered) ---------- */
     if (r->label) {
-        int label_x = sx + sh + pad / 2;
-        int label_y = sy - (sh / 6);   // fine-tuned centering
+        int radius  = sh / 2;
+		int label_x = sx + radius + pad;
+        int text_height = ttf_font_height(global_font); // this function is a wrapper over TTF_FontHeight() from SDL, it code is in backend/sdl2_ttf.h
+       int label_y = sy - text_height / 2;
 
         draw_text_from_font(base, global_font, r->label,
                             label_x, label_y, label, ALIGN_LEFT);

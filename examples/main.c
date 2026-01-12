@@ -9,7 +9,7 @@ int main(void) {
 
     axParent *win = axCreateWindow("My Window", 1000, 700, WIN_RESIZABLE);
     // Get DPI scaling for primary display
-     float dpi = win->base.dpi_scale = get_display_dpi(0);
+     float dpi = win->base.dpi_scale;
 
       // Scale font size based on DPI
       int scaled_font_size = (int)(current_theme->default_font_size * dpi); // round to nearest int
@@ -24,7 +24,7 @@ int main(void) {
     axSetContainerProperties(container, true, "My Container", true, true);
      axRegisterContainer(container);
  
-     axParent *container2 = axCreateContainer(win, 400, 10, 400, 650);
+     axParent *container2 = axCreateContainer(win, 10, 550, 400, 650);
 // 
 //     // Enable moving, title bar, close button,
      axSetContainerProperties(container2, true, "My Second Container", true, true);

@@ -1,0 +1,1 @@
+fix dpi for radio buttion, entry and maybe, just maybe textbox
