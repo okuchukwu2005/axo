@@ -4,7 +4,7 @@
 
 // Returns DPI scale relative to standard 96 DPI
 float get_display_dpi(int display_index) {
-	return return_display_dpi(display_index);
+	return return_display_dpi(display_index); //<-- this function is found in backends/sdl2/sdl2.c
 }
 
 axParent* axCreateWindow(char* title, int w, int h, Uint32 flags) {

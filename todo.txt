@@ -1,1 +1,10 @@
-fix dpi for radio buttion, entry and maybe, just maybe textbox
+1. fix dpi for radio buttion, entry and maybe, just maybe textbox
+2. Potential limitations:
+tmp[256] in selection & cursor calculations
+Copy code
+C
+char tmp[256];
+strncpy(tmp, display + sel_start, sel_end - sel_start);
+tmp[sel_end - sel_start] = '\0';
+measure_utf8(tmp, &w, NULL);
+If selection > 255 characters, this will overflow. Use malloc instead of a fixed buffer.

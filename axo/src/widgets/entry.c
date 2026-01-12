@@ -196,8 +196,9 @@ void update_visible_text(axEntry* e)
     if (!e || !e->parent || !global_font) return;
     if (!current_theme) current_theme = (Theme*)&THEME_LIGHT;
 
-    int logical_padding = current_theme->padding;
-    int max_vis_w = e->w - 2 * logical_padding;   /* logical pixels */
+/* logical pixels */
+    float dpi = e->parent->base.dpi_scale;   // add this line
+int max_vis_w = (int)roundf((e->w - 2 * current_theme->padding) * dpi);
 
     /* ---- how many characters fit in the visible area? ---- */
     int fit_w = 0, fit_chars = 0;
