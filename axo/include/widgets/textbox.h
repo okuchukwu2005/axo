@@ -24,6 +24,7 @@ typedef struct {
     int selection_start;       // Selection anchor (-1 if no selection)
     int visible_line_start;    // Index of first visible line
     int line_height;           // Height of each line (logical, computed from font)
+    int line_height_px; 
     int is_mouse_selecting;    // Flag to track if mouse is being used to select text
 } axTextBox;
 
