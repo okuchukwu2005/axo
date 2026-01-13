@@ -12,6 +12,7 @@
 // Forward declaration for line computation using wrapper
 Line* compute_visual_lines(const char* text, int max_width, Font_ttf* font, int* num_lines);
 
+//------------------------ create function ---------------
 axTextBox *axCreateTextBox(axParent* parent, int x, int y, int w, int max_length) {
     if (!parent || !parent->base.sdl_renderer) {
         printf("Invalid parent or renderer\n");
@@ -55,12 +56,18 @@ axTextBox *axCreateTextBox(axParent* parent, int x, int y, int w, int max_length
             new_textbox->line_height = (int)roundf(current_theme->default_font_size * parent->base.dpi_scale) + current_theme->padding / 2;
         }
     } else {
-        new_textbox->line_height = (int)roundf(current_theme->default_font_size * parent->base.dpi_scale) + current_theme->padding / 2;
+        
+           float dpi = new_textbox->parent->base.dpi_scale;
+
+        new_textbox->line_height =
+    (int)roundf(current_theme->default_font_size * dpi)
+  + (int)roundf(current_theme->padding * dpi / 2.0f);
     }
 
     return new_textbox;
 }
 
+//------------------ render function -------------------
 void axRenderTextBox(axTextBox* textbox) {
     if (!textbox || !textbox->parent || !textbox->parent->base.sdl_renderer || !textbox->parent->is_open) {
         printf("Invalid textbox, renderer, or parent is not open\n");
@@ -231,17 +238,24 @@ void axRenderTextBox(axTextBox* textbox) {
     clip_end(&textbox->parent->base);
 }
 
+//---------------------- update function ---------------
 void update_visible_lines(axTextBox* textbox) {
     if (!textbox || !textbox->parent || !global_font) return;
 
-    float dpi = textbox->parent->base.dpi_scale;
     int logical_padding = current_theme->padding;
-    int max_text_width = textbox->w - 2 * logical_padding;
+float dpi = textbox->parent->base.dpi_scale;
+int border = 2; // todo, redundant?
+int border_width  = (int)roundf(2 * dpi);
+
+    int padding_px = (int)roundf(current_theme->padding * dpi);
+    int max_text_width =
+    (int)roundf(textbox->w * dpi) - 2 * (border_width + padding_px);
 
     int num_lines = 0;
     Line* lines = compute_visual_lines(textbox->text, max_text_width, global_font, &num_lines);
-    int visible_lines = (textbox->h - 2 * logical_padding) / textbox->line_height;
-
+    int visible_lines =
+ ((int)roundf(textbox->h * dpi) - 2 * (border_width + padding_px))
+ / textbox->line_height;
     int cursor_line = -1;
     for (int i = 0; i < num_lines; i++) {
         Line l = lines[i];
@@ -278,6 +292,9 @@ void axUpdateTextBox(axTextBox* textbox, axEvent* event) {
     int s_w = (int)roundf(textbox->w * dpi);
     int s_h = (int)roundf(textbox->h * dpi);
     int logical_padding = current_theme->padding;
+    int padding_px = (int)roundf(current_theme->padding * dpi);
+    
+int border_width  = (int)roundf(2 * dpi);
 
     Font_ttf* font = global_font;
 
@@ -289,17 +306,26 @@ void axUpdateTextBox(axTextBox* textbox, axEvent* event) {
             textbox->is_mouse_selecting = 1;
             textbox->selection_start = -1;
 
-            int logical_mouse_x = (int)roundf(mouseX / dpi);
-            int logical_mouse_y = (int)roundf(mouseY / dpi);
-            int click_y = logical_mouse_y - (abs_y + logical_padding);
-            int clicked_line = textbox->visible_line_start + click_y / textbox->line_height;
-            int max_text_width = textbox->w - 2 * logical_padding;
+           float dpi = textbox->parent->base.dpi_scale;
+int click_y =
+    mouseY - (s_abs_y + border_width + padding_px);
+
+int clicked_line =
+    textbox->visible_line_start + (click_y / textbox->line_height);
+
+int click_x =
+    mouseX - (s_abs_x + border_width + padding_px);
+    
+           
+            	int max_text_width =
+    (int)roundf(textbox->w * dpi) - 2 * (border_width + padding_px);
 
             int num_lines = 0;
             Line* lines = compute_visual_lines(textbox->text, max_text_width, font, &num_lines);
             if (clicked_line < num_lines) {
                 Line l = lines[clicked_line];
-                int click_x = logical_mouse_x - (abs_x + logical_padding);
+                int click_x =
+    mouseX - (s_abs_x + border_width + padding_px);
                 int cum_width = 0;
                 textbox->cursor_pos = l.start;
                 for (int j = 0; j < l.len; j++) {
@@ -333,7 +359,8 @@ void axUpdateTextBox(axTextBox* textbox, axEvent* event) {
             int logical_mouse_y = (int)roundf(mouseY / dpi);
             int click_y = logical_mouse_y - (abs_y + logical_padding);
             int clicked_line = textbox->visible_line_start + click_y / textbox->line_height;
-            int max_text_width = textbox->w - 2 * logical_padding;
+            int max_text_width =
+    (int)roundf(textbox->w * dpi) - 2 * (border_width + padding_px);
 
             int num_lines = 0;
             Line* lines = compute_visual_lines(textbox->text, max_text_width, font, &num_lines);
@@ -603,7 +630,7 @@ Line* compute_visual_lines(const char* text, int max_width, Font_ttf* font, int*
     return lines;
 }
 
-// Registration functions unchanged
+// Registration functions 
 axTextBox* textbox_widgets[MAX_TEXTBOXS];
 int textboxs_count = 0;
 void axRegisterTextBox(axTextBox* textbox) {
